@@ -42,6 +42,4 @@ class SparseColMatrix {
     std::vector<SparseVector> cols_;
 };
 
-void MulScmSv(const SparseColMatrix& scm, const SparseVector& sv, DenseVector& res);
-
 }  // namespace reshala

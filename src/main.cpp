@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <iostream>
 
-#include "reshala/linalg/sparse_matrix.h"
+#include "reshala/linalg/operators.h"
 
 using namespace reshala;
 

@@ -1,0 +1,47 @@
+#include "reshala/linalg/operators.h"
+
+#include <assert.h>
+
+namespace reshala {
+
+void dot(const SparseVector& sv1, const SparseVector& sv2, Scalar& res) {
+    assert(sv1.size() == sv2.dim());
+    res = 0;
+}
+
+void dot(const DenseVector& dv1, const SparseVector& sv2, Scalar& res) {
+    assert(dv1.size() == sv2.dim());
+    res = 0;
+    const auto& indices = sv2.indices();
+    const auto& values = sv2.values();
+
+    for (size_t i = 0; i < indices.size(); ++i) {
+        res += dv1[indices[i]] * values[i];
+    }
+}
+
+void dot(const DenseVector& dv1, const DenseVector& dv2, Scalar& res) {
+    assert(dv1.size() == dv2.size());
+    res = 0;
+    for (size_t i = 0; i < dv1.size(); ++i) {
+        res += dv1[i] * dv2[i];
+    }
+}
+
+void MulScmSv(const SparseColMatrix& scm, const SparseVector& sv, DenseVector& res) {
+    auto m = scm.GetNRows();
+    auto n = scm.GetNCols();
+    assert(n == sv.dim());
+    res.assign(m, Scalar(0));
+
+    for (Index i = 0; i < sv.size(); i++) {
+        auto ind = sv.indices()[i];
+        auto val = sv.values()[i];
+        const auto& col = scm.getCols()[ind];
+        for (Index j = 0; j < col.size(); j++) {
+            res[col.indices()[j]] += val * col.values()[j];
+        }
+    }
+}
+
+}  // namespace reshala
