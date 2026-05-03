@@ -31,6 +31,7 @@ endif()
 # Library
 # ----------------------------------------
 set(LIB_SOURCES
+    src/io/lp/lp_reader.cpp
     src/linalg/dense_vector.cpp
     src/linalg/sparse_vector.cpp
     src/linalg/operators.cpp

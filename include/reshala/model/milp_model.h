@@ -12,7 +12,7 @@ struct Bound {
 
 class MilpModel {
    public:
-    MilpModel() = default;
+    MilpModel() {}
 
    private:
     Objective obj;

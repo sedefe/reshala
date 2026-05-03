@@ -1,7 +1,10 @@
 #pragma once
 
 #include "reshala/linalg/dense_vector.h"
+#include "reshala/linalg/operators.h"
 #include "reshala/linalg/sparse_vector.h"
+
+namespace reshala {
 
 enum class Sense { kMin, kMax };
 
@@ -19,9 +22,17 @@ class Objective {
     Objective& operator=(const Objective& other) = default;
     Objective& operator=(Objective&& other) noexcept = default;
 
-    Scalar evaluate(const DenseVector& x) const { return dot(coefficients, x) + c0; }
+    Scalar evaluate(const DenseVector& x) const {
+        Scalar res = 0;
+        dot(coefficients, x, res);
+        return res + c0;
+    }
 
-    Scalar evaluate(const SparseVector& x) const { return dot(coefficients, x) + c0; }
+    Scalar evaluate(const SparseVector& x) const {
+        Scalar res = 0;
+        dot(coefficients, x, res);
+        return res + c0;
+    }
 
     friend std::ostream& operator<<(std::ostream& os, const Objective& obj) {
         os << "Objective: ";
@@ -36,3 +47,5 @@ class Objective {
         return os;
     }
 };
+
+}  // namespace reshala

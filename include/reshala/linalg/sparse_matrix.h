@@ -12,7 +12,7 @@ namespace reshala {
 
 class SparseRowMatrix {
    public:
-    SparseRowMatrix(Index m, Index n) : m_(m), n_(n), rows_(m, SparseVector(n)) {}
+    SparseRowMatrix(Index m = 0, Index n = 0) : m_(m), n_(n), rows_(m, SparseVector(n)) {}
 
     Index GetNRows() const { return m_; }
     Index GetNCols() const { return n_; }
@@ -28,7 +28,7 @@ class SparseRowMatrix {
 
 class SparseColMatrix {
    public:
-    SparseColMatrix(Index m, Index n) : m_(m), n_(n), cols_(n, SparseVector(m)) {}
+    SparseColMatrix(Index m = 0, Index n = 0) : m_(m), n_(n), cols_(n, SparseVector(m)) {}
 
     Index GetNRows() const { return m_; }
     Index GetNCols() const { return n_; }

@@ -1,25 +1,18 @@
 #include <cstdio>
 #include <iostream>
 
-#include "reshala/linalg/operators.h"
+#include "reshala/io/lp/lp_reader.h"
 
 using namespace reshala;
 
 int main(int argc, char** argv) {
-    Index m = 3;
-    Index n = 3;
-    SparseColMatrix scm(m, n);
+    if (argc != 2) {
+        printf("Usage: %s FILE\n", argv[0]);
+        exit(0);
+    }
 
-    std::vector<SparseVector>& cols = scm.getCols();
-    cols[0].push(0, 1);
-    cols[1].push(1, 1);
-    cols[2].push(2, 1);
+    LpReader reader;
+    reader.read(argv[1]);
 
-    SparseVector sv(n, {0, 1, 2}, {2, 3, 4});
-    DenseVector res(n);
-
-    MulScmSv(scm, sv, res);
-
-    std::cout << sv;
-    std::cout << res;
+    printf("Finished\n");
 }
