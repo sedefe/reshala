@@ -14,8 +14,16 @@ class SparseRowMatrix {
    public:
     SparseRowMatrix(Index m = 0, Index n = 0) : m_(m), n_(n), rows_(m, SparseVector(n)) {}
 
-    Index GetNRows() const { return m_; }
-    Index GetNCols() const { return n_; }
+    Index getNRows() const { return m_; }
+    Index getNCols() const { return n_; }
+    Index getNnz() {
+        Index nnz = 0;
+        for (const auto& row : getRows()) {
+            nnz += row.size();
+        }
+        return nnz;
+    }
+
     void resize(Index m, Index n) {
         m_ = m;
         n_ = n;
@@ -35,8 +43,16 @@ class SparseColMatrix {
    public:
     SparseColMatrix(Index m = 0, Index n = 0) : m_(m), n_(n), cols_(n, SparseVector(m)) {}
 
-    Index GetNRows() const { return m_; }
-    Index GetNCols() const { return n_; }
+    Index getNRows() const { return m_; }
+    Index getNCols() const { return n_; }
+    Index getNnz() {
+        Index nnz = 0;
+        for (const auto& col : getCols()) {
+            nnz += col.size();
+        }
+        return nnz;
+    }
+
     void resize(Index m, Index n) {
         m_ = m;
         n_ = n;
@@ -51,5 +67,7 @@ class SparseColMatrix {
     Index n_;
     std::vector<SparseVector> cols_;
 };
+
+void Srm2Scm(const SparseRowMatrix& srm, SparseColMatrix& scm);
 
 }  // namespace reshala

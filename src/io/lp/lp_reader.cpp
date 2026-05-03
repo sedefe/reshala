@@ -32,7 +32,7 @@ LpReadResult LpReader::read(const char* fname) {
             current_state = ParseState::kCon;
             continue;
         } else if (lower_line.find("bounds") != std::string::npos) {
-            finalize();
+            finalize(); // Now the size is known
             current_state = ParseState::kBnd;
             continue;
         } else if (lower_line.find("binaries") != std::string::npos) {
@@ -167,10 +167,11 @@ void LpReader::parse_generals(const std::vector<std::string>& tokens) {
 }
 
 void LpReader::finalize() {
-    // Todo: create Ac
     size_t n_cons = model.getAr().getRows().size();
     size_t n_vars = var_names.size();
     model.resize(n_cons, n_vars);
+
+    Srm2Scm(model.getAr(), model.getAc());
 }
 
 void LpReader::parse_lincomb(const std::vector<std::string>& tokens, std::vector<Monom>& lhs,

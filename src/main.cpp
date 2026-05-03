@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "reshala/io/lp/lp_reader.h"
+#include "reshala/lp/dual_simplex.h"
 
 using namespace reshala;
 
@@ -16,4 +17,8 @@ int main(int argc, char** argv) {
     auto model = reader.GetModel();
 
     std::cout << model;
+
+    printf("%d %d\n", model.getAc().getNnz(), model.getAr().getNnz());
+
+    DualRevisedSimplex drs(model);
 }

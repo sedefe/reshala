@@ -14,8 +14,8 @@ class MilpModel {
    public:
     MilpModel() {}
 
-    Index GetNRows() const { return Ac.GetNCols(); }
-    Index GetNCols() const { return Ac.GetNRows(); }
+    Index GetNRows() const { return Ac.getNCols(); }
+    Index GetNCols() const { return Ac.getNRows(); }
 
     const Objective& getObj() const { return obj; }
     Objective& getObj() { return obj; }

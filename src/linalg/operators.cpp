@@ -29,8 +29,8 @@ void dot(const DenseVector& dv1, const DenseVector& dv2, Scalar& res) {
 }
 
 void MulScmSv(const SparseColMatrix& scm, const SparseVector& sv, DenseVector& res) {
-    auto m = scm.GetNRows();
-    auto n = scm.GetNCols();
+    auto m = scm.getNRows();
+    auto n = scm.getNCols();
     assert(n == sv.dim());
     res.assign(m, Scalar(0));
 
@@ -43,5 +43,19 @@ void MulScmSv(const SparseColMatrix& scm, const SparseVector& sv, DenseVector& r
         }
     }
 }
+
+void MulDvDm(const DenseVector& dv, const DenseMatrix& dm, DenseVector& res)  {
+    auto m = dm.GetNRows();
+    auto n = dm.GetNCols();
+
+    res.assign(n, 0.0);
+    for (Index i = 0; i<m; i++) {
+        const Scalar * row = dm.rowView(i);
+        for (Index j=0; j<n; j++) {
+            res[j] += row[j] * dv[i];
+        }
+    }
+}
+
 
 }  // namespace reshala

@@ -34,8 +34,10 @@ set(LIB_SOURCES
     src/io/lp/lp_reader.cpp
     src/linalg/dense_vector.cpp
     src/linalg/sparse_vector.cpp
+    src/linalg/sparse_matrix.cpp
     src/linalg/operators.cpp
     src/model/milp_model.cpp
+    src/lp/dual_simplex.cpp
 )
 set(EXE_SOURCES
     src/main.cpp
