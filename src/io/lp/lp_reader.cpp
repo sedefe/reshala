@@ -1,5 +1,7 @@
 #include "reshala/io/lp/lp_reader.h"
 
+#include <iostream>
+
 namespace reshala {
 
 std::vector<std::string> LpReader::tokenize_line(const std::string& line) {
@@ -44,10 +46,14 @@ LpReadResult LpReader::read(const char* fname) {
     while (std::getline(file, line)) {
         if (line.empty() || line[0] == '\\') continue;
 
-        std::string lower_line = to_lowercase(line);  // implement this helper
+        std::string lower_line = to_lowercase(line);
 
-        if (lower_line.find("min") != std::string::npos ||
-            lower_line.find("max") != std::string::npos) {
+        if (lower_line.find("min") != std::string::npos) {
+            model.getObj().sense = Sense::kMin;
+            current_state = ParseState::kObj;
+            continue;
+        } else if (lower_line.find("max") != std::string::npos) {
+            model.getObj().sense = Sense::kMax;
             current_state = ParseState::kObj;
             continue;
         } else if (lower_line.find("so that") != std::string::npos ||
@@ -66,8 +72,6 @@ LpReadResult LpReader::read(const char* fname) {
         } else if (lower_line.find("end") != std::string::npos) {
             current_state = ParseState::kDon;
             break;
-        } else {
-            return LpReadResult::kParseError;
         }
 
         auto tokens = tokenize_line(line);
@@ -92,16 +96,43 @@ LpReadResult LpReader::read(const char* fname) {
             default:
                 break;
         }
-
-        file.close();
-        return LpReadResult::kOk;
     }
+    file.close();
+    return LpReadResult::kOk;
 }
 
-void LpReader::parse_objective(const std::vector<std::string>&) {}
-void LpReader::parse_constraint(const std::vector<std::string>&) {}
-void LpReader::parse_bounds(const std::vector<std::string>&) {}
-void LpReader::parse_binaries(const std::vector<std::string>&) {}
-void LpReader::parse_generals(const std::vector<std::string>&) {}
+void LpReader::parse_objective(const std::vector<std::string>& tokens) {
+    auto monomes = parse_to_monomes(tokens, var_names);
+    Objective& obj = model.getObj();
+    model.getObj().coefficients.resize(var_names.size());
+    obj.c0 = 0;
+    for (const auto& m : monomes) {
+        obj.coefficients[m.index] = m.coeff;
+    }
+}
+void LpReader::parse_constraint(const std::vector<std::string>& tokens) {
+    printf("\nCons:\n");
+    for (const auto& str : tokens) {
+        std::cout << str << std::endl;
+    }
+}
+void LpReader::parse_bounds(const std::vector<std::string>& tokens) {
+    printf("\nBounds:\n");
+    for (const auto& str : tokens) {
+        std::cout << str << std::endl;
+    }
+}
+void LpReader::parse_binaries(const std::vector<std::string>& tokens) {
+    printf("\nBins:\n");
+    for (const auto& str : tokens) {
+        std::cout << str << std::endl;
+    }
+}
+void LpReader::parse_generals(const std::vector<std::string>& tokens) {
+    printf("\nGenerals:\n");
+    for (const auto& str : tokens) {
+        std::cout << str << std::endl;
+    }
+}
 
 }  // namespace reshala

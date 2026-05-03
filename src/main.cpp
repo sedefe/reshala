@@ -13,6 +13,8 @@ int main(int argc, char** argv) {
 
     LpReader reader;
     reader.read(argv[1]);
+    auto model = reader.GetModel();
 
     printf("Finished\n");
+    std::cout << model.getObj();
 }

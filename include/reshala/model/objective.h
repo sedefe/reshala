@@ -41,9 +41,19 @@ class Objective {
         } else {
             os << "Maximize ";
         }
+        for (Index i = 0; i < obj.coefficients.size(); i++) {
+            if (i > 0) {
+                os << " + ";
+            }
+            if (obj.coefficients[i] != 0) {
+                os << obj.coefficients[i] << " x[" << i << "] ";
+            }
+        }
+        if (obj.c0 != 0) {
+            os << " + " << obj.c0;
+        }
 
-        // Print coefficients
-        os << obj.coefficients << " * x + " << obj.c0;
+        os << std::endl;
         return os;
     }
 };

@@ -22,6 +22,7 @@ class LpReader {
 
    private:
     MilpModel model;
+    NameMapper var_names;
 
     std::vector<std::string> tokenize_line(const std::string& line);
 

@@ -14,6 +14,21 @@ class MilpModel {
    public:
     MilpModel() {}
 
+    const Objective& getObj() const { return obj; }
+    Objective& getObj() { return obj; }
+
+    const SparseColMatrix& getAc() const { return Ac; }
+    SparseColMatrix& getAc() { return Ac; }
+
+    const SparseRowMatrix& getAr() const { return Ar; }
+    SparseRowMatrix& getAr() { return Ar; }
+
+    const std::vector<Bound>& getRhs() const { return rhs; }
+    std::vector<Bound>& getRhs() { return rhs; }
+
+    const std::vector<Bound>& getBounds() const { return bounds; }
+    std::vector<Bound>& getBounds() { return bounds; }
+
    private:
     Objective obj;
     SparseColMatrix Ac;
