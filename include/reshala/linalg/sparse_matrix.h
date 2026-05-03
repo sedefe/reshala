@@ -16,6 +16,11 @@ class SparseRowMatrix {
 
     Index GetNRows() const { return m_; }
     Index GetNCols() const { return n_; }
+    void resize(Index m, Index n) {
+        m_ = m;
+        n_ = n;
+        rows_.resize(m, n);
+    }
 
     std::vector<SparseVector>& getRows() { return rows_; }
     const std::vector<SparseVector>& getRows() const { return rows_; }
@@ -32,6 +37,11 @@ class SparseColMatrix {
 
     Index GetNRows() const { return m_; }
     Index GetNCols() const { return n_; }
+    void resize(Index m, Index n) {
+        m_ = m;
+        n_ = n;
+        cols_.resize(n, m);
+    }
 
     std::vector<SparseVector>& getCols() { return cols_; }
     const std::vector<SparseVector>& getCols() const { return cols_; }

@@ -16,6 +16,24 @@ std::string to_lowercase(const std::string& s) {
     return res;
 }
 
+std::vector<std::string> tokenize_line(const std::string& line) {
+    std::vector<std::string> tokens;
+    std::string token;
+    for (size_t i = 0; i < line.size(); ++i) {
+        char c = line[i];
+        if (std::isspace(c)) {
+            if (!token.empty()) {
+                tokens.push_back(token);
+                token.clear();
+            }
+        } else {
+            token += c;
+        }
+    }
+    if (!token.empty()) tokens.push_back(token);
+    return tokens;
+}
+
 struct NameMapper {
     std::unordered_map<std::string, size_t> name_to_index;
     std::vector<std::string> index_to_name;
@@ -36,38 +54,5 @@ struct NameMapper {
 
     size_t size() const { return index_to_name.size(); }
 };
-
-struct Monom {
-    Scalar coeff;
-    size_t index;
-};
-
-std::vector<Monom> parse_to_monomes(const std::vector<std::string>& tokens, NameMapper& names) {
-    std::vector<Monom> result;
-
-    Scalar sign = 1.0;
-    Scalar coeff = 1.0;
-
-    for (size_t i = 0; i < tokens.size(); ++i) {
-        const std::string& token = tokens[i];
-        // printf("[%d] %s\n", i, token.c_str());
-
-        if (token == "+") {
-            sign = 1.0;
-        } else if (token == "-") {
-            sign = -1.0;
-        } else if (isdigit(token[0]) || token[0] == '.') {
-            Scalar num = std::stod(token);
-            coeff = sign * num;
-        } else {
-            size_t idx = names.get_index(token);
-            result.push_back({coeff, idx});
-
-            sign = 1.0;
-            coeff = 1.0;
-        }
-    }
-    return result;
-}
 
 }  // namespace reshala

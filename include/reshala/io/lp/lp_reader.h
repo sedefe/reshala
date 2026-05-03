@@ -12,6 +12,25 @@ namespace reshala {
 
 enum class LpReadResult { kOk, kFsError, kParseError };
 enum class ParseState { kObj, kCon, kBnd, kBin, kGen, kDon, kNon };
+enum class ExpType { kGe, kLe, kEq, kNon };
+ExpType char2exptype(char c) {
+    switch (c) {
+        case '<':
+            return ExpType::kLe;
+        case '>':
+            return ExpType::kGe;
+        case '=':
+            return ExpType::kEq;
+        default:
+            assert(false);
+            return ExpType::kNon;
+    }
+}
+
+struct Monom {
+    Scalar coeff;
+    size_t index;
+};
 
 class LpReader {
    public:
@@ -24,13 +43,15 @@ class LpReader {
     MilpModel model;
     NameMapper var_names;
 
-    std::vector<std::string> tokenize_line(const std::string& line);
-
     void parse_objective(const std::vector<std::string>&);
     void parse_constraint(const std::vector<std::string>&);
     void parse_bounds(const std::vector<std::string>&);
     void parse_binaries(const std::vector<std::string>&);
     void parse_generals(const std::vector<std::string>&);
+    void finalize();
+
+    void parse_lincomb(const std::vector<std::string>& tokens, std::vector<Monom>& lhs,
+                       size_t n = -1);
 };
 
 }  // namespace reshala

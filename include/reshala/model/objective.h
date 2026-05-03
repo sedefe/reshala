@@ -10,11 +10,11 @@ enum class Sense { kMin, kMax };
 
 class Objective {
    public:
-    DenseVector coefficients;  // Coefficients for decision variables
-    Scalar c0;                 // Constant term
-    Sense sense;               // Minimize or maximize
+    DenseVector coefficients;
+    Scalar c0;
+    Sense orig_sense;  // for output only, we actually always minimize
 
-    Objective() : coefficients(), c0(0.0), sense(Sense::kMin) {}
+    Objective() : coefficients(), c0(0.0), orig_sense(Sense::kMin) {}
 
     Objective(const Objective& other) = default;
     Objective(Objective&& other) noexcept = default;
@@ -35,25 +35,26 @@ class Objective {
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Objective& obj) {
-        os << "Objective: ";
-        if (obj.sense == Sense::kMin) {
-            os << "Minimize ";
+        Scalar sense = 0;
+        if (obj.orig_sense == Sense::kMin) {
+            os << "Minimize\n";
+            sense = 1.;
         } else {
-            os << "Maximize ";
+            os << "Maximize\n";
+            sense = -1.;
         }
         for (Index i = 0; i < obj.coefficients.size(); i++) {
             if (i > 0) {
                 os << " + ";
             }
             if (obj.coefficients[i] != 0) {
-                os << obj.coefficients[i] << " x[" << i << "] ";
+                os << sense * obj.coefficients[i] << " x[" << i << "] ";
             }
         }
         if (obj.c0 != 0) {
             os << " + " << obj.c0;
         }
 
-        os << std::endl;
         return os;
     }
 };

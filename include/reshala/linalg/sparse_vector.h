@@ -30,6 +30,11 @@ class SparseVector {
         values_.clear();
     }
 
+    void reserve(size_t n) {
+        indices_.reserve(n);
+        values_.reserve(n);
+    }
+
     void push(Index i, Scalar x) {
         indices_.push_back(i);
         values_.push_back(x);

@@ -35,6 +35,7 @@ set(LIB_SOURCES
     src/linalg/dense_vector.cpp
     src/linalg/sparse_vector.cpp
     src/linalg/operators.cpp
+    src/model/milp_model.cpp
 )
 set(EXE_SOURCES
     src/main.cpp

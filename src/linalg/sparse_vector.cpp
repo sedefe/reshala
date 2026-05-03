@@ -4,7 +4,7 @@ namespace reshala {
 
 std::ostream& operator<<(std::ostream& os, const SparseVector& sv) {
     if (sv.indices_.empty()) {
-        os << "0\n";
+        os << "0";
         return os;
     }
 
@@ -14,7 +14,6 @@ std::ostream& operator<<(std::ostream& os, const SparseVector& sv) {
         }
         os << sv.values_[i] << " * x[" << sv.indices_[i] << "]";
     }
-    os << "\n";
 
     return os;
 }
