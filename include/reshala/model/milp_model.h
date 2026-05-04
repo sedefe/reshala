@@ -1,14 +1,10 @@
 #pragma once
 
 #include "reshala/linalg/sparse_matrix.h"
+#include "reshala/model/domain.h"
 #include "reshala/model/objective.h"
 
 namespace reshala {
-
-struct Bound {
-    Scalar le = -kInf;
-    Scalar ri = kInf;
-};
 
 class MilpModel {
    public:
@@ -17,35 +13,31 @@ class MilpModel {
     Index GetNRows() const { return Ac.getNCols(); }
     Index GetNCols() const { return Ac.getNRows(); }
 
-    const Objective& getObj() const { return obj; }
-    Objective& getObj() { return obj; }
+    const Objective& GetObj() const { return obj; }
+    Objective& GetObj() { return obj; }
 
-    const SparseColMatrix& getAc() const { return Ac; }
-    SparseColMatrix& getAc() { return Ac; }
+    const SparseColMatrix& GetAc() const { return Ac; }
+    SparseColMatrix& GetAc() { return Ac; }
 
-    const SparseRowMatrix& getAr() const { return Ar; }
-    SparseRowMatrix& getAr() { return Ar; }
+    const SparseRowMatrix& GetAr() const { return Ar; }
+    SparseRowMatrix& GetAr() { return Ar; }
 
-    const std::vector<Bound>& getRhs() const { return rhs; }
-    std::vector<Bound>& getRhs() { return rhs; }
+    const std::vector<Bounds>& GetRhs() const { return rhs; }
+    std::vector<Bounds>& GetRhs() { return rhs; }
 
-    const std::vector<Bound>& getBounds() const { return bounds; }
-    std::vector<Bound>& getBounds() { return bounds; }
+    const Domain& GetVars() const { return vars; }
+    Domain& GetVars() { return vars; }
 
-    const std::vector<bool>& getIntegrality() const { return integrality; }
-    std::vector<bool>& getIntegrality() { return integrality; }
-
-    void resize(Index m, Index n) {
+    void Resize(Index m, Index n) {
         obj.coefficients.resize(n);
-        Ac.resize(m, n);
-        Ar.resize(m, n);
+        Ac.Resize(m, n);
+        Ar.Resize(m, n);
         rhs.resize(m);
-        bounds.resize(n);
-        integrality.resize(n);
+        vars.Resize(n);
     }
 
-    void PrepareConstraint(const SparseVector& lhs, const Bound& rhs) {
-        this->Ar.getRows().push_back(lhs);
+    void PrepareConstraint(const SparseVector& lhs, const Bounds& rhs) {
+        this->Ar.GetRows().push_back(lhs);
         this->rhs.push_back(rhs);
     }
 
@@ -55,9 +47,8 @@ class MilpModel {
     Objective obj;
     SparseColMatrix Ac;
     SparseRowMatrix Ar;
-    std::vector<Bound> rhs;
-    std::vector<Bound> bounds;
-    std::vector<bool> integrality;
+    std::vector<Bounds> rhs;
+    Domain vars;
 };
 
 }  // namespace reshala

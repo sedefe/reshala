@@ -18,7 +18,5 @@ int main(int argc, char** argv) {
 
     std::cout << model;
 
-    printf("%d %d\n", model.getAc().getNnz(), model.getAr().getNnz());
-
     DualRevisedSimplex drs(model);
 }

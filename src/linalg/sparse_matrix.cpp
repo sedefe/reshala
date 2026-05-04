@@ -7,7 +7,7 @@ void Srm2Scm(const SparseRowMatrix& srm, SparseColMatrix& scm) {
     auto m = srm.getNRows();
     auto n = srm.getNCols();
     for (Index i = 0; i < m; ++i) {
-        const auto& row = srm.getRows()[i];
+        const auto& row = srm.GetRows()[i];
         const auto& indices = row.indices();
         const auto& values = row.values();
 
@@ -15,7 +15,7 @@ void Srm2Scm(const SparseRowMatrix& srm, SparseColMatrix& scm) {
             auto col = indices[j];
             auto value = values[j];
 
-            scm.getCols()[col].push(i, value);
+            scm.GetCol(col).Push(i, value);
         }
     }
 }

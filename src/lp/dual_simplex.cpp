@@ -1,4 +1,5 @@
 #include "reshala/lp/dual_simplex.h"
+
 #include "reshala/linalg/operators.h"
 
 namespace reshala {
@@ -18,9 +19,9 @@ DualRevisedSimplex::DualRevisedSimplex(MilpModel& model_)
 void DualRevisedSimplex::init() {
     // basic -> non_basis -> c_n -> x_n -> x_b
 
-    Binv.resizeAsZero(m, m);
+    Binv.ResizeAsZero(m, m);
     for (Index iv = 0; iv < m; iv++) {
-        Binv.rowView(iv)[iv] = 1;
+        Binv.RowView(iv)[iv] = 1;
     }
 
     for (Index iv = 0; iv < m; iv++) {
@@ -33,17 +34,30 @@ void DualRevisedSimplex::init() {
     c_n.assign(n, 0);
     for (Index ic = 0; ic < n; ic++) {
         if (non_basis[ic] < n) {
-            c_n[ic] = model.getObj().coefficients[non_basis[ic]];
+            c_n[ic] = model.GetObj().coefficients[non_basis[ic]];
         }
     }
     c_b.assign(m, 0);
     for (Index iv = 0; iv < m; iv++) {
         if (basis[iv] < n) {
-            c_b[iv] = model.getObj().coefficients[basis[iv]];
+            c_b[iv] = model.GetObj().coefficients[basis[iv]];
         }
     }
+    // xb = -Bi N xn
+    // cn = [cn - cb Bi N]
     DenseVector c_bb(m);
     MulDvDm(c_b, Binv, c_bb);
+    for (Index ic = 0; ic++; ic < n) {
+        if (non_basis[ic] < n) {
+            const SparseVector& col = model.GetAc().GetCol(non_basis[ic]);
+            Scalar d;
+            dot(c_bb, col, d);
+            c_n[ic] -= d;
+        } else {
+            c_n[ic] -= c_bb[ic - n];
+        }
+    }
+
 
 }
 
@@ -79,7 +93,7 @@ void DualRevisedSimplex::chuzr() {
     Scalar infeasibility;
 
     for (Index iv = 0; iv < m; iv++) {
-        const Bound& bnd = model.getBounds()[basis[iv]];
+        const Bounds& bnd = model.GetVars().bounds[basis[iv]];
         infeasibility = std::max(x_b[iv] - bnd.ri, bnd.le - x_b[iv]);
     }
 }

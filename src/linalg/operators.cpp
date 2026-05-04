@@ -5,7 +5,7 @@
 namespace reshala {
 
 void dot(const SparseVector& sv1, const SparseVector& sv2, Scalar& res) {
-    assert(sv1.size() == sv2.dim());
+    assert(sv1.Size() == sv2.dim());
     res = 0;
 }
 
@@ -34,11 +34,11 @@ void MulScmSv(const SparseColMatrix& scm, const SparseVector& sv, DenseVector& r
     assert(n == sv.dim());
     res.assign(m, Scalar(0));
 
-    for (Index i = 0; i < sv.size(); i++) {
+    for (Index i = 0; i < sv.Size(); i++) {
         auto ind = sv.indices()[i];
         auto val = sv.values()[i];
-        const auto& col = scm.getCols()[ind];
-        for (Index j = 0; j < col.size(); j++) {
+        const auto& col = scm.GetCol(ind);
+        for (Index j = 0; j < col.Size(); j++) {
             res[col.indices()[j]] += val * col.values()[j];
         }
     }
@@ -50,7 +50,7 @@ void MulDvDm(const DenseVector& dv, const DenseMatrix& dm, DenseVector& res)  {
 
     res.assign(n, 0.0);
     for (Index i = 0; i<m; i++) {
-        const Scalar * row = dm.rowView(i);
+        const Scalar * row = dm.RowView(i);
         for (Index j=0; j<n; j++) {
             res[j] += row[j] * dv[i];
         }

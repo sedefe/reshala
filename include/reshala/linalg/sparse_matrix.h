@@ -18,20 +18,23 @@ class SparseRowMatrix {
     Index getNCols() const { return n_; }
     Index getNnz() {
         Index nnz = 0;
-        for (const auto& row : getRows()) {
-            nnz += row.size();
+        for (const auto& row : GetRows()) {
+            nnz += row.Size();
         }
         return nnz;
     }
 
-    void resize(Index m, Index n) {
+    void Resize(Index m, Index n) {
         m_ = m;
         n_ = n;
         rows_.resize(m, n);
     }
 
-    std::vector<SparseVector>& getRows() { return rows_; }
-    const std::vector<SparseVector>& getRows() const { return rows_; }
+    std::vector<SparseVector>& GetRows() { return rows_; }
+    const std::vector<SparseVector>& GetRows() const { return rows_; }
+
+    SparseVector& GetRow(Index i) { return rows_[i]; }
+    const SparseVector& GetRow(Index i) const { return rows_[i]; }
 
    private:
     Index m_;
@@ -47,20 +50,23 @@ class SparseColMatrix {
     Index getNCols() const { return n_; }
     Index getNnz() {
         Index nnz = 0;
-        for (const auto& col : getCols()) {
-            nnz += col.size();
+        for (const auto& col : GetCols()) {
+            nnz += col.Size();
         }
         return nnz;
     }
 
-    void resize(Index m, Index n) {
+    void Resize(Index m, Index n) {
         m_ = m;
         n_ = n;
         cols_.resize(n, m);
     }
 
-    std::vector<SparseVector>& getCols() { return cols_; }
-    const std::vector<SparseVector>& getCols() const { return cols_; }
+    std::vector<SparseVector>& GetCols() { return cols_; }
+    const std::vector<SparseVector>& GetCols() const { return cols_; }
+
+    SparseVector& GetCol(Index i) { return cols_[i]; }
+    const SparseVector& GetCol(Index i) const { return cols_[i]; }
 
    private:
     Index m_;

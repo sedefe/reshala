@@ -9,8 +9,8 @@ std::ostream& operator<<(std::ostream& os, const MilpModel& model) {
     Index m = model.GetNRows();
     Index n = model.GetNCols();
     for (Index i = 0; i < m; i++) {
-        const SparseVector& lhs = model.Ar.getRows()[i];
-        const Bound& rhs = model.rhs[i];
+        const SparseVector& lhs = model.Ar.GetRows()[i];
+        const Bounds& rhs = model.rhs[i];
         if (rhs.le != -kInf) {
             os << lhs << " >= " << rhs.le << std::endl;
         }
@@ -21,7 +21,7 @@ std::ostream& operator<<(std::ostream& os, const MilpModel& model) {
 
     os << "Bounds\n";
     for (Index i = 0; i < n; i++) {
-        const Bound & bnd = model.bounds[i];
+        const Bounds & bnd = model.GetVars().bounds[i];
         if (bnd.le != -kInf) {
             os << "x[" << i << "] >= " << bnd.le << std::endl;
         }
@@ -32,7 +32,7 @@ std::ostream& operator<<(std::ostream& os, const MilpModel& model) {
 
     os << "Generals\n";
     for (Index i = 0; i < n; i++) {
-        if (model.integrality[i]) {
+        if (model.GetVars().integrality[i]) {
             os << i << " ";
         }
     } 

@@ -15,18 +15,18 @@ class DenseMatrix {
     Index GetNRows() const { return m_; }
     Index GetNCols() const { return n_; }
 
-    void resizeAsZero(Index m, Index n) {
+    void ResizeAsZero(Index m, Index n) {
         m_ = m;
         n_ = n;
         data_.assign(m_ * n_, 0.0);
     }
 
-    Scalar* rowView(Index i) {
+    Scalar* RowView(Index i) {
         assert(i < m_);
         return data_.data() + i * n_;
     }
 
-    const Scalar* rowView(Index i) const {
+    const Scalar* RowView(Index i) const {
         assert(i < m_);
         return data_.data() + i * n_;
     }

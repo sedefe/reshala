@@ -16,26 +16,26 @@ class SparseVector {
     // Build from unsorted or sorted lists (caller guarantees sorted & unique? we sort)
     SparseVector(Index dim, const std::vector<Index> &indices, const std::vector<Scalar> &values) {
         dim_ = dim;
-        assign(indices, values);
+        Assign(indices, values);
     }
 
-    Scalar get(Index idx) const {
-        auto pos = findIndex(idx);
+    Scalar At(Index idx) const {
+        auto pos = FindIndex(idx);
         return (pos != indices_.end()) ? values_[pos - indices_.begin()] : Scalar(0);
     }
 
-    size_t size() const { return indices_.size(); }
-    void clear() {
+    size_t Size() const { return indices_.size(); }
+    void Clear() {
         indices_.clear();
         values_.clear();
     }
 
-    void reserve(size_t n) {
+    void Reserve(size_t n) {
         indices_.reserve(n);
         values_.reserve(n);
     }
 
-    void push(Index i, Scalar x) {
+    void Push(Index i, Scalar x) {
         indices_.push_back(i);
         values_.push_back(x);
     }
@@ -45,7 +45,7 @@ class SparseVector {
     Index dim() const { return dim_; }
 
     // ----- modify whole structure -----
-    void assign(const std::vector<Index> &indices, const std::vector<Scalar> &values) {
+    void Assign(const std::vector<Index> &indices, const std::vector<Scalar> &values) {
         // copy and sort by index, merging duplicates by summing values
         std::vector<std::pair<Index, Scalar>> pairs;
         pairs.reserve(indices.size());
@@ -76,19 +76,19 @@ class SparseVector {
     std::vector<Index> indices_;
     std::vector<Scalar> values_;
 
-    typename std::vector<Index>::const_iterator findIndex(Index idx) const {
+    typename std::vector<Index>::const_iterator FindIndex(Index idx) const {
         return std::lower_bound(indices_.begin(), indices_.end(), idx);
     }
-    typename std::vector<Index>::iterator findIndex(Index idx) {
+    typename std::vector<Index>::iterator FindIndex(Index idx) {
         return std::lower_bound(indices_.begin(), indices_.end(), idx);
     }
 
-    void erase(size_t pos) {
+    void Erase(size_t pos) {
         indices_.erase(indices_.begin() + pos);
         values_.erase(values_.begin() + pos);
     }
 
-    void insert(Index idx, Scalar val, typename std::vector<Index>::iterator pos) {
+    void Insert(Index idx, Scalar val, typename std::vector<Index>::iterator pos) {
         size_t i = pos - indices_.begin();
         indices_.insert(pos, idx);
         values_.insert(values_.begin() + i, val);

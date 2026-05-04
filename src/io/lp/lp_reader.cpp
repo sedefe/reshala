@@ -20,11 +20,11 @@ LpReadResult LpReader::read(const char* fname) {
         std::string lower_line = to_lowercase(line);
 
         if (lower_line.find("min") != std::string::npos) {
-            model.getObj().orig_sense = Sense::kMin;
+            model.GetObj().orig_sense = Sense::kMin;
             current_state = ParseState::kObj;
             continue;
         } else if (lower_line.find("max") != std::string::npos) {
-            model.getObj().orig_sense = Sense::kMax;
+            model.GetObj().orig_sense = Sense::kMax;
             current_state = ParseState::kObj;
             continue;
         } else if (lower_line.find("so that") != std::string::npos ||
@@ -32,7 +32,7 @@ LpReadResult LpReader::read(const char* fname) {
             current_state = ParseState::kCon;
             continue;
         } else if (lower_line.find("bounds") != std::string::npos) {
-            finalize(); // Now the size is known
+            finalize();  // Now the size is known
             current_state = ParseState::kBnd;
             continue;
         } else if (lower_line.find("binaries") != std::string::npos) {
@@ -77,10 +77,10 @@ void LpReader::parse_objective(const std::vector<std::string>& tokens) {
     std::vector<Monom> lhs;
     parse_lincomb(tokens, lhs);
 
-    Objective& obj = model.getObj();
-    model.getObj().coefficients.resize(var_names.size());
+    Objective& obj = model.GetObj();
+    model.GetObj().coefficients.resize(var_names.size());
     obj.c0 = 0;  // Todo: parse c0
-    if (model.getObj().orig_sense == Sense::kMin) {
+    if (model.GetObj().orig_sense == Sense::kMin) {
         for (const auto& m : lhs) {
             obj.coefficients[m.index] = m.coeff;
         }
@@ -93,7 +93,7 @@ void LpReader::parse_objective(const std::vector<std::string>& tokens) {
 
 void LpReader::parse_constraint(const std::vector<std::string>& tokens) {
     std::vector<Monom> lhs;
-    Bound rhs;
+    Bounds rhs;
     parse_lincomb(tokens, lhs, tokens.size() - 2);
 
     const std::string& exp_token = tokens[tokens.size() - 2];
@@ -119,9 +119,9 @@ void LpReader::parse_constraint(const std::vector<std::string>& tokens) {
     }
 
     SparseVector sv(var_names.size());
-    sv.reserve(lhs.size());
+    sv.Reserve(lhs.size());
     for (const auto& m : lhs) {
-        sv.push(m.index, m.coeff);
+        sv.Push(m.index, m.coeff);
     }
     model.PrepareConstraint(sv, rhs);
 }
@@ -133,17 +133,16 @@ void LpReader::parse_bounds(const std::vector<std::string>& tokens) {
         Index index = var_names.get_index(tokens[i]);
         ExpType type = char2exptype(tokens[i + 1][0]);
         Scalar rhs = std::stod(tokens[i + 2]);
-        Bound& bnd = model.getBounds()[index];
+        Bounds& bnd = model.GetVars().bounds[index];
         switch (type) {
             case ExpType::kGe:
-                bnd.le = std::max(bnd.le, rhs);
+                bnd = BoundsIntersection(bnd, {rhs, kInf});
                 break;
             case ExpType::kLe:
-                bnd.ri = std::min(bnd.ri, rhs);
+                bnd = BoundsIntersection(bnd, {-kInf, rhs});
                 break;
             case ExpType::kEq:
-                bnd.le = std::max(bnd.le, rhs);
-                bnd.ri = std::min(bnd.ri, rhs);
+                bnd = BoundsIntersection(bnd, {rhs, rhs});
                 break;
         }
     }
@@ -152,26 +151,25 @@ void LpReader::parse_bounds(const std::vector<std::string>& tokens) {
 void LpReader::parse_binaries(const std::vector<std::string>& tokens) {
     for (const auto& str : tokens) {
         auto index = var_names.get_index(str);
-        model.getIntegrality()[index] = true;
-        Bound& bnd = model.getBounds()[index];
-        bnd.le = std::max(bnd.le, 0.0);
-        bnd.ri = std::min(bnd.ri, 1.0);
+        model.GetVars().integrality[index] = true;
+        Bounds& bnd = model.GetVars().bounds[index];
+        bnd = BoundsIntersection(bnd, {0, 1});
     }
 }
 
 void LpReader::parse_generals(const std::vector<std::string>& tokens) {
     for (const auto& str : tokens) {
         auto index = var_names.get_index(str);
-        model.getIntegrality()[index] = true;
+        model.GetVars().integrality[index] = true;
     }
 }
 
 void LpReader::finalize() {
-    size_t n_cons = model.getAr().getRows().size();
+    size_t n_cons = model.GetAr().GetRows().size();
     size_t n_vars = var_names.size();
-    model.resize(n_cons, n_vars);
+    model.Resize(n_cons, n_vars);
 
-    Srm2Scm(model.getAr(), model.getAc());
+    Srm2Scm(model.GetAr(), model.GetAc());
 }
 
 void LpReader::parse_lincomb(const std::vector<std::string>& tokens, std::vector<Monom>& lhs,

@@ -36,6 +36,7 @@ set(LIB_SOURCES
     src/linalg/sparse_vector.cpp
     src/linalg/sparse_matrix.cpp
     src/linalg/operators.cpp
+    src/model/domain.cpp
     src/model/milp_model.cpp
     src/lp/dual_simplex.cpp
 )
