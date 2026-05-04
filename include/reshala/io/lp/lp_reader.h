@@ -36,21 +36,20 @@ class LpReader {
    public:
     LpReader() {}
 
-    LpReadResult read(const char* fname);
+    LpReadResult Read(const char* fname);
     MilpModel& GetModel() { return model; }
 
    private:
     MilpModel model;
     NameMapper var_names;
 
-    void parse_objective(const std::vector<std::string>&);
-    void parse_constraint(const std::vector<std::string>&);
-    void parse_bounds(const std::vector<std::string>&);
-    void parse_binaries(const std::vector<std::string>&);
-    void parse_generals(const std::vector<std::string>&);
-    void finalize();
+    void ParseObjective(const std::vector<std::string>&);
+    void ParseConstraint(const std::vector<std::string>&);
+    void ParseBounds(const std::vector<std::string>&);
+    void ParseBinaries(const std::vector<std::string>&);
+    void ParseGenerals(const std::vector<std::string>&);
 
-    void parse_lincomb(const std::vector<std::string>& tokens, std::vector<Monom>& lhs,
+    void ParseLincomb(const std::vector<std::string>& tokens, std::vector<Monom>& lhs,
                        size_t n = -1);
 };
 

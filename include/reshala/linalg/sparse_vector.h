@@ -12,6 +12,14 @@ namespace reshala {
 class SparseVector {
    public:
     SparseVector(Index dim) : dim_(dim) {}
+    SparseVector(Index dim, Index i, Scalar v) : dim_(dim) { Push(i, v); }
+    SparseVector(Index dim, const Scalar *array) : dim_(dim) {
+        for (Index i = 0; i < dim; i++) {
+            if (!IsZero(array[i])) {
+                Push(i, array[i]);
+            }
+        }
+    }
 
     // Build from unsorted or sorted lists (caller guarantees sorted & unique? we sort)
     SparseVector(Index dim, const std::vector<Index> &indices, const std::vector<Scalar> &values) {

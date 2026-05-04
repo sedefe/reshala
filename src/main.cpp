@@ -3,6 +3,7 @@
 
 #include "reshala/io/lp/lp_reader.h"
 #include "reshala/lp/dual_simplex.h"
+#include "reshala/presolve/presolve.h"
 
 using namespace reshala;
 
@@ -13,10 +14,14 @@ int main(int argc, char** argv) {
     }
 
     LpReader reader;
-    reader.read(argv[1]);
+    reader.Read(argv[1]);
     auto model = reader.GetModel();
+    // std::cout << model;
 
-    std::cout << model;
+    Presolver presolver(model);
+    presolver.Presolve();
 
-    DualRevisedSimplex drs(model);
+    DualSimplex drs(model);
+    const Solution& sol = drs.Solve();
+    printf("Status: %s, Obj: %.2f\n", LpStatus2Str(sol.status).c_str(), sol.y);
 }

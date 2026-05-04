@@ -4,8 +4,11 @@
 
 namespace reshala {
 
-DualRevisedSimplex::DualRevisedSimplex(MilpModel& model_)
-    : model(model_), m(model.GetNRows()), n(model.GetNCols()), Binv(m, m) {
+DualSimplex::DualSimplex(MilpModel& model)
+    : model_(model), m(model_.GetNCons()), n(model_.GetNVars()), Binv(m, m) {
+    basis.resize(m);
+    non_basis.resize(m);
+    index2nb.resize(m + n);
     c_b.resize(m);
     c_n.resize(n);
     x_b.resize(m);
@@ -16,92 +19,288 @@ DualRevisedSimplex::DualRevisedSimplex(MilpModel& model_)
     n_iter = 0;
 }
 
-void DualRevisedSimplex::init() {
+void DualSimplex::Init() {
     // basic -> non_basis -> c_n -> x_n -> x_b
+    basis.resize(m);
+    non_basis.resize(n);
+    index2nb.resize(n + m);
+    for (Index ic = 0; ic < m; ic++) {
+        basis[ic] = n + ic;
+        index2nb[n + ic] = -1;
+    }
+    for (Index iv = 0; iv < n; iv++) {
+        non_basis[iv] = iv;
+        index2nb[iv] = iv;
+    }
 
     Binv.ResizeAsZero(m, m);
     for (Index iv = 0; iv < m; iv++) {
         Binv.RowView(iv)[iv] = 1;
     }
 
-    for (Index iv = 0; iv < m; iv++) {
-        basis[iv] = m + iv;
-    }
-    for (Index iv = 0; iv < n; iv++) {
-        non_basis[iv] = iv;
-    }
+    c_n = model_.GetObj().coefficients;
 
-    c_n.assign(n, 0);
-    for (Index ic = 0; ic < n; ic++) {
-        if (non_basis[ic] < n) {
-            c_n[ic] = model.GetObj().coefficients[non_basis[ic]];
-        }
-    }
-    c_b.assign(m, 0);
-    for (Index iv = 0; iv < m; iv++) {
-        if (basis[iv] < n) {
-            c_b[iv] = model.GetObj().coefficients[basis[iv]];
-        }
-    }
-    // xb = -Bi N xn
-    // cn = [cn - cb Bi N]
-    DenseVector c_bb(m);
-    MulDvDm(c_b, Binv, c_bb);
-    for (Index ic = 0; ic++; ic < n) {
-        if (non_basis[ic] < n) {
-            const SparseVector& col = model.GetAc().GetCol(non_basis[ic]);
-            Scalar d;
-            dot(c_bb, col, d);
-            c_n[ic] -= d;
+    x_n = std::vector<Scalar>(n, 0);
+    for (Index iv = 0; iv < Index(n); iv++) {
+        if (c_n[iv] >= 0) {
+            x_n[iv] = model_.GetBounds(iv).le;
         } else {
-            c_n[ic] -= c_bb[ic - n];
+            x_n[iv] = model_.GetBounds(iv).ri;
         }
     }
 
-
+    MulScmDv(model_.GetAc(), x_n, x_b);
+    for (Scalar& x : x_b) x = -x;
 }
 
-Solution DualRevisedSimplex::solve() {
+Solution DualSimplex::Solve() {
+    model_.AddSlacks();
+    ForceBounds();
+    LpStatus status;
+
+    Init();
     while (true) {
         n_iter += 1;
+        DebugPrint();
 
-        if (n_iter > 10) {
+        if (n_iter > 5) {
             break;
         }
 
-        chuzr();
+        Chuzr();
+        printf("Chuzr: iv leaving %d (%d), pinf %.2f\n", iv_leaving, basis[iv_leaving],
+               primal_infeasibility);
         if (iv_leaving < 0) {
+            status = LpStatus::kOptimal;
             break;
         }
 
-        btran();
-        price();
+        Btran();
+        Price();
 
-        chuzc();
+        Chuzc();
+        printf("Chuzr: iv entering %d (%d)\n", iv_entering, non_basis[iv_entering]);
         if (iv_entering < 0) {
+            status = LpStatus::kInfeasible;
             break;
         }
 
-        ftran();
-        update();
+        Ftran();
+        Update();
     }
+
+    model_.PruneSlacks();
+    UnforceBounds();
+
+    DenseVector x;
+    if (status == LpStatus::kOptimal) {
+        x.resize(n);
+        for (Index iv = 0; iv < m; iv++) {
+            if (basis[iv] < n) {
+                x[basis[iv]] = x_b[iv];
+            }
+        }
+        for (Index iv = 0; iv < n; iv++) {
+            if (non_basis[iv] < n) {
+                x[non_basis[iv]] = x_n[iv];
+            }
+        }
+    }
+
+    return model_.PrepareSolution(status, x);
 }
 
-void DualRevisedSimplex::chuzr() {
+void DualSimplex::Chuzr() {
     iv_leaving = -1;
-    Scalar max_infeasibility = -kInf;
+    s_p = 0;
+    Scalar max_infeasibility = kEpsZero;
     Scalar infeasibility;
 
     for (Index iv = 0; iv < m; iv++) {
-        const Bounds& bnd = model.GetVars().bounds[basis[iv]];
+        const Bounds& bnd = model_.GetBounds(basis[iv]);
         infeasibility = std::max(x_b[iv] - bnd.ri, bnd.le - x_b[iv]);
+        if (infeasibility > max_infeasibility) {
+            max_infeasibility = infeasibility;
+            iv_leaving = iv;
+        }
+    }
+
+    auto& bounds = model_.GetBounds(basis[iv_leaving]);
+    if ((x_b[iv_leaving] - bounds.ri) > (bounds.le - x_b[iv_leaving])) {
+        s_p = +1;
+        primal_infeasibility = x_b[iv_leaving] - bounds.ri;
+    } else {
+        s_p = -1;
+        primal_infeasibility = bounds.le - x_b[iv_leaving];
     }
 }
 
-void DualRevisedSimplex::btran() {}
-void DualRevisedSimplex::price() {}
-void DualRevisedSimplex::chuzc() { iv_entering = -1; }
-void DualRevisedSimplex::ftran() {}
-void DualRevisedSimplex::update() {}
+void DualSimplex::Btran() { e_p.assign(Binv.RowView(iv_leaving), Binv.RowView(iv_leaving) + m); }
+
+void DualSimplex::Price() {
+    // Todo: row-wise pricing
+    for (Index ic = 0; ic < n; ic++) {
+        if (non_basis[ic] < n) {
+            dot(e_p, model_.GetAc().GetCol(non_basis[ic]), a_p[ic]);
+        } else {
+            a_p[ic] = e_p[non_basis[ic] - n];
+        }
+    }
+}
+
+void DualSimplex::Chuzc() {
+    int8_t d_j;
+    Scalar a_pj, c_j;
+    Scalar min_ratio = kInf;
+    iv_entering = -1;
+
+    for (Index ic = 0; ic < n; ic++) {
+        if (model_.GetVars().types[ic] == VarType::kFixed) {
+            continue;
+        }
+        if (x_n[ic] == model_.GetBounds(non_basis[ic]).le) {
+            d_j = 1;
+        } else {
+            d_j = -1;
+        }
+        a_pj = a_p[ic] * (s_p * d_j);
+        c_j = c_n[ic] * d_j;
+
+        if (a_pj > kEpsZero) {
+            auto ratio = c_j / a_pj;
+            if (ratio < min_ratio) {
+                min_ratio = ratio;
+                iv_entering = ic;
+            }
+        }
+    }
+}
+
+void DualSimplex::Ftran() {
+    if (non_basis[iv_leaving] < m) {
+        MulDmSv(Binv, model_.GetAc().GetCol(non_basis[iv_leaving]), a_q);
+    } else {
+        MulDmSv(Binv, SparseVector(m, non_basis[iv_leaving] - m, 1.0), a_q);
+    }
+}
+
+void DualSimplex::Update() {
+    DenseVector diff(m, 0.0);
+    DenseVector B_p(m, 0);
+
+    Index ib = basis[iv_leaving];
+    Index inb = non_basis[iv_entering];
+
+    const SparseVector& leaving_col =
+        ib < n ? model_.GetAc().GetCol(ib) : SparseVector(m, ib - n, 1.0);
+    const SparseVector& entering_col =
+        inb < n ? model_.GetAc().GetCol(inb) : SparseVector(m, inb - n, 1.0);
+
+    {  // Update Binv
+        const SparseVector delta = sub(entering_col, leaving_col);
+        const SparseVector row(m, Binv.RowView(iv_leaving));
+        DenseVector d(m, 0);
+        MulDmSv(Binv, delta, d);
+        Scalar multiplier;
+        dot(row, delta, multiplier);
+        multiplier += 1;
+        for (Index i = 0; i < m; i++) {
+            for (Index j = 0; j < m; j++) {
+                Binv.RowView(i)[j] -= d[i] * row.At(j) / multiplier;
+            }
+        }
+    }
+
+    std::swap(basis[iv_leaving], non_basis[iv_entering]);
+
+    DenseVector c_b_btran(m, 0.0);
+    {  // Update c_n
+        c_b.assign(m, 0.0);
+        for (Index iv = 0; iv < Index(m); ++iv)
+            if (basis[iv] < n) c_b[iv] = model_.GetObj().coefficients[basis[iv]];
+
+        MulDvDm(c_b, Binv, c_b_btran);
+
+        for (Index ic = 0; ic < n; ic++) {
+            if (non_basis[ic] < n) {
+                dot(c_b_btran, model_.GetAc().GetCol(non_basis[ic]), c_n[ic]);
+            } else {
+                c_n[ic] = c_b_btran[non_basis[ic] - n];
+            }
+        }
+
+        for (Index iv = 0; iv < Index(n); ++iv) c_n[iv] = -c_n[iv];
+
+        for (Index iv = 0; iv < Index(n); ++iv)
+            if (non_basis[iv] < Index(n)) c_n[iv] += model_.GetObj().coefficients[non_basis[iv]];
+    }
+
+    {  // Update x_n
+        for (Index iv = 0; iv < Index(n); iv++) {
+            if (c_n[iv] >= 0) {
+                x_n[iv] = model_.GetBounds(non_basis[iv]).le;
+            } else {
+                x_n[iv] = model_.GetBounds(non_basis[iv]).ri;
+            }
+        }
+    }
+
+    DenseVector n_x_n(m, 0.0);
+    {  // Update x_b
+        n_x_n.assign(n, 0.0);
+        for (Index ic = 0; ic < n; ic++) {
+            auto inb = non_basis[ic];
+            if (inb < m) {
+                const auto& col = model_.GetAc().GetCol(inb);
+                for (Index j = 0; j < col.Size(); j++) {
+                    n_x_n[col.indices()[j]] += col.values()[j] * x_n[ic];
+                }
+            } else {
+                n_x_n[inb - m] += x_n[ic];
+            }
+        }
+
+        MulDmDv(Binv, n_x_n, x_b);
+        for (Scalar& x : x_b) x = -x;
+    }
+}
+
+void DualSimplex::ForceBounds() {
+    initial_bounds = model_.GetVars().bounds;
+    for (Bounds& bnd : model_.GetVars().bounds) {
+        bnd = BoundsIntersection(bnd, {-kMaxAbs, kMaxAbs});
+    }
+}
+
+void DualSimplex::UnforceBounds() { model_.GetVars().bounds = initial_bounds; }
+
+void DualSimplex::DebugPrint() {
+    printf("===== %d =====\n", n_iter);
+    printf("Basis   : ");
+    for (auto iv : basis) printf("%d ", iv);
+    printf("\n");
+    printf("Nonbasis: ");
+    for (auto ic : non_basis) printf("%d ", ic);
+    printf("\n");
+    printf("Binv:\n");
+    for (Index i = 0; i < m; i++) {
+        for (Index j = 0; j < m; j++) {
+            printf("%5.2f ", Binv.RowView(i)[j]);
+        }
+        printf("\n");
+    }
+    printf("cb: ");
+    for (auto x : c_b) printf("%5.2f ", x);
+    printf("\n");
+    printf("cn: ");
+    for (auto x : c_n) printf("%5.2f ", x);
+    printf("\n");
+    printf("xn: ");
+    for (auto x : x_n) printf("%5.2f ", x);
+    printf("\n");
+    printf("xb: ");
+    for (auto x : x_b) printf("%5.2f ", x);
+    printf("\n");
+}
 
 }  // namespace reshala

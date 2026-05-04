@@ -6,19 +6,20 @@
 
 namespace reshala {
 
-class DualRevisedSimplex {
+class DualSimplex {
    public:
-    DualRevisedSimplex(MilpModel& model_);
-    Solution solve();
+    DualSimplex(MilpModel& model);
+    Solution Solve();
 
    private:
-    MilpModel& model;
+    MilpModel& model_;
 
     Index m, n;
     Index n_iter = 0;
 
     std::vector<Index> basis;
     std::vector<Index> non_basis;
+    std::vector<Index> index2nb;
 
     DenseVector c_b;
     DenseVector c_n;
@@ -28,17 +29,28 @@ class DualRevisedSimplex {
     DenseVector a_p;
     DenseVector a_q;
 
+    int8_t s_p;
+    Scalar primal_infeasibility;
+    Scalar theta_p;
+    Scalar theta_d;
+
     Index iv_leaving, iv_entering;
 
     DenseMatrix Binv;
 
-    void init();
-    void chuzr();
-    void btran();
-    void price();
-    void chuzc();
-    void ftran();
-    void update();
+    void Init();
+    void Chuzr();
+    void Btran();
+    void Price();
+    void Chuzc();
+    void Ftran();
+    void Update();
+
+    std::vector<Bounds> initial_bounds;
+    void ForceBounds();
+    void UnforceBounds();
+
+    void DebugPrint();
 };
 
 }  // namespace reshala

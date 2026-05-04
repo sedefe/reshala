@@ -2,6 +2,9 @@
 
 namespace reshala {
 
-Presolver::Presolver(MilpModel &model_) : model(model_) {}
+Presolver::Presolver(MilpModel& model) : model_(model) {}
+
+void Presolver::Presolve() {
+}
 
 }  // namespace reshala

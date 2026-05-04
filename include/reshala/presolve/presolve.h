@@ -6,10 +6,12 @@ namespace reshala {
 
 class Presolver {
    public:
-    Presolver(MilpModel& model_);
+    Presolver(MilpModel& model);
+
+    void Presolve();
 
    private:
-    MilpModel& model;
+    MilpModel& model_;
 };
 
 }  // namespace reshala

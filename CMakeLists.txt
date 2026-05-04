@@ -38,7 +38,9 @@ set(LIB_SOURCES
     src/linalg/operators.cpp
     src/model/domain.cpp
     src/model/milp_model.cpp
+    src/model/solution.cpp
     src/lp/dual_simplex.cpp
+    src/presolve/presolve.cpp
 )
 set(EXE_SOURCES
     src/main.cpp
