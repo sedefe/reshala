@@ -36,6 +36,7 @@ class Objective {
 
     friend std::ostream& operator<<(std::ostream& os, const Objective& obj) {
         Scalar sense = 0;
+        bool first_coeff = true;
         if (obj.orig_sense == Sense::kMin) {
             os << "Minimize\n";
             sense = 1.;
@@ -44,11 +45,12 @@ class Objective {
             sense = -1.;
         }
         for (Index i = 0; i < obj.coefficients.size(); i++) {
-            if (i > 0) {
-                os << " + ";
-            }
             if (obj.coefficients[i] != 0) {
-                os << sense * obj.coefficients[i] << " x[" << i << "] ";
+                if (!first_coeff) {
+                    os << " + ";
+                }
+                first_coeff = false;
+                os << sense * obj.coefficients[i] << " x" << i;
             }
         }
         if (obj.c0 != 0) {

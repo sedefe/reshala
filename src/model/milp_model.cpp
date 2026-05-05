@@ -77,7 +77,7 @@ std::ostream& operator<<(std::ostream& os, const MilpModel& model) {
     os << "Generals\n";
     for (Index i = 0; i < n; i++) {
         if (model.GetVars().integrality[i]) {
-            os << i << " ";
+            os << "x" << i << " ";
         }
     }
     os << "\n";

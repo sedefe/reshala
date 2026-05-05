@@ -12,7 +12,7 @@ std::ostream& operator<<(std::ostream& os, const SparseVector& sv) {
         if (i > 0) {
             os << " + ";
         }
-        os << sv.values_[i] << " * x[" << sv.indices_[i] << "]";
+        os << sv.values_[i] << " x" << sv.indices_[i] << " ";
     }
 
     return os;

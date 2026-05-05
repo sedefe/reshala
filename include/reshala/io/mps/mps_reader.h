@@ -9,45 +9,46 @@
 
 namespace reshala {
 
-enum class LpParseState { kObj, kCon, kBnd, kBin, kGen, kDon, kNon };
-ExpType LpChar2ExpType(char c) {
+enum class MpsParseState { kNam, kRow, kCol, kRhs, kRng, kBnd, kDon, kNon };
+ExpType MpsChar2ExpType(char c) {
     switch (c) {
-        case '<':
+        case 'L':
             return ExpType::kLe;
-        case '>':
+        case 'G':
             return ExpType::kGe;
-        case '=':
+        case 'E':
             return ExpType::kEq;
+        case 'N':
+            return ExpType::kNon;
         default:
             assert(false);
             return ExpType::kNon;
     }
 }
 
-struct Monom {
-    Scalar coeff;
-    size_t index;
-};
-
-class LpReader {
+class MpsReader {
    public:
-    LpReader() {}
+    MpsReader() {}
 
     FileReadStatus Read(const char* fname);
     MilpModel& GetModel() { return model; }
 
    private:
+    bool int_marker = false;
     MilpModel model;
     NameMapper var_names;
+    NameMapper con_names;
+    std::string obj_name;
 
-    void ParseObjective(const std::vector<std::string>&);
-    void ParseConstraint(const std::vector<std::string>&);
+    std::vector<ExpType> con_types;
+    std::vector<Scalar> con_rhs;
+
+    void ParseRows(const std::vector<std::string>&);
+    void ParseColumns(const std::vector<std::string>&);
+    void ParseRhs(const std::vector<std::string>&);
     void ParseBounds(const std::vector<std::string>&);
-    void ParseBinaries(const std::vector<std::string>&);
-    void ParseGenerals(const std::vector<std::string>&);
 
-    void ParseLincomb(const std::vector<std::string>& tokens, std::vector<Monom>& lhs,
-                       size_t n = -1);
+    void FinalizeRhs();
 };
 
 }  // namespace reshala

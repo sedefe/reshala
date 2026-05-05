@@ -1,38 +1,24 @@
 #pragma once
 
+#include <iostream>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include "reshala/linalg/types.h"
+#include "reshala/model/domain.h"
 
 namespace reshala {
 
-std::string to_lowercase(const std::string& s) {
-    std::string res = s;
-    for (char& c : res) {
-        c = std::tolower((unsigned char)c);
-    }
-    return res;
-}
+enum class FileReadStatus { kOk, kFsError, kParseError };
+std::string FileReadResult2Str(FileReadStatus status);
 
-std::vector<std::string> tokenize_line(const std::string& line) {
-    std::vector<std::string> tokens;
-    std::string token;
-    for (size_t i = 0; i < line.size(); ++i) {
-        char c = line[i];
-        if (std::isspace(c)) {
-            if (!token.empty()) {
-                tokens.push_back(token);
-                token.clear();
-            }
-        } else {
-            token += c;
-        }
-    }
-    if (!token.empty()) tokens.push_back(token);
-    return tokens;
-}
+enum class ExpType { kGe, kLe, kEq, kNon };
+Bounds ExpType2Bounds(ExpType exp_type, Scalar rhs);
+
+std::string to_lowercase(const std::string& s);
+
+std::vector<std::string> tokenize_line(const std::string& line);
 
 struct NameMapper {
     std::unordered_map<std::string, size_t> name_to_index;

@@ -4,16 +4,16 @@
 
 namespace reshala {
 
-LpReadResult LpReader::Read(const char* fname) {
+FileReadStatus LpReader::Read(const char* fname) {
     std::filesystem::path file_path(fname);
     std::ifstream file(file_path);
     if (!file.is_open()) {
         // throw std::runtime_error("Failed to open file: " + std::string(fname));
-        return LpReadResult::kFsError;
+        return FileReadStatus::kFsError;
     }
 
     std::string line;
-    ParseState current_state = ParseState::kNon;
+    auto current_state = LpParseState::kNon;
     while (std::getline(file, line)) {
         if (line.empty() || line[0] == '\\') continue;
 
@@ -21,15 +21,15 @@ LpReadResult LpReader::Read(const char* fname) {
 
         if (lower_line.find("min") != std::string::npos) {
             model.GetObj().orig_sense = Sense::kMin;
-            current_state = ParseState::kObj;
+            current_state = LpParseState::kObj;
             continue;
         } else if (lower_line.find("max") != std::string::npos) {
             model.GetObj().orig_sense = Sense::kMax;
-            current_state = ParseState::kObj;
+            current_state = LpParseState::kObj;
             continue;
         } else if (lower_line.find("s.t.") != std::string::npos ||
                    lower_line.find("subject to") != std::string::npos) {
-            current_state = ParseState::kCon;
+            current_state = LpParseState::kCon;
             continue;
         } else if (lower_line.find("bounds") != std::string::npos) {
             // Now the size is known
@@ -38,16 +38,16 @@ LpReadResult LpReader::Read(const char* fname) {
             model.Resize(n_cons, n_vars);
             model.FinalizeAc();
 
-            current_state = ParseState::kBnd;
+            current_state = LpParseState::kBnd;
             continue;
         } else if (lower_line.find("binaries") != std::string::npos) {
-            current_state = ParseState::kBin;
+            current_state = LpParseState::kBin;
             continue;
         } else if (lower_line.find("generals") != std::string::npos) {
-            current_state = ParseState::kGen;
+            current_state = LpParseState::kGen;
             continue;
         } else if (lower_line.find("end") != std::string::npos) {
-            current_state = ParseState::kDon;
+            current_state = LpParseState::kDon;
             break;
         }
 
@@ -55,19 +55,19 @@ LpReadResult LpReader::Read(const char* fname) {
         if (tokens.empty()) continue;
 
         switch (current_state) {
-            case ParseState::kObj:
+            case LpParseState::kObj:
                 ParseObjective(tokens);
                 break;
-            case ParseState::kCon:
+            case LpParseState::kCon:
                 ParseConstraint(tokens);
                 break;
-            case ParseState::kBnd:
+            case LpParseState::kBnd:
                 ParseBounds(tokens);
                 break;
-            case ParseState::kBin:
+            case LpParseState::kBin:
                 ParseBinaries(tokens);
                 break;
-            case ParseState::kGen:
+            case LpParseState::kGen:
                 ParseGenerals(tokens);
                 break;
             default:
@@ -75,7 +75,7 @@ LpReadResult LpReader::Read(const char* fname) {
         }
     }
     file.close();
-    return LpReadResult::kOk;
+    return FileReadStatus::kOk;
 }
 
 void LpReader::ParseObjective(const std::vector<std::string>& tokens) {
@@ -98,7 +98,7 @@ void LpReader::ParseObjective(const std::vector<std::string>& tokens) {
 
 void LpReader::ParseConstraint(const std::vector<std::string>& tokens) {
     std::vector<Monom> lhs;
-    Bounds rhs;
+
     ParseLincomb(tokens, lhs, tokens.size() - 2);
 
     const std::string& exp_token = tokens[tokens.size() - 2];
@@ -106,22 +106,9 @@ void LpReader::ParseConstraint(const std::vector<std::string>& tokens) {
 
     assert(exp_token[0] == '<' or exp_token[0] == '>' or exp_token[0] == '=');
     assert((exp_token.size() == 1) or (exp_token.size() == 2 and exp_token[1] == '='));
-    ExpType type = char2exptype(exp_token[0]);
+    ExpType exp_type = LpChar2ExpType(exp_token[0]);
     Scalar coeff = std::stod(rhs_token);
-
-    switch (type) {
-        case ExpType::kLe:
-            rhs = {-kInf, coeff};
-            break;
-        case ExpType::kGe:
-            rhs = {coeff, kInf};
-            break;
-        case ExpType::kEq:
-            rhs = {coeff, coeff};
-            break;
-        default:
-            assert(false);
-    }
+    Bounds rhs = ExpType2Bounds(exp_type, coeff);
 
     SparseVector sv(var_names.size());
     sv.Reserve(lhs.size());
@@ -136,7 +123,7 @@ void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
     assert(n % 3 == 0);
     for (Index i = 0; i < n; i += 3) {
         Index index = var_names.get_index(tokens[i]);
-        ExpType type = char2exptype(tokens[i + 1][0]);
+        ExpType type = LpChar2ExpType(tokens[i + 1][0]);
         Scalar rhs = std::stod(tokens[i + 2]);
         Bounds& bnd = model.GetBounds(index);
         switch (type) {
