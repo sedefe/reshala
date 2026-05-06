@@ -1,4 +1,4 @@
-#include "reshala/io/reader.h"
+#include "reshala/io/io.h"
 #include "reshala/lp/dual_simplex.h"
 #include "reshala/presolve/presolve.h"
 
@@ -10,8 +10,9 @@ int main(int argc, char** argv) {
         exit(0);
     }
 
-    MilpModel model;
-    auto read_status = Read(argv[1], model);
+    Io io;
+    auto read_status = io.Read(argv[1]);
+    MilpModel& model = io.GetModel();
     printf("Reading %s: %s\n", argv[1], FileReadResult2Str(read_status).c_str());
     if (read_status != FileReadStatus::kOk) {
         exit(0);

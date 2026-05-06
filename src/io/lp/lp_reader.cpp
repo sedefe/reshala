@@ -4,8 +4,8 @@
 
 namespace reshala {
 
-FileReadStatus LpReader::Read() {
-    std::ifstream file(path_);
+FileReadStatus LpReader::Read(const std::filesystem::path& path) {
+    std::ifstream file(path);
     if (!file.is_open()) {
         return FileReadStatus::kFsError;
     }
@@ -34,21 +34,27 @@ FileReadStatus LpReader::Read() {
             current_state = LpParseState::kCon;
             continue;
         } else if (lower_line == "bounds") {
-            // Now the size is known
-            size_t n_cons = model_.GetAr().GetRows().size();
-            size_t n_vars = var_names.size();
-            model_.Resize(n_cons, n_vars);
-            model_.FinalizeAc();
-
+            if (!matrix_finalized) {
+                FinalizeMatrix();
+            }
             current_state = LpParseState::kBnd;
             continue;
         } else if (lower_line == "binaries") {
+            if (!matrix_finalized) {
+                FinalizeMatrix();
+            }
             current_state = LpParseState::kBin;
             continue;
         } else if (lower_line == "generals") {
+            if (!matrix_finalized) {
+                FinalizeMatrix();
+            }
             current_state = LpParseState::kGen;
             continue;
         } else if (lower_line == "end") {
+            if (!matrix_finalized) {
+                FinalizeMatrix();
+            }
             current_state = LpParseState::kDon;
             break;
         }
@@ -79,10 +85,16 @@ FileReadStatus LpReader::Read() {
 
 void LpReader::ParseObjective(const std::vector<std::string>& tokens) {
     std::vector<Monom> lhs;
-    ParseLincomb(tokens, lhs);
+    Index begin = 0;
+    if (tokens.size() >= 1 and tokens[0].back() == ':') {
+        names_.obj.assign(tokens[0], 0, tokens[0].length() - 1);
+        begin = 1;
+    }
+    Index end = tokens.size();
+    ParseLincomb(tokens, lhs, begin, end);
 
     Objective& obj = model_.GetObj();
-    model_.GetObj().coefficients.resize(var_names.size());
+    model_.GetObj().coefficients.resize(names_.vars.size());
     obj.c0 = 0;  // Todo: parse c0
     if (model_.GetObj().orig_sense == Sense::kMin) {
         for (const auto& m : lhs) {
@@ -97,8 +109,15 @@ void LpReader::ParseObjective(const std::vector<std::string>& tokens) {
 
 void LpReader::ParseConstraint(const std::vector<std::string>& tokens) {
     std::vector<Monom> lhs;
+    Index begin = 0;
+    if (tokens.size() >= 1 and tokens[0].back() == ':') {
+        std::string con_name(tokens[0].begin(), tokens[0].end() - 1);
+        names_.cons.get_index(con_name);
+        begin = 1;
+    }
+    Index end = tokens.size() - 2;
 
-    ParseLincomb(tokens, lhs, tokens.size() - 2);
+    ParseLincomb(tokens, lhs, begin, end);
 
     const std::string& exp_token = tokens[tokens.size() - 2];
     const std::string& rhs_token = tokens[tokens.size() - 1];
@@ -111,7 +130,7 @@ void LpReader::ParseConstraint(const std::vector<std::string>& tokens) {
     Scalar coeff = std::stod(rhs_token);
     Bounds rhs = ExpType2Bounds(exp_type, coeff);
 
-    SparseVector sv(var_names.size());
+    SparseVector sv(names_.vars.size());
     sv.Reserve(lhs.size());
     for (const auto& m : lhs) {
         sv.Push(m.index, m.coeff);
@@ -125,7 +144,7 @@ void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
         ThrowParseError("Can't parse bounds");
     }
     for (Index i = 0; i < n; i += 3) {
-        Index index = var_names.get_index(tokens[i]);
+        Index index = names_.vars.get_index(tokens[i]);
         ExpType type = LpChar2ExpType(tokens[i + 1][0]);
         Scalar rhs = std::stod(tokens[i + 2]);
         Bounds& bnd = model_.GetBounds(index);
@@ -145,7 +164,7 @@ void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
 
 void LpReader::ParseBinaries(const std::vector<std::string>& tokens) {
     for (const auto& str : tokens) {
-        auto index = var_names.get_index(str);
+        auto index = names_.vars.get_index(str);
         model_.GetVars().integrality[index] = true;
         Bounds& bnd = model_.GetBounds(index);
         bnd = BoundsIntersection(bnd, {0, 1});
@@ -154,19 +173,18 @@ void LpReader::ParseBinaries(const std::vector<std::string>& tokens) {
 
 void LpReader::ParseGenerals(const std::vector<std::string>& tokens) {
     for (const auto& str : tokens) {
-        auto index = var_names.get_index(str);
+        auto index = names_.vars.get_index(str);
         model_.GetVars().integrality[index] = true;
     }
 }
 
 void LpReader::ParseLincomb(const std::vector<std::string>& tokens, std::vector<Monom>& lhs,
-                            size_t n_tokens) {
-    if (n_tokens == -1) n_tokens = tokens.size();
+                            Index begin, Index end) {
     Scalar sign = 1.0;
     Scalar coeff = 1.0;
 
     Index i;
-    for (i = 0; i < n_tokens; ++i) {
+    for (i = begin; i < end; ++i) {
         const std::string& token = tokens[i];
 
         if (token == "+") {
@@ -176,13 +194,21 @@ void LpReader::ParseLincomb(const std::vector<std::string>& tokens, std::vector<
         } else if (isdigit(token[0]) || token[0] == '-' || token[0] == '.') {
             coeff = std::stod(token);
         } else {
-            size_t idx = var_names.get_index(token);
+            size_t idx = names_.vars.get_index(token);
             lhs.push_back({sign * coeff, idx});
 
             sign = 1.0;
             coeff = 1.0;
         }
     }
+}
+
+void LpReader::FinalizeMatrix() {
+    size_t n_cons = model_.GetAr().GetRows().size();
+    size_t n_vars = names_.vars.size();
+    model_.Resize(n_cons, n_vars);
+    model_.FinalizeAc();
+    matrix_finalized = true;
 }
 
 }  // namespace reshala

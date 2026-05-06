@@ -41,4 +41,10 @@ struct NameMapper {
     size_t size() const { return index_to_name.size(); }
 };
 
+struct Names {
+    NameMapper vars;
+    NameMapper cons;
+    std::string obj;
+};
+
 }  // namespace reshala

@@ -31,15 +31,14 @@ struct Monom {
 
 class LpReader {
    public:
-    LpReader(const std::filesystem::path& path, MilpModel& model) : path_(path), model_(model) {}
-    FileReadStatus Read();
+    LpReader(MilpModel& model, Names& names) : model_(model),  names_(names) {}
+    FileReadStatus Read(const std::filesystem::path& path);
 
    private:
-    const std::filesystem::path& path_;
     MilpModel& model_;
+    Names& names_;
     Index line_number = 0;
-
-    NameMapper var_names;
+    bool matrix_finalized = false;
 
     void ThrowParseError(const std::string& message) {
         throw std::runtime_error("Line " + std::to_string(line_number) + ": " + message);
@@ -51,8 +50,9 @@ class LpReader {
     void ParseBinaries(const std::vector<std::string>&);
     void ParseGenerals(const std::vector<std::string>&);
 
-    void ParseLincomb(const std::vector<std::string>& tokens, std::vector<Monom>& lhs,
-                      size_t n = -1);
+    void ParseLincomb(const std::vector<std::string>& tokens, std::vector<Monom>& lhs, Index begin,
+                      Index end);
+    void FinalizeMatrix();
 };
 
 }  // namespace reshala

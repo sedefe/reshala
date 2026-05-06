@@ -17,8 +17,8 @@ MpsBoundType Str2MpsBoundType(const std::string& s) {
     return MpsBoundType::kNon;
 }
 
-FileReadStatus MpsReader::Read() {
-    std::ifstream file(path_);
+FileReadStatus MpsReader::Read(const std::filesystem::path& path) {
+    std::ifstream file(path);
     if (!file.is_open()) {
         return FileReadStatus::kFsError;
     }
@@ -43,7 +43,7 @@ FileReadStatus MpsReader::Read() {
             continue;
         } else if (tokens.size() == 1 and tokens[0] == "COLUMNS") {
             // Now the size is known
-            size_t n_cons = con_names.size();
+            size_t n_cons = names_.cons.size();
             model_.Resize(n_cons, 0);
             current_state = MpsParseState::kCol;
             continue;
@@ -61,8 +61,8 @@ FileReadStatus MpsReader::Read() {
             ThrowParseError("Don't support RANGES section in MPS now");
         } else if (tokens.size() == 1 and tokens[0] == "BOUNDS") {
             FinalizeRhs();
-            size_t n_cons = con_names.size();
-            size_t n_vars = var_names.size();
+            size_t n_cons = names_.cons.size();
+            size_t n_vars = names_.vars.size();
             model_.Resize(n_cons, n_vars);
             model_.FinalizeAc();
 
@@ -105,11 +105,11 @@ void MpsReader::ParseRows(const std::vector<std::string>& tokens) {
     ExpType exp_type = MpsChar2ExpType(sense);
 
     if (exp_type != ExpType::kNon) {
-        con_names.get_index(name);
+        names_.cons.get_index(name);
         con_types.push_back(exp_type);
         con_rhs.push_back(0.0);
     } else {
-        obj_name = name;
+        names_.obj = name;
     }
 }
 
@@ -117,15 +117,15 @@ void MpsReader::ParseColumns(const std::vector<std::string>& tokens) {
     if ((tokens.size() != 3) and (tokens.size() != 5)) {
         ThrowParseError("Bad COLUMNS section");
     }
-    Index var_index = var_names.get_index(tokens[0]);
+    Index var_index = names_.vars.get_index(tokens[0]);
     if (var_index >= model_.GetVars().Size()) {
         model_.GetObj().coefficients.push_back(0.0);
         model_.GetVars().Push({}, int_marker);
     }
     for (Index i = 1; i < tokens.size(); i += 2) {
         Scalar coeff = std::stod(tokens[i + 1]);
-        if (tokens[i] != obj_name) {
-            Index con_index = con_names.get_index(tokens[i]);
+        if (tokens[i] != names_.obj) {
+            Index con_index = names_.cons.get_index(tokens[i]);
             if (con_index >= model_.GetNCons()) {
                 ThrowParseError("Constraint did not appear in ROWS: " + tokens[i]);
             }
@@ -141,14 +141,14 @@ void MpsReader::ParseRhs(const std::vector<std::string>& tokens) {
         ThrowParseError("Bad RHS section");
     }
     for (Index i = 1; i < tokens.size(); i += 2) {
-        Index con_index = con_names.get_index(tokens[i]);
+        Index con_index = names_.cons.get_index(tokens[i]);
         Scalar coeff = std::stod(tokens[i + 1]);
         con_rhs[con_index] = coeff;
     }
 }
 
 void MpsReader::FinalizeRhs() {
-    for (Index ic = 0; ic < con_names.size(); ic++) {
+    for (Index ic = 0; ic < names_.cons.size(); ic++) {
         auto con_type = con_types[ic];
         auto rhs = con_rhs[ic];
         model_.GetRhs()[ic] = ExpType2Bounds(con_type, rhs);
@@ -157,12 +157,11 @@ void MpsReader::FinalizeRhs() {
 
 void MpsReader::ParseBounds(const std::vector<std::string>& tokens) {
     if ((tokens.size() != 3 and tokens.size() != 4) or tokens[0].size() != 2) {
-        printf("%d %d\n", tokens.size(), tokens[0].size());
         ThrowParseError("Bad BOUNDS section");
     }
 
     auto type = Str2MpsBoundType(tokens[0]);
-    Index var_index = var_names.get_index(tokens[2]);
+    Index var_index = names_.vars.get_index(tokens[2]);
     Scalar value;
     switch (type) {
         case MpsBoundType::kLO:

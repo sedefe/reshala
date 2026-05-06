@@ -28,20 +28,16 @@ ExpType MpsChar2ExpType(char c) {
 enum class MpsBoundType { kLO, kUP, kFX, kFR, kMI, kPL, kBV, kLI, kUI, kNon };
 MpsBoundType Str2MpsBoundType(const std::string&);
 
-
 class MpsReader {
    public:
-    MpsReader(const std::filesystem::path& path, MilpModel& model) : path_(path), model_(model) {}
-    FileReadStatus Read();
+    MpsReader(MilpModel& model, Names& names) : model_(model),  names_(names) {}
+    FileReadStatus Read(const std::filesystem::path& path);
 
    private:
-    const std::filesystem::path& path_;
     MilpModel& model_;
+    Names& names_;
     Index line_number = 0;
 
-    NameMapper var_names;
-    NameMapper con_names;
-    std::string obj_name;
     bool int_marker = false;
     std::vector<ExpType> con_types;
     std::vector<Scalar> con_rhs;
