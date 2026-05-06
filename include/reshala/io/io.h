@@ -18,11 +18,21 @@ class Io {
         } else if (extension == ".lp") {
             return lp_reader_.Read(file_path);
         } else {
-            throw std::invalid_argument("Unsupported file format: " + extension);
+            throw std::invalid_argument("Unsupported file format: \"" + extension + "\"");
         }
     }
 
     MilpModel& GetModel() { return model_; }
+
+    void PrintValues(std::ostream &os, const std::vector<Scalar>& x) const {
+        assert(model_.GetNVars() == x.size());
+        for (Index iv=0; iv<x.size(); iv++) {
+            if (!IsZero(x[iv])) {
+                os << names_.vars.index_to_name[iv] << ": " << x[iv] << " ";
+            }
+        }
+        os << "\n";
+    }
 
    private:
     MilpModel model_;

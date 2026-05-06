@@ -5,7 +5,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "reshala/linalg/types.h"
 #include "reshala/model/domain.h"
 
 namespace reshala {

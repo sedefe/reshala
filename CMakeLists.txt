@@ -36,6 +36,7 @@ add_subdirectory(src/io)
 add_subdirectory(src/linalg)
 add_subdirectory(src/model)
 add_subdirectory(src/lp)
+add_subdirectory(src/milp)
 add_subdirectory(src/presolve)
 
 target_link_libraries(${PROJECT_NAME}-cli PUBLIC ${PROJECT_NAME}-lib )

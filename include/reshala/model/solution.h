@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "reshala/linalg/constants.h"
+#include "reshala/constants.h"
 
 namespace reshala {
 
@@ -12,7 +12,7 @@ std::string LpStatus2Str(LpStatus status);
 
 struct Solution {
     LpStatus status = LpStatus::kUnknown;
-    Scalar y = kNan;
+    Scalar y = kInf;
     std::vector<Scalar> x;
 };
 

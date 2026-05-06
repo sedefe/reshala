@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "reshala/linalg/constants.h"
+#include "reshala/constants.h"
 
 namespace reshala {
 
@@ -26,7 +26,7 @@ enum class VarType {
     kUpper,
     kBoxed,
     kUnknown
-};  // Default is lower, because default bounds are [0; inf)
+};
 VarType GetType(const Bounds &bounds);
 
 struct Domain {

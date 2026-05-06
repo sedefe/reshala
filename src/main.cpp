@@ -1,6 +1,5 @@
 #include "reshala/io/io.h"
-#include "reshala/lp/dual_simplex.h"
-#include "reshala/presolve/presolve.h"
+#include "reshala/milp/milp.h"
 
 using namespace reshala;
 
@@ -19,13 +18,10 @@ int main(int argc, char** argv) {
     }
     // std::cout << model;
 
-    Presolver presolver(model);
-    presolver.Presolve();
+    printf("%d vars, %d cons\n", model.GetNVars(), model.GetNCons());
 
-    DualSimplex drs(model);
-    const Solution& sol = drs.Solve();
+    MilpSolver milp(model);
+    const Solution& sol = milp.Solve();
     printf("Status: %s, Obj: %.2f\n", LpStatus2Str(sol.status).c_str(), sol.y);
-    // for (Index i = 0; i < model.GetNVars(); i++) {
-    //     printf("x[%2d] = %5.2f\n", i, sol.x[i]);
-    // }
+    io.PrintValues(std::cout, sol.x);
 }

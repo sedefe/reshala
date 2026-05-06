@@ -28,8 +28,18 @@ class MilpModel {
 
     const Domain& GetVars() const { return vars_; }
     Domain& GetVars() { return vars_; }
+
+    inline const std::vector<Bounds>& GetAllBounds() const { return vars_.bounds; }
+    inline void SetAllBounds(const std::vector<Bounds>& bounds) { vars_.bounds = bounds; }
     inline const Bounds& GetBounds(Index iv) const { return vars_.bounds[iv]; }
     inline Bounds& GetBounds(Index iv) { return vars_.bounds[iv]; }
+    inline void SetBounds(Index iv, const Bounds& bnd) { vars_.bounds[iv] = bnd; }
+
+    inline bool GetIntegrality(Index iv) const { return vars_.integrality[iv]; }
+    inline void SetIntegrality(Index iv, bool b) { vars_.integrality[iv] = b; }
+
+    bool IsIntegerFeasible(const std::vector<Scalar>& x);
+    bool IsFeasible(const std::vector<Scalar>& x);
 
     void AddSlacks();
     void PruneSlacks();

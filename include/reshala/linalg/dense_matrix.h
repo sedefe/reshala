@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include "reshala/linalg/types.h"
+#include "reshala/types.h"
 
 namespace reshala {
 

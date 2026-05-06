@@ -2,7 +2,20 @@
 
 #include <assert.h>
 
+#include "reshala/utils.h"
+
 namespace reshala {
+
+bool MilpModel::IsIntegerFeasible(const std::vector<Scalar>& x) {
+    for (Index iv = 0; iv < GetNVars(); iv++) {
+        if (GetIntegrality(iv) and GetFraction(x[iv]) > kEpsZero) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool MilpModel::IsFeasible(const std::vector<Scalar>& x) {}
 
 void MilpModel::AddSlacks() {
     assert(!has_slacks_);
@@ -27,17 +40,15 @@ void MilpModel::PruneSlacks() {
     has_slacks_ = false;
 }
 
-void MilpModel::FinalizeAc() {
-    Srm2Scm(Ar_, Ac_);
-}
+void MilpModel::FinalizeAc() { Srm2Scm(Ar_, Ac_); }
 
-Solution MilpModel::PrepareSolution(const LpStatus status, const std::vector<Scalar> &x) const {
+Solution MilpModel::PrepareSolution(const LpStatus status, const std::vector<Scalar>& x) const {
     if (status != LpStatus::kOptimal) {
         return {status, kNan, {}};
     }
 
     auto res_x = x;
-    for (auto &&element : res_x) {
+    for (auto&& element : res_x) {
         if (IsZero(element)) {
             element = 0.0;
         }
@@ -76,7 +87,7 @@ std::ostream& operator<<(std::ostream& os, const MilpModel& model) {
 
     os << "Generals\n";
     for (Index i = 0; i < n; i++) {
-        if (model.GetVars().integrality[i]) {
+        if (model.GetIntegrality(i)) {
             os << "x" << i << " ";
         }
     }

@@ -187,19 +187,19 @@ void MpsReader::ParseBounds(const std::vector<std::string>& tokens) {
             break;
         case MpsBoundType::kBV:
             model_.GetBounds(var_index) = BoundsIntersection(model_.GetBounds(var_index), {0, 1});
-            model_.GetVars().integrality[var_index] = true;
+            model_.SetIntegrality(var_index, true);
             break;
         case MpsBoundType::kLI:
             value = std::stod(tokens[3]);
             model_.GetBounds(var_index) =
                 BoundsIntersection(model_.GetBounds(var_index), {value, kInf});
-            model_.GetVars().integrality[var_index] = true;
+            model_.SetIntegrality(var_index, true);
             break;
         case MpsBoundType::kUI:
             value = std::stod(tokens[3]);
             model_.GetBounds(var_index) =
                 BoundsIntersection(model_.GetBounds(var_index), {-kInf, value});
-            model_.GetVars().integrality[var_index] = true;
+            model_.SetIntegrality(var_index, true);
             break;
         default:
             ThrowParseError("Unsupported bound type: " + tokens[0]);

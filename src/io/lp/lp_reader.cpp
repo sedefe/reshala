@@ -165,7 +165,7 @@ void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
 void LpReader::ParseBinaries(const std::vector<std::string>& tokens) {
     for (const auto& str : tokens) {
         auto index = names_.vars.get_index(str);
-        model_.GetVars().integrality[index] = true;
+        model_.SetIntegrality(index, true);
         Bounds& bnd = model_.GetBounds(index);
         bnd = BoundsIntersection(bnd, {0, 1});
     }
@@ -174,7 +174,7 @@ void LpReader::ParseBinaries(const std::vector<std::string>& tokens) {
 void LpReader::ParseGenerals(const std::vector<std::string>& tokens) {
     for (const auto& str : tokens) {
         auto index = names_.vars.get_index(str);
-        model_.GetVars().integrality[index] = true;
+        model_.SetIntegrality(index, true);
     }
 }
 

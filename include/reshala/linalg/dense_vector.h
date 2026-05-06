@@ -3,7 +3,7 @@
 #include <ostream>
 #include <vector>
 
-#include "reshala/linalg/constants.h"
+#include "reshala/constants.h"
 
 namespace reshala {
 using DenseVector = std::vector<Scalar>;
