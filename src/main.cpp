@@ -1,5 +1,4 @@
-#include "reshala/io/lp/lp_reader.h"
-#include "reshala/io/mps/mps_reader.h"
+#include "reshala/io/reader.h"
 #include "reshala/lp/dual_simplex.h"
 #include "reshala/presolve/presolve.h"
 
@@ -11,13 +10,10 @@ int main(int argc, char** argv) {
         exit(0);
     }
 
-    // LpReader reader;
-    MpsReader reader;
-    auto read_status = reader.Read(argv[1]);
+    MilpModel model;
+    auto read_status = Read(argv[1], model);
     printf("Reading %s: %s\n", argv[1], FileReadResult2Str(read_status).c_str());
-    auto model = reader.GetModel();
-    std::cout << model;
-    exit(0);
+    // std::cout << model;
 
     Presolver presolver(model);
     presolver.Presolve();

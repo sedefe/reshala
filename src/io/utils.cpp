@@ -29,7 +29,7 @@ Bounds ExpType2Bounds(ExpType exp_type, Scalar rhs) {
             return {rhs, rhs};
             break;
         default:
-            assert(false);
+            assert(false && "Unknown expression type");
     }
 }
 

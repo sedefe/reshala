@@ -4,18 +4,18 @@
 
 namespace reshala {
 
-FileReadStatus MpsReader::Read(const char* fname) {
-    std::filesystem::path file_path(fname);
-    std::ifstream file(file_path);
+FileReadStatus MpsReader::Read() {
+    std::ifstream file(path_);
     if (!file.is_open()) {
-        // throw std::runtime_error("Failed to open file: " + std::string(fname));
         return FileReadStatus::kFsError;
     }
 
     std::string line;
     auto current_state = MpsParseState::kNon;
-    model.GetObj().orig_sense = Sense::kMin;
+    model_.GetObj().orig_sense = Sense::kMin;
+
     while (std::getline(file, line)) {
+        line_number++;
         auto tokens = tokenize_line(line);
         if (tokens.empty()) continue;
 
@@ -27,8 +27,8 @@ FileReadStatus MpsReader::Read(const char* fname) {
             continue;
         } else if (tokens.size() == 1 and tokens[0] == "COLUMNS") {
             // Now the size is known
-            model.GetAr().GetRows().resize(con_names.size(), 0);
-            model.GetRhs().resize(con_names.size());
+            model_.GetAr().GetRows().resize(con_names.size(), 0);
+            model_.GetRhs().resize(con_names.size());
             current_state = MpsParseState::kCol;
             continue;
         } else if (tokens.size() == 3 and tokens[2] == "'INTORG'") {
@@ -42,13 +42,13 @@ FileReadStatus MpsReader::Read(const char* fname) {
             continue;
         } else if (tokens.size() == 1 and tokens[0] == "RANGES") {
             current_state = MpsParseState::kRhs;
-            assert(false && "Don't support RANGES section in MPS now");
+            ThrowParseError("Don't support RANGES section in MPS now");
         } else if (tokens.size() == 1 and tokens[0] == "BOUNDS") {
             FinalizeRhs();
             size_t n_cons = con_names.size();
             size_t n_vars = var_names.size();
-            model.Resize(n_cons, n_vars);
-            model.FinalizeAc();
+            model_.Resize(n_cons, n_vars);
+            model_.FinalizeAc();
 
             current_state = MpsParseState::kBnd;
             continue;
@@ -81,8 +81,9 @@ FileReadStatus MpsReader::Read(const char* fname) {
 }
 
 void MpsReader::ParseRows(const std::vector<std::string>& tokens) {
-    assert(tokens.size() == 2);
-    assert(tokens[0].size() == 1);
+    if ((tokens.size() != 2) or (tokens[0].size() != 1)) {
+        ThrowParseError("Bad ROW section");
+    }
     char sense = tokens[0][0];
     const std::string& name = tokens[1];
     ExpType exp_type = MpsChar2ExpType(sense);
@@ -97,26 +98,29 @@ void MpsReader::ParseRows(const std::vector<std::string>& tokens) {
 }
 
 void MpsReader::ParseColumns(const std::vector<std::string>& tokens) {
-    assert(tokens.size() == 3 or tokens.size() == 5);
+    if ((tokens.size() != 3) and (tokens.size() != 5)) {
+        ThrowParseError("Bad COLUMNS section");
+    }
     Index var_index = var_names.get_index(tokens[0]);
-    if (var_index >= model.GetVars().Size()) {
-        model.GetObj().coefficients.push_back(0.0);
-        model.GetVars().Push({}, int_marker);
+    if (var_index >= model_.GetVars().Size()) {
+        model_.GetObj().coefficients.push_back(0.0);
+        model_.GetVars().Push({}, int_marker);
     }
     for (Index i = 1; i < tokens.size(); i += 2) {
         Scalar coeff = std::stod(tokens[i + 1]);
         if (tokens[i] != obj_name) {
             Index con_index = con_names.get_index(tokens[i]);
-            model.GetAr().GetRow(con_index).Push(var_index, coeff);
+            model_.GetAr().GetRow(con_index).Push(var_index, coeff);
         } else {
-            model.GetObj().coefficients[var_index] = coeff;
+            model_.GetObj().coefficients[var_index] = coeff;
         }
     }
 }
 
 void MpsReader::ParseRhs(const std::vector<std::string>& tokens) {
-    assert(tokens.size() == 3 or tokens.size() == 5);
-    assert(tokens[0] == "RHS");
+    if (((tokens.size() != 3) and (tokens.size() != 5)) or (tokens[0] != "RHS")) {
+        ThrowParseError("Bad RHS section");
+    }
     for (Index i = 1; i < tokens.size(); i += 2) {
         Index con_index = con_names.get_index(tokens[i]);
         Scalar coeff = std::stod(tokens[i + 1]);
@@ -128,7 +132,7 @@ void MpsReader::FinalizeRhs() {
     for (Index ic = 0; ic < con_names.size(); ic++) {
         auto con_type = con_types[ic];
         auto rhs = con_rhs[ic];
-        model.GetRhs()[ic] = ExpType2Bounds(con_type, rhs);
+        model_.GetRhs()[ic] = ExpType2Bounds(con_type, rhs);
     }
 }
 

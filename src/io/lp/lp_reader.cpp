@@ -4,49 +4,48 @@
 
 namespace reshala {
 
-FileReadStatus LpReader::Read(const char* fname) {
-    std::filesystem::path file_path(fname);
-    std::ifstream file(file_path);
+FileReadStatus LpReader::Read() {
+    std::ifstream file(path_);
     if (!file.is_open()) {
-        // throw std::runtime_error("Failed to open file: " + std::string(fname));
         return FileReadStatus::kFsError;
     }
 
     std::string line;
     auto current_state = LpParseState::kNon;
+
     while (std::getline(file, line)) {
+        line_number++;
         if (line.empty() || line[0] == '\\') continue;
 
         std::string lower_line = to_lowercase(line);
 
-        if (lower_line.find("min") != std::string::npos) {
-            model.GetObj().orig_sense = Sense::kMin;
+        if (lower_line == "min" or lower_line == "minimize") {
+            model_.GetObj().orig_sense = Sense::kMin;
             current_state = LpParseState::kObj;
             continue;
-        } else if (lower_line.find("max") != std::string::npos) {
-            model.GetObj().orig_sense = Sense::kMax;
+        } else if (lower_line == "max" or lower_line == "maximize") {
+            model_.GetObj().orig_sense = Sense::kMax;
             current_state = LpParseState::kObj;
             continue;
-        } else if (lower_line.find("s.t.") != std::string::npos ||
-                   lower_line.find("subject to") != std::string::npos) {
+        } else if (lower_line == "s.t." or lower_line == "subject to") {
             current_state = LpParseState::kCon;
             continue;
-        } else if (lower_line.find("bounds") != std::string::npos) {
+        } else if (lower_line == "bounds") {
             // Now the size is known
-            size_t n_cons = model.GetAr().GetRows().size();
+            size_t n_cons = model_.GetAr().GetRows().size();
             size_t n_vars = var_names.size();
-            model.Resize(n_cons, n_vars);
-            model.FinalizeAc();
+            model_.Resize(n_cons, n_vars);
+            model_.FinalizeAc();
 
             current_state = LpParseState::kBnd;
             continue;
-        } else if (lower_line.find("binaries") != std::string::npos) {
+        } else if (lower_line == "binaries") {
             current_state = LpParseState::kBin;
             continue;
-        } else if (lower_line.find("generals") != std::string::npos) {
+        } else if (lower_line == "generals") {
             current_state = LpParseState::kGen;
             continue;
-        } else if (lower_line.find("end") != std::string::npos) {
+        } else if (lower_line == "end") {
             current_state = LpParseState::kDon;
             break;
         }
@@ -82,10 +81,10 @@ void LpReader::ParseObjective(const std::vector<std::string>& tokens) {
     std::vector<Monom> lhs;
     ParseLincomb(tokens, lhs);
 
-    Objective& obj = model.GetObj();
-    model.GetObj().coefficients.resize(var_names.size());
+    Objective& obj = model_.GetObj();
+    model_.GetObj().coefficients.resize(var_names.size());
     obj.c0 = 0;  // Todo: parse c0
-    if (model.GetObj().orig_sense == Sense::kMin) {
+    if (model_.GetObj().orig_sense == Sense::kMin) {
         for (const auto& m : lhs) {
             obj.coefficients[m.index] = m.coeff;
         }
@@ -104,8 +103,10 @@ void LpReader::ParseConstraint(const std::vector<std::string>& tokens) {
     const std::string& exp_token = tokens[tokens.size() - 2];
     const std::string& rhs_token = tokens[tokens.size() - 1];
 
-    assert(exp_token[0] == '<' or exp_token[0] == '>' or exp_token[0] == '=');
-    assert((exp_token.size() == 1) or (exp_token.size() == 2 and exp_token[1] == '='));
+    if (!(exp_token[0] == '<' or exp_token[0] == '>' or exp_token[0] == '=') or
+        !((exp_token.size() == 1) or (exp_token.size() == 2 and exp_token[1] == '='))) {
+        ThrowParseError("Unsupported expression type: " + exp_token);
+    }
     ExpType exp_type = LpChar2ExpType(exp_token[0]);
     Scalar coeff = std::stod(rhs_token);
     Bounds rhs = ExpType2Bounds(exp_type, coeff);
@@ -115,17 +116,19 @@ void LpReader::ParseConstraint(const std::vector<std::string>& tokens) {
     for (const auto& m : lhs) {
         sv.Push(m.index, m.coeff);
     }
-    model.PrepareConstraint(sv, rhs);
+    model_.PrepareConstraint(sv, rhs);
 }
 
 void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
     size_t n = tokens.size();
-    assert(n % 3 == 0);
+    if (n % 3 != 0) {
+        ThrowParseError("Can't parse bounds");
+    }
     for (Index i = 0; i < n; i += 3) {
         Index index = var_names.get_index(tokens[i]);
         ExpType type = LpChar2ExpType(tokens[i + 1][0]);
         Scalar rhs = std::stod(tokens[i + 2]);
-        Bounds& bnd = model.GetBounds(index);
+        Bounds& bnd = model_.GetBounds(index);
         switch (type) {
             case ExpType::kGe:
                 bnd = BoundsIntersection(bnd, {rhs, kInf});
@@ -143,8 +146,8 @@ void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
 void LpReader::ParseBinaries(const std::vector<std::string>& tokens) {
     for (const auto& str : tokens) {
         auto index = var_names.get_index(str);
-        model.GetVars().integrality[index] = true;
-        Bounds& bnd = model.GetBounds(index);
+        model_.GetVars().integrality[index] = true;
+        Bounds& bnd = model_.GetBounds(index);
         bnd = BoundsIntersection(bnd, {0, 1});
     }
 }
@@ -152,7 +155,7 @@ void LpReader::ParseBinaries(const std::vector<std::string>& tokens) {
 void LpReader::ParseGenerals(const std::vector<std::string>& tokens) {
     for (const auto& str : tokens) {
         auto index = var_names.get_index(str);
-        model.GetVars().integrality[index] = true;
+        model_.GetVars().integrality[index] = true;
     }
 }
 
@@ -167,12 +170,9 @@ void LpReader::ParseLincomb(const std::vector<std::string>& tokens, std::vector<
         const std::string& token = tokens[i];
 
         if (token == "+") {
-            assert(token.size() == 1);
             sign = 1.0;
         } else if (token == "-") {
-            assert(token.size() == 1);
             sign = -1.0;
-
         } else if (isdigit(token[0]) || token[0] == '.') {
             coeff = std::stod(token);
         } else {
