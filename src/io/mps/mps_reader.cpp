@@ -4,6 +4,19 @@
 
 namespace reshala {
 
+MpsBoundType Str2MpsBoundType(const std::string& s) {
+    if (s == "LO") return MpsBoundType::kLO;
+    if (s == "UP") return MpsBoundType::kUP;
+    if (s == "FX") return MpsBoundType::kFX;
+    if (s == "FR") return MpsBoundType::kFR;
+    if (s == "MI") return MpsBoundType::kMI;
+    if (s == "PL") return MpsBoundType::kPL;
+    if (s == "BV") return MpsBoundType::kBV;
+    if (s == "LI") return MpsBoundType::kLI;
+    if (s == "UI") return MpsBoundType::kUI;
+    return MpsBoundType::kNon;
+}
+
 FileReadStatus MpsReader::Read() {
     std::ifstream file(path_);
     if (!file.is_open()) {
@@ -17,6 +30,7 @@ FileReadStatus MpsReader::Read() {
     while (std::getline(file, line)) {
         line_number++;
         while (line.back() == '\r') line.pop_back();
+        if (line.empty() || line[0] == '*') continue;
 
         auto tokens = tokenize_line(line);
         if (tokens.empty()) continue;
@@ -54,7 +68,7 @@ FileReadStatus MpsReader::Read() {
 
             current_state = MpsParseState::kBnd;
             continue;
-        } else if (tokens.size() == 1 and tokens[0] == "ENDDATA") {
+        } else if (tokens.size() == 1 and tokens[0] == "ENDATA") {
             current_state = MpsParseState::kDon;
             break;
         }
@@ -141,6 +155,56 @@ void MpsReader::FinalizeRhs() {
     }
 }
 
-void MpsReader::ParseBounds(const std::vector<std::string>& tokens) {}
+void MpsReader::ParseBounds(const std::vector<std::string>& tokens) {
+    if ((tokens.size() != 3 and tokens.size() != 4) or tokens[0].size() != 2) {
+        printf("%d %d\n", tokens.size(), tokens[0].size());
+        ThrowParseError("Bad BOUNDS section");
+    }
+
+    auto type = Str2MpsBoundType(tokens[0]);
+    Index var_index = var_names.get_index(tokens[2]);
+    Scalar value;
+    switch (type) {
+        case MpsBoundType::kLO:
+            value = std::stod(tokens[3]);
+            model_.GetBounds(var_index) =
+                BoundsIntersection(model_.GetBounds(var_index), {value, kInf});
+            break;
+        case MpsBoundType::kUP:
+            value = std::stod(tokens[3]);
+            model_.GetBounds(var_index) =
+                BoundsIntersection(model_.GetBounds(var_index), {-kInf, value});
+            break;
+        case MpsBoundType::kFX:
+            value = std::stod(tokens[3]);
+            model_.GetBounds(var_index) =
+                BoundsIntersection(model_.GetBounds(var_index), {value, value});
+            break;
+        case MpsBoundType::kMI:
+            model_.GetBounds(var_index).le = -kInf;
+            break;
+        case MpsBoundType::kPL:
+            model_.GetBounds(var_index).ri = kInf;
+            break;
+        case MpsBoundType::kBV:
+            model_.GetBounds(var_index) = BoundsIntersection(model_.GetBounds(var_index), {0, 1});
+            model_.GetVars().integrality[var_index] = true;
+            break;
+        case MpsBoundType::kLI:
+            value = std::stod(tokens[3]);
+            model_.GetBounds(var_index) =
+                BoundsIntersection(model_.GetBounds(var_index), {value, kInf});
+            model_.GetVars().integrality[var_index] = true;
+            break;
+        case MpsBoundType::kUI:
+            value = std::stod(tokens[3]);
+            model_.GetBounds(var_index) =
+                BoundsIntersection(model_.GetBounds(var_index), {-kInf, value});
+            model_.GetVars().integrality[var_index] = true;
+            break;
+        default:
+            ThrowParseError("Unsupported bound type: " + tokens[0]);
+    }
+}
 
 }  // namespace reshala

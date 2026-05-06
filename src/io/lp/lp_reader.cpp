@@ -173,7 +173,7 @@ void LpReader::ParseLincomb(const std::vector<std::string>& tokens, std::vector<
             sign = 1.0;
         } else if (token == "-") {
             sign = -1.0;
-        } else if (isdigit(token[0]) || token[0] == '.') {
+        } else if (isdigit(token[0]) || token[0] == '-' || token[0] == '.') {
             coeff = std::stod(token);
         } else {
             size_t idx = var_names.get_index(token);

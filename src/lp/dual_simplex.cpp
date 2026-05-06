@@ -91,9 +91,9 @@ Solution DualSimplex::Solve() {
     DenseVector x;
     if (status == LpStatus::kOptimal) {
         x.resize(n);
-        for (Index iv = 0; iv < m; iv++) {
-            if (basis[iv] < n) {
-                x[basis[iv]] = x_b[iv];
+        for (Index ic = 0; ic < m; ic++) {
+            if (basis[ic] < n) {
+                x[basis[ic]] = x_b[ic];
             }
         }
         for (Index iv = 0; iv < n; iv++) {

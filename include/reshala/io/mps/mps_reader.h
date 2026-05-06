@@ -25,6 +25,9 @@ ExpType MpsChar2ExpType(char c) {
             return ExpType::kNon;
     }
 }
+enum class MpsBoundType { kLO, kUP, kFX, kFR, kMI, kPL, kBV, kLI, kUI, kNon };
+MpsBoundType Str2MpsBoundType(const std::string&);
+
 
 class MpsReader {
    public:

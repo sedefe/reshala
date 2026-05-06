@@ -38,7 +38,7 @@ Solution MilpModel::PrepareSolution(const LpStatus status, const std::vector<Sca
 
     auto res_x = x;
     for (auto &&element : res_x) {
-        if (abs(element) < kEpsZero) {
+        if (IsZero(element)) {
             element = 0.0;
         }
     }
@@ -66,11 +66,11 @@ std::ostream& operator<<(std::ostream& os, const MilpModel& model) {
     os << "Bounds\n";
     for (Index i = 0; i < n; i++) {
         const Bounds& bnd = model.GetBounds(i);
-        if (bnd.le != -kInf) {
-            os << "x[" << i << "] >= " << bnd.le << std::endl;
+        if (bnd.le != 0.0) {
+            os << "x" << i << " >= " << bnd.le << std::endl;
         }
         if (bnd.ri != kInf) {
-            os << "x[" << i << "] <= " << bnd.ri << std::endl;
+            os << "x" << i << " <= " << bnd.ri << std::endl;
         }
     }
 
