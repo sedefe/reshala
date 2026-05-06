@@ -14,8 +14,7 @@ reshala::FileReadStatus Read(const char* path, MilpModel& model) {
         return mps_reader.Read();
     } else if (extension == ".lp") {
         LpReader lp_reader(file_path, model);
-        lp_reader.Read();
-        return FileReadStatus::kOk;
+        return lp_reader.Read();
     } else {
         throw std::invalid_argument("Unsupported file format: " + extension);
     }

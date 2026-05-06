@@ -61,29 +61,25 @@ Solution DualSimplex::Solve() {
     Init();
     while (true) {
         n_iter += 1;
-        DebugPrint();
-
-        if (n_iter > 5) {
-            break;
-        }
+        // DebugPrint();
 
         Chuzr();
-        printf("Chuzr: iv leaving %d (%d), pinf %.2f\n", iv_leaving, basis[iv_leaving],
-               primal_infeasibility);
         if (iv_leaving < 0) {
             status = LpStatus::kOptimal;
             break;
         }
+        // printf("Chuzr: iv leaving %d (%d), pinf %.2f\n", iv_leaving, basis[iv_leaving],
+        //        primal_infeasibility);
 
         Btran();
         Price();
 
         Chuzc();
-        printf("Chuzr: iv entering %d (%d)\n", iv_entering, non_basis[iv_entering]);
         if (iv_entering < 0) {
             status = LpStatus::kInfeasible;
             break;
         }
+        // printf("Chuzc: iv entering %d (%d)\n", iv_entering, non_basis[iv_entering]);
 
         Ftran();
         Update();
@@ -125,13 +121,15 @@ void DualSimplex::Chuzr() {
         }
     }
 
-    auto& bounds = model_.GetBounds(basis[iv_leaving]);
-    if ((x_b[iv_leaving] - bounds.ri) > (bounds.le - x_b[iv_leaving])) {
-        s_p = +1;
-        primal_infeasibility = x_b[iv_leaving] - bounds.ri;
-    } else {
-        s_p = -1;
-        primal_infeasibility = bounds.le - x_b[iv_leaving];
+    if (iv_leaving >= 0) {
+        auto& bounds = model_.GetBounds(basis[iv_leaving]);
+        if ((x_b[iv_leaving] - bounds.ri) > (bounds.le - x_b[iv_leaving])) {
+            s_p = +1;
+            primal_infeasibility = x_b[iv_leaving] - bounds.ri;
+        } else {
+            s_p = -1;
+            primal_infeasibility = bounds.le - x_b[iv_leaving];
+        }
     }
 }
 
@@ -177,7 +175,7 @@ void DualSimplex::Chuzc() {
 }
 
 void DualSimplex::Ftran() {
-    if (non_basis[iv_leaving] < m) {
+    if (non_basis[iv_leaving] < n) {
         MulDmSv(Binv, model_.GetAc().GetCol(non_basis[iv_leaving]), a_q);
     } else {
         MulDmSv(Binv, SparseVector(m, non_basis[iv_leaving] - m, 1.0), a_q);
@@ -198,19 +196,20 @@ void DualSimplex::Update() {
 
     {  // Update Binv
         const SparseVector delta = sub(entering_col, leaving_col);
-        const SparseVector row(m, Binv.RowView(iv_leaving));
-        DenseVector d(m, 0);
-        MulDmSv(Binv, delta, d);
+        const DenseVector row(Binv.RowView(iv_leaving), Binv.RowView(iv_leaving) + m);
         Scalar multiplier;
         dot(row, delta, multiplier);
-        multiplier += 1;
+        multiplier = 1 / (1 + multiplier);
+
+        DenseVector d(m, 0);
+        MulDmSv(Binv, delta, d);
+
         for (Index i = 0; i < m; i++) {
             for (Index j = 0; j < m; j++) {
-                Binv.RowView(i)[j] -= d[i] * row.At(j) / multiplier;
+                Binv.RowView(i)[j] -= d[i] * row[j] * multiplier;
             }
         }
     }
-
     std::swap(basis[iv_leaving], non_basis[iv_entering]);
 
     DenseVector c_b_btran(m, 0.0);
@@ -247,16 +246,16 @@ void DualSimplex::Update() {
 
     DenseVector n_x_n(m, 0.0);
     {  // Update x_b
-        n_x_n.assign(n, 0.0);
+        n_x_n.assign(m, 0.0);
         for (Index ic = 0; ic < n; ic++) {
             auto inb = non_basis[ic];
-            if (inb < m) {
+            if (inb < n) {
                 const auto& col = model_.GetAc().GetCol(inb);
                 for (Index j = 0; j < col.Size(); j++) {
                     n_x_n[col.indices()[j]] += col.values()[j] * x_n[ic];
                 }
             } else {
-                n_x_n[inb - m] += x_n[ic];
+                n_x_n[inb - n] += x_n[ic];
             }
         }
 
@@ -275,20 +274,27 @@ void DualSimplex::ForceBounds() {
 void DualSimplex::UnforceBounds() { model_.GetVars().bounds = initial_bounds; }
 
 void DualSimplex::DebugPrint() {
-    printf("===== %d =====\n", n_iter);
+    DenseVector x(n);
+    for (Index iv = 0; iv < m; iv++) {
+        if (basis[iv] < n) x[basis[iv]] = x_b[iv];
+    }
+    for (Index iv = 0; iv < n; iv++) {
+        if (non_basis[iv] < n) x[non_basis[iv]] = x_n[iv];
+    }
+    auto res = model_.PrepareSolution(LpStatus::kOptimal, x);
+
+    printf("===== %d y=%.5f =====\n", n_iter, res.y);
     printf("Basis   : ");
     for (auto iv : basis) printf("%d ", iv);
     printf("\n");
     printf("Nonbasis: ");
     for (auto ic : non_basis) printf("%d ", ic);
     printf("\n");
-    printf("Binv:\n");
-    for (Index i = 0; i < m; i++) {
-        for (Index j = 0; j < m; j++) {
-            printf("%5.2f ", Binv.RowView(i)[j]);
-        }
-        printf("\n");
-    }
+    // printf("Binv:\n");
+    // for (Index i = 0; i < m; i++) {
+    //     for (Index j = 0; j < m; j++) printf("%5.2f ", Binv.RowView(i)[j]);
+    //     printf("\n");
+    // }
     printf("cb: ");
     for (auto x : c_b) printf("%5.2f ", x);
     printf("\n");

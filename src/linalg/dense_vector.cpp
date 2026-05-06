@@ -9,14 +9,13 @@ std::ostream &operator<<(std::ostream &os, const DenseVector &dv) {
             if (!first) {
                 os << " + ";
             }
-            os << dv[i] << " * x[" << i << "]";
+            os << dv[i] << " x" << i << "";
             first = false;
         }
     }
     if (first) {
         os << "0";
     }
-    os << "\n";
 
     return os;
 }

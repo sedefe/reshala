@@ -13,6 +13,9 @@ int main(int argc, char** argv) {
     MilpModel model;
     auto read_status = Read(argv[1], model);
     printf("Reading %s: %s\n", argv[1], FileReadResult2Str(read_status).c_str());
+    if (read_status != FileReadStatus::kOk) {
+        exit(0);
+    }
     // std::cout << model;
 
     Presolver presolver(model);
@@ -21,4 +24,7 @@ int main(int argc, char** argv) {
     DualSimplex drs(model);
     const Solution& sol = drs.Solve();
     printf("Status: %s, Obj: %.2f\n", LpStatus2Str(sol.status).c_str(), sol.y);
+    // for (Index i = 0; i < model.GetNVars(); i++) {
+    //     printf("x[%2d] = %5.2f\n", i, sol.x[i]);
+    // }
 }

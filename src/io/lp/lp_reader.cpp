@@ -15,8 +15,11 @@ FileReadStatus LpReader::Read() {
 
     while (std::getline(file, line)) {
         line_number++;
+        while (line.back() == '\r') line.pop_back();
         if (line.empty() || line[0] == '\\') continue;
 
+        auto tokens = tokenize_line(line);
+        if (tokens.empty()) continue;
         std::string lower_line = to_lowercase(line);
 
         if (lower_line == "min" or lower_line == "minimize") {
@@ -49,9 +52,6 @@ FileReadStatus LpReader::Read() {
             current_state = LpParseState::kDon;
             break;
         }
-
-        auto tokens = tokenize_line(line);
-        if (tokens.empty()) continue;
 
         switch (current_state) {
             case LpParseState::kObj:

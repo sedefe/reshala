@@ -16,6 +16,8 @@ FileReadStatus MpsReader::Read() {
 
     while (std::getline(file, line)) {
         line_number++;
+        while (line.back() == '\r') line.pop_back();
+
         auto tokens = tokenize_line(line);
         if (tokens.empty()) continue;
 

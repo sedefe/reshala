@@ -7,7 +7,7 @@
 namespace reshala {
 
 struct Bounds {
-    Scalar le = -kInf;
+    Scalar le = 0.0;
     Scalar ri = kInf;
 };
 
