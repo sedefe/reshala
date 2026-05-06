@@ -112,12 +112,12 @@ void DualSimplex::Chuzr() {
     Scalar max_infeasibility = kEpsZero;
     Scalar infeasibility;
 
-    for (Index iv = 0; iv < m; iv++) {
-        const Bounds& bnd = model_.GetBounds(basis[iv]);
-        infeasibility = std::max(x_b[iv] - bnd.ri, bnd.le - x_b[iv]);
+    for (Index ic = 0; ic < m; ic++) {
+        const Bounds& bnd = model_.GetBounds(basis[ic]);
+        infeasibility = std::max(x_b[ic] - bnd.ri, bnd.le - x_b[ic]);
         if (infeasibility > max_infeasibility) {
             max_infeasibility = infeasibility;
-            iv_leaving = iv;
+            iv_leaving = ic;
         }
     }
 
@@ -137,11 +137,11 @@ void DualSimplex::Btran() { e_p.assign(Binv.RowView(iv_leaving), Binv.RowView(iv
 
 void DualSimplex::Price() {
     // Todo: row-wise pricing
-    for (Index ic = 0; ic < n; ic++) {
-        if (non_basis[ic] < n) {
-            dot(e_p, model_.GetAc().GetCol(non_basis[ic]), a_p[ic]);
+    for (Index iv = 0; iv < n; iv++) {
+        if (non_basis[iv] < n) {
+            dot(e_p, model_.GetAc().GetCol(non_basis[iv]), a_p[iv]);
         } else {
-            a_p[ic] = e_p[non_basis[ic] - n];
+            a_p[iv] = e_p[non_basis[iv] - n];
         }
     }
 }
@@ -152,23 +152,23 @@ void DualSimplex::Chuzc() {
     Scalar min_ratio = kInf;
     iv_entering = -1;
 
-    for (Index ic = 0; ic < n; ic++) {
-        if (model_.GetVars().types[ic] == VarType::kFixed) {
+    for (Index iv = 0; iv < n; iv++) {
+        if (model_.GetVars().types[non_basis[iv]] == VarType::kFixed) {
             continue;
         }
-        if (x_n[ic] == model_.GetBounds(non_basis[ic]).le) {
+        if (x_n[iv] == model_.GetBounds(non_basis[iv]).le) {
             d_j = 1;
         } else {
             d_j = -1;
         }
-        a_pj = a_p[ic] * (s_p * d_j);
-        c_j = c_n[ic] * d_j;
+        a_pj = a_p[iv] * (s_p * d_j);
+        c_j = c_n[iv] * d_j;
 
         if (a_pj > kEpsZero) {
             auto ratio = c_j / a_pj;
             if (ratio < min_ratio) {
                 min_ratio = ratio;
-                iv_entering = ic;
+                iv_entering = iv;
             }
         }
     }
@@ -231,7 +231,9 @@ void DualSimplex::Update() {
         for (Index iv = 0; iv < Index(n); ++iv) c_n[iv] = -c_n[iv];
 
         for (Index iv = 0; iv < Index(n); ++iv)
-            if (non_basis[iv] < Index(n)) c_n[iv] += model_.GetObj().coefficients[non_basis[iv]];
+            if (non_basis[iv] < Index(n)) {
+                c_n[iv] += model_.GetObj().coefficients[non_basis[iv]];
+            }
     }
 
     {  // Update x_n

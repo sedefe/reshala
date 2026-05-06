@@ -29,8 +29,8 @@ FileReadStatus MpsReader::Read() {
             continue;
         } else if (tokens.size() == 1 and tokens[0] == "COLUMNS") {
             // Now the size is known
-            model_.GetAr().GetRows().resize(con_names.size(), 0);
-            model_.GetRhs().resize(con_names.size());
+            size_t n_cons = con_names.size();
+            model_.Resize(n_cons, 0);
             current_state = MpsParseState::kCol;
             continue;
         } else if (tokens.size() == 3 and tokens[2] == "'INTORG'") {
@@ -112,6 +112,9 @@ void MpsReader::ParseColumns(const std::vector<std::string>& tokens) {
         Scalar coeff = std::stod(tokens[i + 1]);
         if (tokens[i] != obj_name) {
             Index con_index = con_names.get_index(tokens[i]);
+            if (con_index >= model_.GetNCons()) {
+                ThrowParseError("Constraint did not appear in ROWS: " + tokens[i]);
+            }
             model_.GetAr().GetRow(con_index).Push(var_index, coeff);
         } else {
             model_.GetObj().coefficients[var_index] = coeff;
