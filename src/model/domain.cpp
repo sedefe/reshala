@@ -5,7 +5,7 @@
 
 namespace reshala {
 
-VarType GetType(const Bounds &bounds) {
+VarType Bounds2Type(const Bounds &bounds) {
     auto l = bounds.le;
     auto u = bounds.ri;
     if ((-kInf < l) && (u == kInf)) {

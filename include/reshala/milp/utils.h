@@ -8,9 +8,9 @@
 namespace reshala {
 
 struct Node {
-    Node(const Solution& s, const std::vector<Bounds>& b) : sol(s), bounds(b) {}
+    Node(const Solution& s, const Domain& d) : sol(s), domain(d) {}
     Solution sol;
-    std::vector<Bounds> bounds;
+    Domain domain;
 };
 
 class MipState {

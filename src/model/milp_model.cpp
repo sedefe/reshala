@@ -15,7 +15,10 @@ bool MilpModel::IsIntegerFeasible(const std::vector<Scalar>& x) {
     return true;
 }
 
-bool MilpModel::IsFeasible(const std::vector<Scalar>& x) {}
+bool MilpModel::IsFeasible(const std::vector<Scalar>& x) {
+    // Todo
+    return false;
+}
 
 void MilpModel::AddSlacks() {
     assert(!has_slacks_);
@@ -25,17 +28,16 @@ void MilpModel::AddSlacks() {
     auto m = GetNCons();
     auto n = GetNVars();
 
-    vars_.Resize(n + m);
+    domain_.Resize(n + m);
     for (Index ic = 0; ic < Index(m); ic++) {
-        vars_.bounds[n + ic] = {-rhs_[ic].ri, -rhs_[ic].le};
-        vars_.types[n + ic] = GetType(vars_.bounds[n + ic]);
-        vars_.integrality[n + ic] = false;
+        domain_.SetBounds(n + ic, {-rhs_[ic].ri, -rhs_[ic].le});
+        domain_.SetIntegrality(n + ic, false);
     }
 }
 
 void MilpModel::PruneSlacks() {
     if (has_slacks_) {
-        vars_.Resize(GetNVars());
+        domain_.Resize(GetNVars());
     }
     has_slacks_ = false;
 }

@@ -153,7 +153,7 @@ void DualSimplex::Chuzc() {
     iv_entering = -1;
 
     for (Index iv = 0; iv < n; iv++) {
-        if (model_.GetVars().types[non_basis[iv]] == VarType::kFixed) {
+        if (model_.GetType(non_basis[iv]) == VarType::kFixed) {
             continue;
         }
         if (x_n[iv] == model_.GetBounds(non_basis[iv]).le) {
@@ -267,13 +267,13 @@ void DualSimplex::Update() {
 }
 
 void DualSimplex::ForceBounds() {
-    initial_bounds = model_.GetVars().bounds;
-    for (Bounds& bnd : model_.GetVars().bounds) {
-        bnd = BoundsIntersection(bnd, {-kMaxAbs, kMaxAbs});
+    initial_domain = model_.GetDomain();
+    for (Index iv = 0; iv < model_.GetNVars(); iv++) {
+        model_.SetBounds(iv, BoundsIntersection(model_.GetBounds(iv), {-kMaxAbs, kMaxAbs}));
     }
 }
 
-void DualSimplex::UnforceBounds() { model_.GetVars().bounds = initial_bounds; }
+void DualSimplex::UnforceBounds() { model_.SetDomain(initial_domain); }
 
 void DualSimplex::DebugPrint() {
     DenseVector x(n);

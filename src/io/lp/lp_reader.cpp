@@ -147,16 +147,16 @@ void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
         Index index = names_.vars.get_index(tokens[i]);
         ExpType type = LpChar2ExpType(tokens[i + 1][0]);
         Scalar rhs = std::stod(tokens[i + 2]);
-        Bounds& bnd = model_.GetBounds(index);
+        const Bounds& bnd = model_.GetBounds(index);
         switch (type) {
             case ExpType::kGe:
-                bnd = BoundsIntersection(bnd, {rhs, kInf});
+                model_.SetBounds(index, BoundsIntersection(bnd, {rhs, kInf}));
                 break;
             case ExpType::kLe:
-                bnd = BoundsIntersection(bnd, {-kInf, rhs});
+                model_.SetBounds(index, BoundsIntersection(bnd, {-kInf, rhs}));
                 break;
             case ExpType::kEq:
-                bnd = BoundsIntersection(bnd, {rhs, rhs});
+                model_.SetBounds(index, BoundsIntersection(bnd, {rhs, rhs}));
                 break;
         }
     }
@@ -166,8 +166,8 @@ void LpReader::ParseBinaries(const std::vector<std::string>& tokens) {
     for (const auto& str : tokens) {
         auto index = names_.vars.get_index(str);
         model_.SetIntegrality(index, true);
-        Bounds& bnd = model_.GetBounds(index);
-        bnd = BoundsIntersection(bnd, {0, 1});
+        const Bounds& bnd = model_.GetBounds(index);
+        model_.SetBounds(index, BoundsIntersection(bnd, {0, 1}));
     }
 }
 

@@ -164,41 +164,34 @@ void MpsReader::ParseBounds(const std::vector<std::string>& tokens) {
     Index var_index = names_.vars.get_index(tokens[2]);
     Scalar value;
     switch (type) {
+        case MpsBoundType::kLI:  // integer kLO
+            model_.SetIntegrality(var_index, true);
         case MpsBoundType::kLO:
             value = std::stod(tokens[3]);
-            model_.GetBounds(var_index) =
-                BoundsIntersection(model_.GetBounds(var_index), {value, kInf});
+            model_.SetBounds(var_index,
+                             BoundsIntersection(model_.GetBounds(var_index), {value, kInf}));
             break;
+        case MpsBoundType::kUI:  // integer kUI
+            model_.SetIntegrality(var_index, true);
         case MpsBoundType::kUP:
             value = std::stod(tokens[3]);
-            model_.GetBounds(var_index) =
-                BoundsIntersection(model_.GetBounds(var_index), {-kInf, value});
+            model_.SetBounds(var_index,
+                             BoundsIntersection(model_.GetBounds(var_index), {-kInf, value}));
             break;
         case MpsBoundType::kFX:
             value = std::stod(tokens[3]);
-            model_.GetBounds(var_index) =
-                BoundsIntersection(model_.GetBounds(var_index), {value, value});
+            model_.SetBounds(var_index,
+                             BoundsIntersection(model_.GetBounds(var_index), {value, value}));
             break;
         case MpsBoundType::kMI:
-            model_.GetBounds(var_index).le = -kInf;
+            model_.SetBounds(var_index, {-kInf, model_.GetBounds(var_index).ri});
             break;
         case MpsBoundType::kPL:
-            model_.GetBounds(var_index).ri = kInf;
+            model_.SetBounds(var_index, {model_.GetBounds(var_index).le, kInf});
             break;
         case MpsBoundType::kBV:
-            model_.GetBounds(var_index) = BoundsIntersection(model_.GetBounds(var_index), {0, 1});
-            model_.SetIntegrality(var_index, true);
-            break;
-        case MpsBoundType::kLI:
-            value = std::stod(tokens[3]);
-            model_.GetBounds(var_index) =
-                BoundsIntersection(model_.GetBounds(var_index), {value, kInf});
-            model_.SetIntegrality(var_index, true);
-            break;
-        case MpsBoundType::kUI:
-            value = std::stod(tokens[3]);
-            model_.GetBounds(var_index) =
-                BoundsIntersection(model_.GetBounds(var_index), {-kInf, value});
+            model_.SetBounds(var_index,
+                             BoundsIntersection(model_.GetBounds(var_index), {0, 1}));
             model_.SetIntegrality(var_index, true);
             break;
         default:

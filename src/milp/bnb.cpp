@@ -3,7 +3,7 @@
 namespace reshala {
 
 Solution BnbSolver::Solve(const Solution& sol) {
-    Node root(sol, model_.GetAllBounds());
+    Node root(sol, model_.GetDomain());
 
     nodes.push_back(root);
 
@@ -21,12 +21,11 @@ Solution BnbSolver::Solve(const Solution& sol) {
         const Bounds& bnd = model_.GetBounds(cand);
         std::array<Bounds, 2> cand_bounds{{{bnd.le, x_floor}, {x_floor + 1, bnd.ri}}};
 
-        model_.SetAllBounds(node.bounds);
+        model_.SetDomain(node.domain);
         for (Index i = 0; i < 2; i++) {
             model_.SetBounds(cand, cand_bounds[i]);
             DualSimplex ds(model_);
             auto sol = ds.Solve();
-
             if (sol.status != LpStatus::kOptimal) {
                 continue;
             }
@@ -38,7 +37,7 @@ Solution BnbSolver::Solve(const Solution& sol) {
                 }
                 mip_state_.UpdPrimal(sol.y);
             } else {
-                nodes.push_back(Node(sol, model_.GetAllBounds()));
+                nodes.push_back(Node(sol, model_.GetDomain()));
             }
         }
     }

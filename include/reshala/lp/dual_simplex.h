@@ -46,7 +46,7 @@ class DualSimplex {
     void Ftran();
     void Update();
 
-    std::vector<Bounds> initial_bounds;
+    Domain initial_domain;
     void ForceBounds();
     void UnforceBounds();
 

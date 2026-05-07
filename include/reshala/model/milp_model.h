@@ -26,17 +26,17 @@ class MilpModel {
     const std::vector<Bounds>& GetRhs() const { return rhs_; }
     std::vector<Bounds>& GetRhs() { return rhs_; }
 
-    const Domain& GetVars() const { return vars_; }
-    Domain& GetVars() { return vars_; }
+    const Domain& GetVars() const { return domain_; }
+    Domain& GetVars() { return domain_; }
 
-    inline const std::vector<Bounds>& GetAllBounds() const { return vars_.bounds; }
-    inline void SetAllBounds(const std::vector<Bounds>& bounds) { vars_.bounds = bounds; }
-    inline const Bounds& GetBounds(Index iv) const { return vars_.bounds[iv]; }
-    inline Bounds& GetBounds(Index iv) { return vars_.bounds[iv]; }
-    inline void SetBounds(Index iv, const Bounds& bnd) { vars_.bounds[iv] = bnd; }
+    inline const Domain GetDomain() const { return domain_; }
+    inline void SetDomain(const Domain& domain) { domain_ = domain; }
+    inline const Bounds& GetBounds(Index iv) const { return domain_.GetBounds(iv); }
+    inline void SetBounds(Index iv, const Bounds& bnd) { domain_.SetBounds(iv, bnd); }
+    inline const VarType& GetType(Index iv) const { return domain_.GetType(iv); }
 
-    inline bool GetIntegrality(Index iv) const { return vars_.integrality[iv]; }
-    inline void SetIntegrality(Index iv, bool b) { vars_.integrality[iv] = b; }
+    inline bool GetIntegrality(Index iv) const { return domain_.GetIntegrality(iv); }
+    inline void SetIntegrality(Index iv, bool b) { domain_.SetIntegrality(iv, b); }
 
     bool IsIntegerFeasible(const std::vector<Scalar>& x);
     bool IsFeasible(const std::vector<Scalar>& x);
@@ -49,7 +49,7 @@ class MilpModel {
         Ac_.Resize(m, n);
         Ar_.Resize(m, n);
         rhs_.resize(m);
-        vars_.Resize(n);
+        domain_.Resize(n);
     }
 
     void PrepareConstraint(const SparseVector& lhs, const Bounds& rhs) {
@@ -68,7 +68,7 @@ class MilpModel {
     SparseColMatrix Ac_;
     SparseRowMatrix Ar_;
     std::vector<Bounds> rhs_;
-    Domain vars_;
+    Domain domain_;
 
     bool has_slacks_ = false;
 };

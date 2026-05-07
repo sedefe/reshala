@@ -19,38 +19,37 @@ inline bool InBounds(Scalar val, const Bounds &bounds, Scalar eps) {
     return val + eps >= bounds.le && val - eps <= bounds.ri;
 }
 
-enum class VarType {
-    kLower,
-    kFree,
-    kFixed,
-    kUpper,
-    kBoxed,
-    kUnknown
-};
-VarType GetType(const Bounds &bounds);
+enum class VarType { kLower, kFree, kFixed, kUpper, kBoxed, kUnknown };
+VarType Bounds2Type(const Bounds &bounds);
 
-struct Domain {
-    std::vector<Bounds> bounds;
-    std::vector<VarType> types;
-    std::vector<bool> integrality;
+class Domain {
+   public:
+    inline const Bounds &GetBounds(Index iv) const { return bounds_[iv]; }
+    inline void SetBounds(Index iv, const Bounds &bnds) {
+        bounds_[iv] = bnds;
+        types_[iv] = Bounds2Type(bnds);
+    }
+    inline const VarType &GetType(Index iv) const { return types_[iv]; }
 
-    inline void SetVarBounds(Index iv, const Bounds &bnds) {
-        bounds[iv] = bnds;
-        types[iv] = GetType(bnds);
+    inline bool GetIntegrality(Index iv) const { return integrality_[iv]; }
+    inline void SetIntegrality(Index iv, bool b) { integrality_[iv] = b; }
+
+    inline size_t Size() const { return bounds_.size(); }
+    inline void Resize(Index n) {
+        bounds_.resize(n);
+        types_.resize(n);
+        integrality_.resize(n);
+    }
+    inline void Push(const Bounds &b, bool i) {
+        bounds_.push_back(b);
+        types_.push_back(Bounds2Type(b));
+        integrality_.push_back(i);
     }
 
-    void Resize(Index n) {
-        bounds.resize(n);
-        types.resize(n);
-        integrality.resize(n);
-    }
-
-    size_t Size() const { return bounds.size(); }
-    void Push(const Bounds &b, bool i) {
-        bounds.push_back(b);
-        types.push_back(GetType(b));
-        integrality.push_back(i);
-    }
+   private:
+    std::vector<Bounds> bounds_;
+    std::vector<VarType> types_;
+    std::vector<bool> integrality_;
 };
 
 }  // namespace reshala
