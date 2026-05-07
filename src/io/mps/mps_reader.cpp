@@ -1,7 +1,5 @@
 #include "reshala/io/mps/mps_reader.h"
 
-#include <iostream>
-
 namespace reshala {
 
 MpsBoundType Str2MpsBoundType(const std::string& s) {

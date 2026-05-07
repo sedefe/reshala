@@ -1,7 +1,5 @@
 #include "reshala/io/lp/lp_reader.h"
 
-#include <iostream>
-
 namespace reshala {
 
 FileReadStatus LpReader::Read(const std::filesystem::path& path) {
@@ -144,6 +142,9 @@ void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
         ThrowParseError("Can't parse bounds");
     }
     for (Index i = 0; i < n; i += 3) {
+        if (names_.vars.name_to_index.find(tokens[i]) == names_.vars.name_to_index.end()) {
+            ThrowParseError("Unexpected variable " + tokens[i] + " in Bounds section");
+        }
         Index index = names_.vars.get_index(tokens[i]);
         ExpType type = LpChar2ExpType(tokens[i + 1][0]);
         Scalar rhs = std::stod(tokens[i + 2]);

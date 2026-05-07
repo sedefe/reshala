@@ -55,7 +55,7 @@ void DualSimplex::Init() {
 
 Solution DualSimplex::Solve() {
     model_.AddSlacks();
-    ForceBounds();
+    // ForceBounds();
     LpStatus status;
 
     Init();
@@ -86,7 +86,7 @@ Solution DualSimplex::Solve() {
     }
 
     model_.PruneSlacks();
-    UnforceBounds();
+    // UnforceBounds();
 
     DenseVector x;
     if (status == LpStatus::kOptimal) {
@@ -237,11 +237,30 @@ void DualSimplex::Update() {
     }
 
     {  // Update x_n
-        for (Index iv = 0; iv < Index(n); iv++) {
-            if (c_n[iv] >= 0) {
-                x_n[iv] = model_.GetBounds(non_basis[iv]).le;
-            } else {
-                x_n[iv] = model_.GetBounds(non_basis[iv]).ri;
+        for (Index iv = 0; iv < n; iv++) {
+            const Bounds& bnd = model_.GetBounds(non_basis[iv]);
+            switch (model_.GetType(non_basis[iv])) {
+                case VarType::kBoxed:
+                    if (c_n[iv] >= 0.0) {
+                        x_n[iv] = bnd.le;
+                    } else {
+                        x_n[iv] = bnd.ri;
+                    }
+                    break;
+                case VarType::kLower:
+                    x_n[iv] = bnd.le;
+                    break;
+                case VarType::kUpper:
+                    x_n[iv] = bnd.ri;
+                    break;
+                case VarType::kFree:
+                    x_n[iv] = 0.0;
+                    break;
+                case VarType::kFixed:
+                    x_n[iv] = bnd.le;
+                    break;
+                default:
+                    assert(false);
             }
         }
     }
@@ -268,7 +287,7 @@ void DualSimplex::Update() {
 
 void DualSimplex::ForceBounds() {
     initial_domain = model_.GetDomain();
-    for (Index iv = 0; iv < model_.GetNVars(); iv++) {
+    for (Index iv = 0; iv < m + n; iv++) {
         model_.SetBounds(iv, BoundsIntersection(model_.GetBounds(iv), {-kMaxAbs, kMaxAbs}));
     }
 }
