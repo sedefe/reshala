@@ -9,7 +9,8 @@ namespace reshala {
 
 class BnbSolver {
    public:
-    BnbSolver(MilpModel& model, MipState& mip_state) : model_(model), mip_state_(mip_state) {}
+    BnbSolver(MilpModel& model, MipState& mip_state)
+        : model_(model), mip_state_(mip_state), branching(model) {}
 
     Solution Solve(const Solution& sol);
 
@@ -22,6 +23,7 @@ class BnbSolver {
     MostInfeasible branching;
 
     void SolveRoot();
+    void UpdDual();
 };
 
 }  // namespace reshala

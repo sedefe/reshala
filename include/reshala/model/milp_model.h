@@ -4,6 +4,7 @@
 #include "reshala/model/domain.h"
 #include "reshala/model/objective.h"
 #include "reshala/model/solution.h"
+#include "reshala/model/utils.h"
 
 namespace reshala {
 
@@ -39,7 +40,7 @@ class MilpModel {
     inline void SetIntegrality(Index iv, bool b) { domain_.SetIntegrality(iv, b); }
 
     bool IsIntegerFeasible(const std::vector<Scalar>& x);
-    bool IsFeasible(const std::vector<Scalar>& x);
+    FeasibilityReport GetFeasReport(const std::vector<Scalar>& x);
 
     void AddSlacks();
     void PruneSlacks();

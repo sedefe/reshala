@@ -27,16 +27,12 @@ class MipState {
     Scalar GetCutoff() const { return cutoff_; };
 
     void UpdPrimal(Scalar primal) {
-        if (primal < primal_) {
-            primal_ = primal;
-            Recalc();
-        }
+        primal_ = primal;
+        Recalc();
     }
     void UpdDual(Scalar dual) {
-        if (dual > dual_) {
-            dual_ = dual;
-            Recalc();
-        }
+        dual_ = dual;
+        Recalc();
     }
     bool Converged() const { return cutoff_ <= dual_; }
 

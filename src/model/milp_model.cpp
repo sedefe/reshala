@@ -15,9 +15,22 @@ bool MilpModel::IsIntegerFeasible(const std::vector<Scalar>& x) {
     return true;
 }
 
-bool MilpModel::IsFeasible(const std::vector<Scalar>& x) {
-    // Todo
-    return false;
+FeasibilityReport MilpModel::GetFeasReport(const std::vector<Scalar>& x) {
+    FeasibilityReport rep;
+    rep.max_int_infeas = 0;
+    rep.max_bnd_infeas = 0;
+    rep.max_con_infeas = 0;
+
+    for (Index iv = 0; iv < GetNVars(); iv++) {
+        if (GetIntegrality(iv)) {
+            rep.max_int_infeas = std::max(rep.max_int_infeas, GetFraction(x[iv]));
+        }
+        const Bounds& bnd = GetBounds(iv);
+        rep.max_bnd_infeas = std::max(rep.max_bnd_infeas, bnd.le - x[iv]);
+        rep.max_bnd_infeas = std::max(rep.max_bnd_infeas, x[iv] - bnd.ri);
+    }
+
+    return rep;
 }
 
 void MilpModel::AddSlacks() {

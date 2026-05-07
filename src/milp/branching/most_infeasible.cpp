@@ -5,13 +5,14 @@ namespace reshala {
 
 Index MostInfeasible::Branch(const Solution& sol) {
     Index candidate = 0;
-    Scalar max_fraction = GetFraction(sol.x[0]);
+    Scalar max_fraction = -kInf;
 
-    for (Index i = 1; i < sol.x.size(); ++i) {
-        Scalar current_fraction = GetFraction(sol.x[i]);
+    for (Index iv = 0; iv < sol.x.size(); ++iv) {
+        if (!model_.GetIntegrality(iv)) continue;
+        Scalar current_fraction = GetFraction(sol.x[iv]);
         if (current_fraction > max_fraction) {
             max_fraction = current_fraction;
-            candidate = i;
+            candidate = iv;
         }
     }
 
