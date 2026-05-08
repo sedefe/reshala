@@ -177,10 +177,10 @@ void DualSimplex::Chuzc() {
 }
 
 void DualSimplex::Ftran() {
-    if (non_basis[iv_leaving] < n) {
-        MulDmSv(Binv, model_.GetAc().GetCol(non_basis[iv_leaving]), a_q);
+    if (non_basis[iv_entering] < n) {
+        MulDmSv(Binv, model_.GetAc().GetCol(non_basis[iv_entering]), a_q);
     } else {
-        MulDmSv(Binv, SparseVector(m, non_basis[iv_leaving] - m, 1.0), a_q);
+        MulDmSv(Binv, SparseVector(m, non_basis[iv_entering] - n, 1.0), a_q);
     }
 }
 
@@ -221,27 +221,16 @@ void DualSimplex::Update() {
         c_n[iv_entering] = -theta_d;
     }
 
+    auto x_q_old = x_n[iv_entering];
     {  // Update x_n
         x_n[iv_entering] = CalcXnValue(iv_entering);
     }
 
-    DenseVector n_x_n(m, 0.0);
     {  // Update x_b
-        n_x_n.assign(m, 0.0);
-        for (Index ic = 0; ic < n; ic++) {
-            auto inb = non_basis[ic];
-            if (inb < n) {
-                const auto& col = model_.GetAc().GetCol(inb);
-                for (Index j = 0; j < col.Size(); j++) {
-                    n_x_n[col.indices()[j]] += col.values()[j] * x_n[ic];
-                }
-            } else {
-                n_x_n[inb - n] += x_n[ic];
-            }
+        for (Index ic = 0; ic < m; ic++) {
+            x_b[ic] -= theta_p * a_q[ic];
         }
-
-        MulDmDv(Binv, n_x_n, x_b);
-        for (Scalar& x : x_b) x = -x;
+        x_b[iv_leaving] = theta_p + x_q_old;
     }
 }
 
