@@ -30,6 +30,9 @@ int main(int argc, char** argv) {
 
     printf("Status: %s, Obj: %8.5g\n", LpStatus2Str(sol.status).c_str(), sol.y);
     if (sol.status == LpStatus::kOptimal) {
+        auto rep = model.GetFeasReport(sol.x);
+        printf("Violations: int %.5f, bnd %.5f, con %.5f\n", rep.max_int_infeas, rep.max_bnd_infeas,
+               rep.max_con_infeas);
         io.PrintValues(std::cout, sol.x);
     }
 }

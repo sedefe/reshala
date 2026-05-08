@@ -30,6 +30,15 @@ FeasibilityReport MilpModel::GetFeasReport(const std::vector<Scalar>& x) {
         rep.max_bnd_infeas = std::max(rep.max_bnd_infeas, x[iv] - bnd.ri);
     }
 
+    auto m = GetNCons();
+    DenseVector y(m);
+    MulScmDv(Ac_, x, y);
+    for (Index ic = 0; ic < m; ic++) {
+        const Bounds& bnd = rhs_[ic];
+        rep.max_con_infeas = std::max(rep.max_con_infeas, bnd.le - y[ic]);
+        rep.max_con_infeas = std::max(rep.max_con_infeas, y[ic] - bnd.ri);
+    }
+
     return rep;
 }
 
