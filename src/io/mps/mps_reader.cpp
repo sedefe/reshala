@@ -135,7 +135,7 @@ void MpsReader::ParseColumns(const std::vector<std::string>& tokens) {
 }
 
 void MpsReader::ParseRhs(const std::vector<std::string>& tokens) {
-    if (((tokens.size() != 3) and (tokens.size() != 5)) or (tokens[0] != "RHS")) {
+    if ((tokens.size() != 3) and (tokens.size() != 5)) {
         ThrowParseError("Bad RHS section");
     }
     for (Index i = 1; i < tokens.size(); i += 2) {
