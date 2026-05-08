@@ -51,7 +51,7 @@ void DualSimplex::Init() {
 
 Solution DualSimplex::Solve() {
     model_.AddSlacks();
-    // ForceBounds();
+    ForceBounds();
     LpStatus status;
 
     Init();
@@ -82,7 +82,7 @@ Solution DualSimplex::Solve() {
     }
 
     model_.PruneSlacks();
-    // UnforceBounds();
+    UnforceBounds();
 
     DenseVector x;
     if (status == LpStatus::kOptimal) {
@@ -247,10 +247,13 @@ Scalar DualSimplex::CalcXnValue(Index iv) {
     const Bounds& bnd = model_.GetBounds(non_basis[iv]);
     switch (model_.GetType(non_basis[iv])) {
         case VarType::kBoxed:
-            if (c_n[iv] >= 0.0) {
+            if (c_n[iv] >= kEpsZero) {
                 return bnd.le;
-            } else {
+            } else if (c_n[iv] <= -kEpsZero) {
                 return bnd.ri;
+            } else {  // считаем коэфф нулём и выбираем меньшую из границ,
+                      // чтобы не огрести тут kMaxAbs без надобности
+                return std::abs(bnd.ri) < std::abs(bnd.le) ? bnd.ri : bnd.le;
             }
         case VarType::kLower:
             return bnd.le;
