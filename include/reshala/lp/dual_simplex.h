@@ -31,8 +31,10 @@ class DualSimplex {
 
     int8_t s_p;
     Scalar primal_infeasibility;
-    Scalar theta_p;
-    Scalar theta_d;
+    Scalar theta_p, theta_d;
+    Scalar a_pj_entering;
+    Scalar c_j_entering;
+    Scalar d_j_entering;
 
     Index iv_leaving, iv_entering;
 
@@ -46,6 +48,7 @@ class DualSimplex {
     void Ftran();
     void Update();
 
+    inline Scalar CalcXnValue(Index iv);
     Domain initial_domain;
     void ForceBounds();
     void UnforceBounds();

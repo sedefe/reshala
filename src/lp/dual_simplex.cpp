@@ -42,11 +42,7 @@ void DualSimplex::Init() {
 
     x_n = std::vector<Scalar>(n, 0);
     for (Index iv = 0; iv < Index(n); iv++) {
-        if (c_n[iv] >= 0) {
-            x_n[iv] = model_.GetBounds(iv).le;
-        } else {
-            x_n[iv] = model_.GetBounds(iv).ri;
-        }
+        x_n[iv] = CalcXnValue(iv);
     }
 
     MulScmDv(model_.GetAc(), x_n, x_b);
@@ -169,9 +165,15 @@ void DualSimplex::Chuzc() {
             if (ratio < min_ratio) {
                 min_ratio = ratio;
                 iv_entering = iv;
+                a_pj_entering = a_pj;
+                c_j_entering = c_j;
+                d_j_entering = d_j;
             }
         }
     }
+
+    theta_p = d_j_entering * primal_infeasibility / a_pj_entering;
+    theta_d = s_p * c_j_entering / a_pj_entering;
 }
 
 void DualSimplex::Ftran() {
@@ -212,57 +214,15 @@ void DualSimplex::Update() {
     }
     std::swap(basis[iv_leaving], non_basis[iv_entering]);
 
-    DenseVector c_b_btran(m, 0.0);
     {  // Update c_n
-        c_b.assign(m, 0.0);
-        for (Index iv = 0; iv < Index(m); ++iv)
-            if (basis[iv] < n) c_b[iv] = model_.GetObj().coefficients[basis[iv]];
-
-        MulDvDm(c_b, Binv, c_b_btran);
-
-        for (Index ic = 0; ic < n; ic++) {
-            if (non_basis[ic] < n) {
-                dot(c_b_btran, model_.GetAc().GetCol(non_basis[ic]), c_n[ic]);
-            } else {
-                c_n[ic] = c_b_btran[non_basis[ic] - n];
-            }
+        for (Index iv = 0; iv < n; iv++) {
+            c_n[iv] -= theta_d * a_p[iv];
         }
-
-        for (Index iv = 0; iv < Index(n); ++iv) c_n[iv] = -c_n[iv];
-
-        for (Index iv = 0; iv < Index(n); ++iv)
-            if (non_basis[iv] < Index(n)) {
-                c_n[iv] += model_.GetObj().coefficients[non_basis[iv]];
-            }
+        c_n[iv_entering] = -theta_d;
     }
 
     {  // Update x_n
-        for (Index iv = 0; iv < n; iv++) {
-            const Bounds& bnd = model_.GetBounds(non_basis[iv]);
-            switch (model_.GetType(non_basis[iv])) {
-                case VarType::kBoxed:
-                    if (c_n[iv] >= 0.0) {
-                        x_n[iv] = bnd.le;
-                    } else {
-                        x_n[iv] = bnd.ri;
-                    }
-                    break;
-                case VarType::kLower:
-                    x_n[iv] = bnd.le;
-                    break;
-                case VarType::kUpper:
-                    x_n[iv] = bnd.ri;
-                    break;
-                case VarType::kFree:
-                    x_n[iv] = 0.0;
-                    break;
-                case VarType::kFixed:
-                    x_n[iv] = bnd.le;
-                    break;
-                default:
-                    assert(false);
-            }
-        }
+        x_n[iv_entering] = CalcXnValue(iv_entering);
     }
 
     DenseVector n_x_n(m, 0.0);
@@ -293,6 +253,28 @@ void DualSimplex::ForceBounds() {
 }
 
 void DualSimplex::UnforceBounds() { model_.SetDomain(initial_domain); }
+
+Scalar DualSimplex::CalcXnValue(Index iv) {
+    const Bounds& bnd = model_.GetBounds(non_basis[iv]);
+    switch (model_.GetType(non_basis[iv])) {
+        case VarType::kBoxed:
+            if (c_n[iv] >= 0.0) {
+                return bnd.le;
+            } else {
+                return bnd.ri;
+            }
+        case VarType::kLower:
+            return bnd.le;
+        case VarType::kUpper:
+            return bnd.ri;
+        case VarType::kFree:
+            return 0.0;
+        case VarType::kFixed:
+            return bnd.le;
+        default:
+            assert(false);
+    }
+}
 
 void DualSimplex::DebugPrint() {
     DenseVector x(n);
