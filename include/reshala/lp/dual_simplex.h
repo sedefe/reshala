@@ -21,7 +21,6 @@ class DualSimplex {
     std::vector<Index> non_basis;
     std::vector<Index> index2nb;
 
-    DenseVector c_b;
     DenseVector c_n;
     DenseVector x_b;
     DenseVector x_n;
@@ -32,7 +31,7 @@ class DualSimplex {
     int8_t s_p;
     Scalar primal_infeasibility;
     Scalar theta_p, theta_d;
-    Scalar a_pj_entering;
+    Scalar a_pq;
     Scalar c_j_entering;
     Scalar d_j_entering;
 

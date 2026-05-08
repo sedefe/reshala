@@ -9,7 +9,6 @@ DualSimplex::DualSimplex(MilpModel& model)
     basis.resize(m);
     non_basis.resize(m);
     index2nb.resize(m + n);
-    c_b.resize(m);
     c_n.resize(n);
     x_b.resize(m);
     x_n.resize(n);
@@ -165,15 +164,14 @@ void DualSimplex::Chuzc() {
             if (ratio < min_ratio) {
                 min_ratio = ratio;
                 iv_entering = iv;
-                a_pj_entering = a_pj;
+                a_pq = a_pj;
                 c_j_entering = c_j;
                 d_j_entering = d_j;
             }
         }
     }
 
-    theta_p = d_j_entering * primal_infeasibility / a_pj_entering;
-    theta_d = s_p * c_j_entering / a_pj_entering;
+    theta_d = s_p * c_j_entering / a_pq;
 }
 
 void DualSimplex::Ftran() {
@@ -222,8 +220,10 @@ void DualSimplex::Update() {
     }
 
     auto x_q_old = x_n[iv_entering];
+    auto x_p_new = CalcXnValue(iv_entering);
     {  // Update x_n
-        x_n[iv_entering] = CalcXnValue(iv_entering);
+        x_n[iv_entering] = x_p_new;
+        theta_p = (x_b[iv_leaving] - x_p_new) * s_p * d_j_entering / a_pq;
     }
 
     {  // Update x_b
@@ -290,9 +290,6 @@ void DualSimplex::DebugPrint() {
     //     for (Index j = 0; j < m; j++) printf("%5.2f ", Binv.RowView(i)[j]);
     //     printf("\n");
     // }
-    printf("cb: ");
-    for (auto x : c_b) printf("%5.2f ", x);
-    printf("\n");
     printf("cn: ");
     for (auto x : c_n) printf("%5.2f ", x);
     printf("\n");
