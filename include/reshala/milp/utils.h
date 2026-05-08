@@ -8,7 +8,9 @@
 namespace reshala {
 
 struct Node {
-    Node(const Solution& s, const Domain& d) : sol(s), domain(d) {}
+    Node() {}
+    Node(Index l, const Solution& s, const Domain& d) : level(l), sol(s), domain(d) {}
+    Index level;
     Solution sol;
     Domain domain;
 };

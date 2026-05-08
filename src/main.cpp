@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     printf("Solved in %.3f ms\n", duration.count() / 1e3);
 
-    printf("Status: %s, Obj: %.5g\n", LpStatus2Str(sol.status).c_str(), sol.y);
+    printf("Status: %s, Obj: %8.5g\n", LpStatus2Str(sol.status).c_str(), sol.y);
     if (sol.status == LpStatus::kOptimal) {
         io.PrintValues(std::cout, sol.x);
     }

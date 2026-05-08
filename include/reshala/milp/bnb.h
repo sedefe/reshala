@@ -19,11 +19,14 @@ class BnbSolver {
     MilpModel& model_;
     Solution best_sol_;
     std::vector<Node> nodes;
+    Index n_nodes_ = 0;
 
     MostInfeasible branching;
 
     void SolveRoot();
     void UpdDual();
+
+    void DebugPrint();
 };
 
 }  // namespace reshala
