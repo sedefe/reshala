@@ -30,9 +30,7 @@ Solution BnbSolver::Solve(const Solution& sol) {
                 continue;
             }
             if (model_.IsIntegerFeasible(child.sol.x)) {
-                if (child.sol.y < best_sol_.y) {
-                    best_sol_ = child.sol;
-                    mip_state_.UpdPrimal(child.sol.y);
+                if (mip_state_.TestPrimal(child.sol)) {
                     printf("New integer solution: %8.5g\n", child.sol.y);
                 }
             } else {
@@ -43,7 +41,7 @@ Solution BnbSolver::Solve(const Solution& sol) {
         }
     }
 
-    return best_sol_;
+    return mip_state_.GetBestSol();
 }
 
 void BnbSolver::UpdDual() {

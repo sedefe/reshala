@@ -17,7 +17,6 @@ int main(int argc, char** argv) {
         exit(0);
     }
     // std::cout << model;
-
     printf("%d vars, %d cons\n", model.GetNVars(), model.GetNCons());
 
     MilpSolver milp(model);

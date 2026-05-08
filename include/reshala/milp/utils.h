@@ -17,20 +17,25 @@ struct Node {
 
 class MipState {
    public:
-    MipState(Scalar dual, Scalar primal, const MilpModel& model) {
-        primal_ = primal;
-        dual_ = dual;
+    MipState(const MilpModel& model) {
+        best_sol_ = {LpStatus::kInfeasible, kInf, {}};
+        dual_ = -kInf;
         obj_gcd_ = GetObjectiveGcd(model);
         Recalc();
     }
-    Scalar GetPrimal() const { return primal_; }
+    const Solution& GetBestSol() const { return best_sol_; }
+    Scalar GetPrimal() const { return best_sol_.y; }
     Scalar GetDual() const { return dual_; }
     Scalar GetGap() const { return gap_; }
     Scalar GetCutoff() const { return cutoff_; };
 
-    void UpdPrimal(Scalar primal) {
-        primal_ = primal;
-        Recalc();
+    bool TestPrimal(const Solution& sol) {
+        if (best_sol_.y > sol.y) {
+            best_sol_ = sol;
+            Recalc();
+            return true;
+        }
+        return false;
     }
     void UpdDual(Scalar dual) {
         dual_ = dual;
@@ -42,8 +47,8 @@ class MipState {
     Scalar dual_;
     Scalar cutoff_;
     Scalar obj_gcd_;
-    Scalar primal_;
     Scalar gap_;
+    Solution best_sol_;
 
     Index GetObjectiveGcd(const MilpModel& model) {
         Index res = 0;
@@ -62,9 +67,11 @@ class MipState {
     }
 
     void Recalc() {
-        cutoff_ = primal_ == kInf ? kInf
-                                  : primal_ - std::max(abs(primal_) * kMipGap, obj_gcd_ - kEpsZero);
-        gap_ = primal_ == 0 ? dual_ == 0 ? 0 : kInf : abs(1 - dual_ / primal_);
+        Scalar primal = best_sol_.y;
+        cutoff_ = best_sol_.status == LpStatus::kInfeasible
+                      ? kInf
+                      : primal - std::max(abs(primal) * kMipGap, obj_gcd_ - kEpsZero);
+        gap_ = primal == 0 ? dual_ == 0 ? 0 : kInf : abs(1 - dual_ / primal);
     }
 };
 

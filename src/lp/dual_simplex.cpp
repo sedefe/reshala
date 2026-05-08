@@ -171,6 +171,7 @@ void DualSimplex::Chuzc() {
         }
     }
 
+    theta_p = d_j_entering * primal_infeasibility / a_pq;
     theta_d = s_p * c_j_entering / a_pq;
 }
 
@@ -220,10 +221,9 @@ void DualSimplex::Update() {
     }
 
     auto x_q_old = x_n[iv_entering];
-    auto x_p_new = CalcXnValue(iv_entering);
     {  // Update x_n
-        x_n[iv_entering] = x_p_new;
-        theta_p = (x_b[iv_leaving] - x_p_new) * s_p * d_j_entering / a_pq;
+        const Bounds& bnd = model_.GetBounds(non_basis[iv_entering]);
+        x_n[iv_entering] = s_p > 0 ? bnd.ri : bnd.le;
     }
 
     {  // Update x_b
@@ -247,13 +247,10 @@ Scalar DualSimplex::CalcXnValue(Index iv) {
     const Bounds& bnd = model_.GetBounds(non_basis[iv]);
     switch (model_.GetType(non_basis[iv])) {
         case VarType::kBoxed:
-            if (c_n[iv] >= kEpsZero) {
+            if (c_n[iv] >= 0.0) {
                 return bnd.le;
-            } else if (c_n[iv] <= -kEpsZero) {
+            } else {
                 return bnd.ri;
-            } else {  // считаем коэфф нулём и выбираем меньшую из границ,
-                      // чтобы не огрести тут kMaxAbs без надобности
-                return std::abs(bnd.ri) < std::abs(bnd.le) ? bnd.ri : bnd.le;
             }
         case VarType::kLower:
             return bnd.le;

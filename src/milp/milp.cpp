@@ -6,7 +6,7 @@ MilpSolver::MilpSolver(MilpModel& model)
     : model(model),
       presolver(model),
       ds(model),
-      mip_state(-kInf, kInf, model),
+      mip_state(model),
       bnb(model, mip_state) {}
 
 Solution MilpSolver::Solve() {
