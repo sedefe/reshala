@@ -30,30 +30,20 @@ endif()
 # ----------------------------------------
 # Library
 # ----------------------------------------
-set(LIB_SOURCES
-    src/io/lp/lp_reader.cpp
-    src/linalg/dense_vector.cpp
-    src/linalg/sparse_vector.cpp
-    src/linalg/sparse_matrix.cpp
-    src/linalg/operators.cpp
-    src/model/domain.cpp
-    src/model/milp_model.cpp
-    src/model/solution.cpp
-    src/lp/dual_simplex.cpp
-    src/presolve/presolve.cpp
-)
-set(EXE_SOURCES
-    src/main.cpp
-)
-
+add_executable(${PROJECT_NAME}-cli ${EXE_SOURCES} src/main.cpp)
 add_library(${PROJECT_NAME}-lib SHARED ${LIB_SOURCES})
-add_executable(${PROJECT_NAME}-cli ${EXE_SOURCES})
+add_subdirectory(src/io)
+add_subdirectory(src/linalg)
+add_subdirectory(src/model)
+add_subdirectory(src/lp)
+add_subdirectory(src/presolve)
+
+target_link_libraries(${PROJECT_NAME}-cli PUBLIC ${PROJECT_NAME}-lib )
 target_include_directories(${PROJECT_NAME}-lib
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(${PROJECT_NAME}-cli PUBLIC ${PROJECT_NAME}-lib )
 #target_compile_definitions(milp_solver PRIVATE -DMILP_BUILD)
 
 # ----------------------------------------

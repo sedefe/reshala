@@ -1,6 +1,3 @@
-#include <cstdio>
-#include <iostream>
-
 #include "reshala/io/lp/lp_reader.h"
 #include "reshala/lp/dual_simplex.h"
 #include "reshala/presolve/presolve.h"
