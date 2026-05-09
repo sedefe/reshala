@@ -6,7 +6,7 @@
 
 namespace reshala {
 
-bool MilpModel::IsIntegerFeasible(const std::vector<Scalar>& x) {
+bool MilpModel::IsIntegerFeasible(const std::vector<Scalar>& x) const {
     for (Index iv = 0; iv < GetNVars(); iv++) {
         if (GetIntegrality(iv) and GetFraction(x[iv]) > kEpsZero) {
             return false;
@@ -15,7 +15,7 @@ bool MilpModel::IsIntegerFeasible(const std::vector<Scalar>& x) {
     return true;
 }
 
-FeasibilityReport MilpModel::GetFeasReport(const std::vector<Scalar>& x) {
+FeasibilityReport MilpModel::GetFeasReport(const std::vector<Scalar>& x) const {
     FeasibilityReport rep;
     rep.max_int_infeas = 0;
     rep.max_bnd_infeas = 0;

@@ -39,8 +39,8 @@ class MilpModel {
     inline bool GetIntegrality(Index iv) const { return domain_.GetIntegrality(iv); }
     inline void SetIntegrality(Index iv, bool b) { domain_.SetIntegrality(iv, b); }
 
-    bool IsIntegerFeasible(const std::vector<Scalar>& x);
-    FeasibilityReport GetFeasReport(const std::vector<Scalar>& x);
+    bool IsIntegerFeasible(const std::vector<Scalar>& x) const;
+    FeasibilityReport GetFeasReport(const std::vector<Scalar>& x) const;
 
     void AddSlacks();
     void PruneSlacks();

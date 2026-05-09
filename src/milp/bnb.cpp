@@ -41,6 +41,7 @@ Solution BnbSolver::Solve(const Solution& sol) {
         }
     }
 
+    model_.SetDomain(root.domain);
     return mip_state_.GetBestSol();
 }
 
