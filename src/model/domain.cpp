@@ -16,7 +16,7 @@ VarType Bounds2Type(const Bounds &bounds) {
         return VarType::kBoxed;
     } else if ((-kInf == l) && (u == kInf)) {
         return VarType::kFree;
-    } else if ((-kInf < l) && (std::abs(u - l) <= kEpsZero) && (u < kInf)) {
+    } else if ((-kInf < l) && IsZero(u - l) && (u < kInf)) {
         return VarType::kFixed;
     }
     printf("Strange bounds for variable: %f .. %f\n", l, u);
