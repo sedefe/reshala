@@ -40,7 +40,7 @@ void DualSimplex::Init() {
     c_n = model_.GetObj().coefficients;
 
     x_n = std::vector<Scalar>(n, 0);
-    for (Index iv = 0; iv < Index(n); iv++) {
+    for (Index iv = 0; iv < n; iv++) {
         x_n[iv] = CalcXnValue(iv);
     }
 

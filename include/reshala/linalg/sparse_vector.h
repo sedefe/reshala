@@ -10,6 +10,8 @@ namespace reshala {
 
 class SparseVector {
    public:
+    class Iterator;
+
     SparseVector(Index dim) : dim_(dim) {}
     SparseVector(Index dim, Index i, Scalar v) : dim_(dim) { Push(i, v); }
     SparseVector(Index dim, const Scalar *array) : dim_(dim) {
@@ -101,5 +103,30 @@ class SparseVector {
         values_.insert(values_.begin() + i, val);
     }
 };
+
+class SparseVector::Iterator {
+   public:
+    Iterator(const SparseVector &sv) : sv_(sv), pos_(0) {}
+
+    operator bool() const { return pos_ < sv_.indices_.size(); }
+
+    Iterator &operator++() {
+        if (pos_ < sv_.indices_.size()) {
+            ++pos_;
+        }
+        return *this;
+    }
+
+    std::pair<Index, Scalar> operator*() const { return {sv_.indices_[pos_], sv_.values_[pos_]}; }
+
+    Index index() const { return sv_.indices_[pos_]; }
+    Scalar value() const { return sv_.values_[pos_]; }
+
+   private:
+    const SparseVector &sv_;
+    size_t pos_;
+};
+
+using SvIterator = SparseVector::Iterator;
 
 }  // namespace reshala

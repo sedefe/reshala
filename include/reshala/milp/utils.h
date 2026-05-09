@@ -52,7 +52,7 @@ class MipState {
 
     Index GetObjectiveGcd(const MilpModel& model) {
         Index res = 0;
-        for (Index iv = 0; iv < Index(model.GetNVars()); ++iv) {
+        for (Index iv = 0; iv < model.GetNVars(); ++iv) {
             if (model.GetIntegrality(iv)) {
                 if (GetFraction(model.GetObj().coefficients[iv]) == 0.0) {
                     res = std::gcd(res, Index(model.GetObj().coefficients[iv]));

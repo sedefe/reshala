@@ -7,6 +7,7 @@
 namespace reshala {
 
 bool MilpModel::IsIntegerFeasible(const std::vector<Scalar>& x) const {
+    assert(x.size() == GetNVars());
     for (Index iv = 0; iv < GetNVars(); iv++) {
         if (GetIntegrality(iv) and GetFraction(x[iv]) > kEpsZero) {
             return false;
@@ -51,7 +52,7 @@ void MilpModel::AddSlacks() {
     auto n = GetNVars();
 
     domain_.Resize(n + m);
-    for (Index ic = 0; ic < Index(m); ic++) {
+    for (Index ic = 0; ic < m; ic++) {
         domain_.SetBounds(n + ic, {-rhs_[ic].ri, -rhs_[ic].le});
         domain_.SetIntegrality(n + ic, false);
     }

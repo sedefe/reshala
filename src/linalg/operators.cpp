@@ -108,12 +108,10 @@ void MulScmSv(const SparseColMatrix& scm, const SparseVector& sv, DenseVector& r
     assert(n == sv.dim() && "Scm x Sv: incompatible sizes");
 
     res.assign(m, Scalar(0));
-    for (Index i = 0; i < sv.Size(); i++) {
-        auto ind = sv.indices()[i];
-        auto val = sv.values()[i];
-        const auto& col = scm.GetCol(ind);
-        for (Index j = 0; j < col.Size(); j++) {
-            res[col.indices()[j]] += val * col.values()[j];
+    for (SvIterator el(sv); el; ++el) {
+        const auto& col = scm.GetCol(el.index());
+        for (SvIterator iter(col); iter; ++iter) {
+            res[iter.index()] += el.value() * iter.value();
         }
     }
 }
@@ -124,11 +122,11 @@ void MulScmDv(const SparseColMatrix& scm, const DenseVector& dv, DenseVector& re
     assert(n == dv.size() && "Scm x Dv: incompatible sizes");
 
     res.assign(m, Scalar(0));
-    for (Index i = 0; i < dv.size(); i++) {
+    for (Index i = 0; i < n; i++) {
         if (IsZero(dv[i])) continue;
         const auto& col = scm.GetCol(i);
-        for (Index j = 0; j < col.Size(); j++) {
-            res[col.indices()[j]] += dv[i] * col.values()[j];
+        for (SvIterator el(col); el; ++el) {
+            res[el.index()] += dv[i] * el.value();
         }
     }
 }
