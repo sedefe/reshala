@@ -15,6 +15,7 @@ DualSimplex::DualSimplex(MilpModel& model)
     e_p.resize(m);
     a_p.resize(n);
     a_q.resize(m);
+    d_p.resize(n);
     n_iter = 0;
 }
 
@@ -41,7 +42,7 @@ void DualSimplex::Init() {
 
     x_n = std::vector<Scalar>(n, 0);
     for (Index iv = 0; iv < n; iv++) {
-        x_n[iv] = CalcXnValue(iv);
+        SetXnValue(iv);
     }
 
     MulScmDv(model_.GetAc(), x_n, x_b);
@@ -142,7 +143,6 @@ void DualSimplex::Price() {
 }
 
 void DualSimplex::Chuzc() {
-    int8_t d_j;
     Scalar a_pj, c_j;
     Scalar min_ratio = kInf;
     iv_entering = -1;
@@ -151,13 +151,8 @@ void DualSimplex::Chuzc() {
         if (model_.GetType(non_basis[iv]) == VarType::kFixed) {
             continue;
         }
-        if (x_n[iv] == model_.GetBounds(non_basis[iv]).le) {
-            d_j = 1;
-        } else {
-            d_j = -1;
-        }
-        a_pj = a_p[iv] * (s_p * d_j);
-        c_j = c_n[iv] * d_j;
+        a_pj = a_p[iv] * (s_p * d_p[iv]);
+        c_j = c_n[iv] * d_p[iv];
 
         if (a_pj > kEpsZero) {
             auto ratio = c_j / a_pj;
@@ -166,12 +161,11 @@ void DualSimplex::Chuzc() {
                 iv_entering = iv;
                 a_pq = a_pj;
                 c_j_entering = c_j;
-                d_j_entering = d_j;
             }
         }
     }
 
-    theta_p = d_j_entering * primal_infeasibility / a_pq;
+    theta_p = d_p[iv_entering] * primal_infeasibility / a_pq;
     theta_d = s_p * c_j_entering / a_pq;
 }
 
@@ -223,7 +217,13 @@ void DualSimplex::Update() {
     auto x_q_old = x_n[iv_entering];
     {  // Update x_n
         const Bounds& bnd = model_.GetBounds(non_basis[iv_entering]);
-        x_n[iv_entering] = s_p > 0 ? bnd.ri : bnd.le;
+        if (s_p > 0) {
+            d_p[iv_entering] = -1;
+            x_n[iv_entering] = bnd.ri;
+        } else {
+            d_p[iv_entering] = 1;
+            x_n[iv_entering] = bnd.le;
+        }
     }
 
     {  // Update x_b
@@ -243,23 +243,34 @@ void DualSimplex::ForceBounds() {
 
 void DualSimplex::UnforceBounds() { model_.SetDomain(initial_domain); }
 
-Scalar DualSimplex::CalcXnValue(Index iv) {
+void DualSimplex::SetXnValue(Index iv) {
     const Bounds& bnd = model_.GetBounds(non_basis[iv]);
     switch (model_.GetType(non_basis[iv])) {
         case VarType::kBoxed:
             if (c_n[iv] >= 0.0) {
-                return bnd.le;
+                d_p[iv] = 1;
+                x_n[iv] = bnd.le;
             } else {
-                return bnd.ri;
+                d_p[iv] = 1;
+                x_n[iv] = bnd.ri;
             }
+            break;
         case VarType::kLower:
-            return bnd.le;
+            d_p[iv] = 1;
+            x_n[iv] = bnd.le;
+            break;
         case VarType::kUpper:
-            return bnd.ri;
+            d_p[iv] = 1;
+            x_n[iv] = bnd.ri;
+            break;
         case VarType::kFree:
-            return 0.0;
+            d_p[iv] = 1;  // Todo подумать
+            x_n[iv] = 0.0;
+            break;
         case VarType::kFixed:
-            return bnd.le;
+            d_p[iv] = 0;
+            x_n[iv] = bnd.le;
+            break;
         default:
             assert(false);
     }

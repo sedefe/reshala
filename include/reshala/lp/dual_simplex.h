@@ -27,13 +27,13 @@ class DualSimplex {
     DenseVector e_p;
     DenseVector a_p;
     DenseVector a_q;
+    std::vector<int8_t> d_p;  // типы небазисных переменных
 
     int8_t s_p;
     Scalar primal_infeasibility;
     Scalar theta_p, theta_d;
     Scalar a_pq;
     Scalar c_j_entering;
-    Scalar d_j_entering;
 
     Index iv_leaving, iv_entering;
 
@@ -47,7 +47,7 @@ class DualSimplex {
     void Ftran();
     void Update();
 
-    inline Scalar CalcXnValue(Index iv);
+    inline void SetXnValue(Index iv);
     Domain initial_domain;
     void ForceBounds();
     void UnforceBounds();
