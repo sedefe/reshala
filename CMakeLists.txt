@@ -4,7 +4,7 @@ project(reshala VERSION 0.1.0 LANGUAGES CXX)
 # ----------------------------------------
 # Build options
 # ----------------------------------------
-option(BUILD_TESTS "Build unit tests" OFF)
+option(BUILD_TESTS "Build test executable" ON)
 option(BUILD_EXAMPLES "Build examples" OFF)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -17,19 +17,11 @@ endif()
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
 
-# Optional: unit tests with GoogleTest
-if(BUILD_TESTS)
-    include(FetchContent)
-    FetchContent_Declare(
-        googletest
-        URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
-    )
-    FetchContent_MakeAvailable(googletest)
-endif()
-
 # ----------------------------------------
 # Library
 # ----------------------------------------
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
 add_executable(${PROJECT_NAME}-cli ${EXE_SOURCES} src/main.cpp)
 add_library(${PROJECT_NAME}-lib SHARED ${LIB_SOURCES})
 add_subdirectory(src/io)
@@ -45,7 +37,6 @@ target_include_directories(${PROJECT_NAME}-lib
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-#target_compile_definitions(milp_solver PRIVATE -DMILP_BUILD)
 
 # ----------------------------------------
 # Examples
@@ -59,7 +50,6 @@ endif()
 # Tests
 # ----------------------------------------
 if(BUILD_TESTS)
-    enable_testing()
     add_subdirectory(tests)
 endif()
 

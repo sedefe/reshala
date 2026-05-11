@@ -14,6 +14,7 @@ std::string FileReadResult2Str(FileReadStatus status) {
             return "Parsing error";
         default:
             assert(false && "Unknows status");
+            return "";
     }
 }
 
@@ -30,6 +31,7 @@ Bounds ExpType2Bounds(ExpType exp_type, Scalar rhs) {
             break;
         default:
             assert(false && "Unknown expression type");
+            return {kNan, kNan};
     }
 }
 

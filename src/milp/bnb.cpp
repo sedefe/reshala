@@ -31,7 +31,7 @@ Solution BnbSolver::Solve(const Solution& sol) {
             }
             if (model_.IsIntegerFeasible(child.sol.x)) {
                 if (mip_state_.TestPrimal(child.sol)) {
-                    printf("New integer solution: %8.5g\n", child.sol.y);
+                    std::cout << "New integer solution: " << child.sol.y << "\n";
                 }
             } else {
                 if (child.sol.y < mip_state_.GetCutoff()) {
@@ -57,13 +57,13 @@ void BnbSolver::UpdDual() {
 
 void BnbSolver::DebugPrint() {
     if (n_nodes_ % 50 == 1) {
-        printf("=========================================================\n");
-        printf("lev | left     | right    | dual     | primal   | gap    \n");
-        printf("=========================================================\n");
+        std::cout << "=========================================================\n";
+        std::cout << "lev | left     | right    | dual     | primal   | gap    \n";
+        std::cout << "=========================================================\n";
     }
-    printf("%3ld | %8.5g | %8.5g | %8.5g | %8.5g | %6.2f%%\n", nodes.size(),
-           branching.GetChild(0).sol.y, branching.GetChild(1).sol.y, mip_state_.GetDual(),
-           mip_state_.GetPrimal(), mip_state_.GetGap() * 1e2);
+    std::cout << nodes.size() << " | " << branching.GetChild(0).sol.y << " | "
+              << branching.GetChild(1).sol.y << " | " << mip_state_.GetDual() << " | "
+              << mip_state_.GetPrimal() << " | " << mip_state_.GetGap() * 1e2;
 }
 
 }  // namespace reshala

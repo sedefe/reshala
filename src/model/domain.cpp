@@ -1,7 +1,6 @@
 #include "reshala/model/domain.h"
 
 #include <cmath>
-#include <cstdio>
 
 namespace reshala {
 
@@ -19,7 +18,7 @@ VarType Bounds2Type(const Bounds &bounds) {
     } else if ((-kInf < l) && IsZero(u - l) && (u < kInf)) {
         return VarType::kFixed;
     }
-    printf("Strange bounds for variable: %f .. %f\n", l, u);
+    std::cerr << "Strange bounds for variable: " << l << " .. " << u << "\n";
     return VarType::kUnknown;
 }
 

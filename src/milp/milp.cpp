@@ -13,7 +13,7 @@ Solution MilpSolver::Solve() {
     presolver.Presolve();
 
     Solution sol = ds.Solve();
-    printf("Root LP: %.5g\n", sol.y);
+    std::cout << "Root LP: " << sol.y << "\n";
 
     if (sol.status != LpStatus::kOptimal) {
         return sol;

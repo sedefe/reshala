@@ -16,6 +16,7 @@ std::string LpStatus2Str(LpStatus status) {
             return "Unbounded";
         default:
             assert(false && "Unknows status");
+            return "";
     }
 }
 

@@ -64,8 +64,8 @@ Solution DualSimplex::Solve() {
             status = LpStatus::kOptimal;
             break;
         }
-        // printf("Chuzr: iv leaving %d (%d), pinf %.2f\n", iv_leaving, basis[iv_leaving],
-        //        primal_infeasibility);
+        std::cout << "Leaving: " << iv_leaving << " (" << basis[iv_leaving]
+                  << "), pinf: " << primal_infeasibility << "\n";
 
         Btran();
         Price();
@@ -75,7 +75,7 @@ Solution DualSimplex::Solve() {
             status = LpStatus::kInfeasible;
             break;
         }
-        // printf("Chuzc: iv entering %d (%d)\n", iv_entering, non_basis[iv_entering]);
+        std::cout << "Entering: " << iv_entering << " (" << non_basis[iv_entering] << "\n";
 
         Ftran();
         Update();
@@ -286,27 +286,22 @@ void DualSimplex::DebugPrint() {
     }
     auto res = model_.PrepareSolution(LpStatus::kOptimal, x);
 
-    printf("===== %d y=%.5f =====\n", n_iter, res.y);
-    printf("Basis   : ");
-    for (auto iv : basis) printf("%d ", iv);
-    printf("\n");
-    printf("Nonbasis: ");
-    for (auto ic : non_basis) printf("%d ", ic);
-    printf("\n");
-    // printf("Binv:\n");
-    // for (Index i = 0; i < m; i++) {
-    //     for (Index j = 0; j < m; j++) printf("%5.2f ", Binv.RowView(i)[j]);
-    //     printf("\n");
-    // }
-    printf("cn: ");
-    for (auto x : c_n) printf("%5.2f ", x);
-    printf("\n");
-    printf("xn: ");
-    for (auto x : x_n) printf("%5.2f ", x);
-    printf("\n");
-    printf("xb: ");
-    for (auto x : x_b) printf("%5.2f ", x);
-    printf("\n");
+    std::cout << "===== " << n_iter << " y=" << res.y << " =====\n";
+    std::cout << "Basis   : ";
+    for (auto ic : basis) std::cout << ic << " ";
+    std::cout << "\n";
+    std::cout << "Nonbasis: ";
+    for (auto iv : non_basis) std::cout << iv << " ";
+    std::cout << "\n";
+    std::cout << "c_n: ";
+    for (auto x : c_n) std::cout << x << " ";
+    std::cout << "\n";
+    std::cout << "x_n: ";
+    for (auto x : x_n) std::cout << x << " ";
+    std::cout << "\n";
+    std::cout << "x_b: ";
+    for (auto x : x_b) std::cout << x << " ";
+    std::cout << "\n";
 }
 
 }  // namespace reshala
