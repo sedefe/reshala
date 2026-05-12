@@ -1,35 +1,18 @@
 #include <chrono>
-#include <cstdio>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <vector>
 
 #include "reshala/io/io.h"
 #include "reshala/milp/milp.h"
+#include "utils.h"
 
 using namespace reshala;
-
-class CoutSuppressor {
-   private:
-    std::streambuf* original_cout;
-    std::ofstream null_stream;
-
-   public:
-    CoutSuppressor() {
-        original_cout = std::cout.rdbuf();
-        null_stream.open("/dev/null");
-        std::cout.rdbuf(null_stream.rdbuf());
-    }
-
-    ~CoutSuppressor() { std::cout.rdbuf(original_cout); }
-};
 
 struct TestCase {
     std::string name;
     std::string status;
     Scalar y;
+
+    Solution sol;
+    std::chrono::microseconds time;
 };
 
 std::vector<TestCase> ReadTestCases(const std::string& csv_path) {
@@ -68,11 +51,10 @@ std::vector<TestCase> ReadTestCases(const std::string& csv_path) {
     return tests;
 }
 
-Solution RunTest(const std::string& model_name) {
+bool RunTest(TestCase& tc) {
     Io io;
-    std::filesystem::path file_path("tests/models/" + model_name + ".mps");
+    std::filesystem::path file_path("tests/models/" + tc.name + ".mps");
     auto read_status = io.Read(file_path.c_str());
-    printf("Model %s:\n", model_name.c_str());
 
     MilpModel& model = io.GetModel();
     MilpSolver solver(model);
@@ -81,21 +63,40 @@ Solution RunTest(const std::string& model_name) {
     auto start = std::chrono::high_resolution_clock::now();
     {
         CoutSuppressor suppressor;
-        sol = solver.Solve();
+        tc.sol = solver.Solve();
     }
     auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    printf("Solved in %.3f ms\n", duration.count() / 1e3);
+    auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    tc.time = time;
 
-    return sol;
+    return true;
 }
 
 int main() {
     std::vector<TestCase> test_cases = ReadTestCases("tests/models/results.csv");
 
-    for (auto& test : test_cases) {
-        auto sol = RunTest(test.name);
-        printf("%20s: Status: %12s (%12s), Obj: %.5g (%.5g)\n", test.name.c_str(),
-               LpStatus2Str(sol.status).c_str(), test.status.c_str(), sol.y, test.y);
+    for (auto& tc : test_cases) {
+        printf("%-20s: ", tc.name.c_str());
+        fflush(stdout);
+
+        bool res = RunTest(tc);
+        printf("%6.3f sec ", tc.time.count() / 1e6);
+
+        auto status = LpStatus2Str(tc.sol.status);
+        printf("%12s ", status.c_str());
+        if (status == tc.status) {
+            printf("[√] ");
+        } else {
+            printf("[X] (%12s)", tc.status.c_str());
+        }
+
+        bool compare_y = CompareScalars(tc.sol.y, tc.y);
+        printf("Obj: %10.5g ", tc.sol.y);
+        if (compare_y) {
+            printf("[√] ");
+        } else {
+            printf("[X] (%.5g)", tc.y);
+        }
+        printf("\n");
     }
 }
