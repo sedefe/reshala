@@ -64,8 +64,8 @@ Solution DualSimplex::Solve() {
             status = LpStatus::kOptimal;
             break;
         }
-        std::cout << "Leaving: " << iv_leaving << " (" << basis[iv_leaving]
-                  << "), pinf: " << primal_infeasibility << "\n";
+        // std::cout << "Leaving: " << iv_leaving << " (" << basis[iv_leaving]
+        //           << "), pinf: " << primal_infeasibility << "\n";
 
         Btran();
         Price();
@@ -75,7 +75,7 @@ Solution DualSimplex::Solve() {
             status = LpStatus::kInfeasible;
             break;
         }
-        std::cout << "Entering: " << iv_entering << " (" << non_basis[iv_entering] << "\n";
+        // std::cout << "Entering: " << iv_entering << " (" << non_basis[iv_entering] << "\n";
 
         Ftran();
         Update();

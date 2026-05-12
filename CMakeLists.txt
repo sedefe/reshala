@@ -24,12 +24,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
 
 add_executable(${PROJECT_NAME}-cli ${EXE_SOURCES} src/main.cpp)
 add_library(${PROJECT_NAME}-lib SHARED ${LIB_SOURCES})
-add_subdirectory(src/io)
-add_subdirectory(src/linalg)
-add_subdirectory(src/model)
-add_subdirectory(src/lp)
-add_subdirectory(src/milp)
-add_subdirectory(src/presolve)
+add_subdirectory(src)
 
 target_link_libraries(${PROJECT_NAME}-cli PUBLIC ${PROJECT_NAME}-lib )
 target_include_directories(${PROJECT_NAME}-lib

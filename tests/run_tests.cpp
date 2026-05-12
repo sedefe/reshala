@@ -90,7 +90,7 @@ int main() {
             printf("[X] (%12s)", tc.status.c_str());
         }
 
-        bool compare_y = CompareScalars(tc.sol.y, tc.y);
+        bool compare_y = CompareScalars(tc.y, tc.sol.y);
         printf("Obj: %10.5g ", tc.sol.y);
         if (compare_y) {
             printf("[√] ");

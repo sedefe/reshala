@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
     }
     const MilpModel model_copy = model;
     // std::cout << model;
-    std::cout << model.GetNCons() << "cons, " << model.GetNVars() << " vars\n";
+    std::cout << model.GetNCons() << " cons, " << model.GetNVars() << " vars\n";
 
     MilpSolver milp(model);
 
@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     std::cout << "Solved in " << duration.count() / 1e3 << " ms\n";
 
-    std::cout << "Status: " << LpStatus2Str(sol.status) << ", objective: " << sol.y;
+    std::cout << "Status: " << LpStatus2Str(sol.status) << ", objective: " << sol.y << "\n";
     if (sol.status == LpStatus::kOptimal) {
         auto rep = model_copy.GetFeasReport(sol.x);
         std::cout << "Violations: int " << rep.max_int_infeas << ", bnd " << rep.max_bnd_infeas

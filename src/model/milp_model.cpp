@@ -69,7 +69,7 @@ void MilpModel::FinalizeAc() { Srm2Scm(Ar_, Ac_); }
 
 Solution MilpModel::PrepareSolution(const LpStatus status, const std::vector<Scalar>& x) const {
     if (status != LpStatus::kOptimal) {
-        return {status, kNan, {}};
+        return {status, kInf, {}};
     }
 
     auto res_x = x;

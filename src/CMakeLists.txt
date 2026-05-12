@@ -1,0 +1,6 @@
+add_subdirectory(io)
+add_subdirectory(linalg)
+add_subdirectory(model)
+add_subdirectory(lp)
+add_subdirectory(milp)
+add_subdirectory(presolve)
