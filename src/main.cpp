@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
     }
 
     Io io;
-    std::cout << "Reading" << argv[1] << "\n";
+    std::cout << "Reading " << argv[1] << "\n";
     auto read_status = io.Read(argv[1]);
     MilpModel& model = io.GetModel();
     if (read_status != FileReadStatus::kOk) {

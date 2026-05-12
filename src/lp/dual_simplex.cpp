@@ -251,7 +251,7 @@ void DualSimplex::SetXnValue(Index iv) {
                 d_p[iv] = 1;
                 x_n[iv] = bnd.le;
             } else {
-                d_p[iv] = 1;
+                d_p[iv] = -1;
                 x_n[iv] = bnd.ri;
             }
             break;
@@ -260,11 +260,11 @@ void DualSimplex::SetXnValue(Index iv) {
             x_n[iv] = bnd.le;
             break;
         case VarType::kUpper:
-            d_p[iv] = 1;
+            d_p[iv] = -1;
             x_n[iv] = bnd.ri;
             break;
         case VarType::kFree:
-            d_p[iv] = 1;  // Todo подумать
+            d_p[iv] = 1;  // Todo тут ещё a_p[iv] надо смотреть
             x_n[iv] = 0.0;
             break;
         case VarType::kFixed:
