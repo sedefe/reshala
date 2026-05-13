@@ -13,9 +13,9 @@ class SparseRowMatrix {
    public:
     SparseRowMatrix(Index m = 0, Index n = 0) : m_(m), n_(n), rows_(m, SparseVector(n)) {}
 
-    Index getNRows() const { return m_; }
-    Index getNCols() const { return n_; }
-    Index getNnz() {
+    Index GetNRows() const { return m_; }
+    Index GetNCols() const { return n_; }
+    Index GetNnz() {
         Index nnz = 0;
         for (const auto& row : GetRows()) {
             nnz += row.Size();
@@ -24,6 +24,9 @@ class SparseRowMatrix {
     }
 
     void Resize(Index m, Index n) {
+        if (n != n_) {
+            for (auto& row : rows_) row.SetDim(n);
+        }
         m_ = m;
         n_ = n;
         rows_.resize(m, n);
@@ -45,9 +48,9 @@ class SparseColMatrix {
    public:
     SparseColMatrix(Index m = 0, Index n = 0) : m_(m), n_(n), cols_(n, SparseVector(m)) {}
 
-    Index getNRows() const { return m_; }
-    Index getNCols() const { return n_; }
-    Index getNnz() {
+    Index GetNRows() const { return m_; }
+    Index GetNCols() const { return n_; }
+    Index GetNnz() {
         Index nnz = 0;
         for (const auto& col : GetCols()) {
             nnz += col.Size();
@@ -56,6 +59,9 @@ class SparseColMatrix {
     }
 
     void Resize(Index m, Index n) {
+        if (m != m_) {
+            for (auto& col : cols_) col.SetDim(m);
+        }
         m_ = m;
         n_ = n;
         cols_.resize(n, m);

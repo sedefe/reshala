@@ -13,7 +13,7 @@ class BnbSolver {
     BnbSolver(MilpModel& model, MipState& mip_state)
         : model_(model), mip_state_(mip_state), branching(model) {}
 
-    Solution Solve(const Solution& sol);
+    void Solve(const Solution& sol);
 
    private:
     MipState& mip_state_;

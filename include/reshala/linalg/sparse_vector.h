@@ -28,6 +28,8 @@ class SparseVector {
         Assign(indices, values);
     }
 
+    void SetDim(Index dim) { dim_ = dim; }
+
     Scalar At(Index idx) const {
         auto pos = FindIndex(idx);
         return (pos != indices_.end()) ? values_[pos - indices_.begin()] : Scalar(0);
@@ -47,6 +49,11 @@ class SparseVector {
     void Push(Index i, Scalar x) {
         indices_.push_back(i);
         values_.push_back(x);
+    }
+
+    void Erase(Index i) {
+        indices_.erase(indices_.begin() + i);
+        values_.erase(values_.begin() + i);
     }
 
     const std::vector<Index> &indices() const { return indices_; }
@@ -90,11 +97,6 @@ class SparseVector {
     }
     typename std::vector<Index>::iterator FindIndex(Index idx) {
         return std::lower_bound(indices_.begin(), indices_.end(), idx);
-    }
-
-    void Erase(size_t pos) {
-        indices_.erase(indices_.begin() + pos);
-        values_.erase(values_.begin() + pos);
     }
 
     void Insert(Index idx, Scalar val, typename std::vector<Index>::iterator pos) {

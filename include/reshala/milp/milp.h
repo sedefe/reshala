@@ -15,7 +15,6 @@ class MilpSolver {
     MilpModel& model;
 
     Presolver presolver;
-    DualSimplex ds;
     BnbSolver bnb;
 
    private:

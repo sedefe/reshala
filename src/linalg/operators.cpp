@@ -103,22 +103,22 @@ void dot(const DenseVector& dv1, const DenseVector& dv2, Scalar& res) {
 }
 
 void MulScmSv(const SparseColMatrix& scm, const SparseVector& sv, DenseVector& res) {
-    auto m = scm.getNRows();
-    auto n = scm.getNCols();
+    auto m = scm.GetNRows();
+    auto n = scm.GetNCols();
     assert(n == sv.dim() && "Scm x Sv: incompatible sizes");
 
     res.assign(m, Scalar(0));
-    for (SvIterator el(sv); el; ++el) {
-        const auto& col = scm.GetCol(el.index());
-        for (SvIterator iter(col); iter; ++iter) {
-            res[iter.index()] += el.value() * iter.value();
+    for (SvIterator el_i(sv); el_i; ++el_i) {
+        const auto& col = scm.GetCol(el_i.index());
+        for (SvIterator el_j(col); el_j; ++el_j) {
+            res[el_j.index()] += el_i.value() * el_j.value();
         }
     }
 }
 
 void MulScmDv(const SparseColMatrix& scm, const DenseVector& dv, DenseVector& res) {
-    auto m = scm.getNRows();
-    auto n = scm.getNCols();
+    auto m = scm.GetNRows();
+    auto n = scm.GetNCols();
     assert(n == dv.size() && "Scm x Dv: incompatible sizes");
 
     res.assign(m, Scalar(0));

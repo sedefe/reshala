@@ -45,6 +45,11 @@ class Domain {
         types_.push_back(Bounds2Type(b));
         integrality_.push_back(i);
     }
+    inline void Erase(Index iv) {
+        bounds_.erase(bounds_.begin() + iv);
+        types_.erase(types_.begin() + iv);
+        integrality_.erase(integrality_.begin() + iv);
+    }
 
    private:
     std::vector<Bounds> bounds_;

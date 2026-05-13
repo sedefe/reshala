@@ -2,7 +2,7 @@
 
 namespace reshala {
 
-Solution BnbSolver::Solve(const Solution& sol) {
+void BnbSolver::Solve(const Solution& sol) {
     Node root(1, sol, model_.GetDomain());
     nodes.push_back(root);
 
@@ -42,7 +42,6 @@ Solution BnbSolver::Solve(const Solution& sol) {
     }
 
     model_.SetDomain(root.domain);
-    return mip_state_.GetBestSol();
 }
 
 void BnbSolver::UpdDual() {

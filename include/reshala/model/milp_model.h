@@ -12,8 +12,8 @@ class MilpModel {
    public:
     MilpModel() {}
 
-    Index GetNCons() const { return Ac_.getNRows(); }
-    Index GetNVars() const { return Ac_.getNCols(); }
+    Index GetNCons() const { return Ac_.GetNRows(); }
+    Index GetNVars() const { return Ac_.GetNCols(); }
 
     const Objective& GetObj() const { return obj_; }
     Objective& GetObj() { return obj_; }
@@ -30,7 +30,8 @@ class MilpModel {
     const Domain& GetVars() const { return domain_; }
     Domain& GetVars() { return domain_; }
 
-    inline const Domain GetDomain() const { return domain_; }
+    inline const Domain& GetDomain() const { return domain_; }
+    inline Domain& GetDomain() { return domain_; }
     inline void SetDomain(const Domain& domain) { domain_ = domain; }
     inline const Bounds& GetBounds(Index iv) const { return domain_.GetBounds(iv); }
     inline void SetBounds(Index iv, const Bounds& bnd) { domain_.SetBounds(iv, bnd); }
