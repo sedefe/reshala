@@ -13,10 +13,10 @@ RuleResult Rule41::Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>
         if (model.GetType(iv) == VarType::kFixed) {
             const Bounds& bnd = model.GetBounds(iv);
             Scalar value = (bnd.le + bnd.ri) / 2;
-
-            FixVariableTransform tr(iv, value);
-            tr.Do(info);
-            transforms.push_back(std::make_unique<FixVariableTransform>(tr));
+            transforms.push_back(
+                std::make_unique<FixVariableTransform>(FixVariableTransform(iv, value)));
+            info.FixVar(iv, value);
+            info.MaskVar(iv);
 
             n_reduced++;
         }

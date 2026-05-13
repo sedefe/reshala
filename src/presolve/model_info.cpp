@@ -10,6 +10,7 @@ void ModelInfo::CompressCons() {
     auto& rhs = model_.GetRhs();
 
     Index i_write = 0;
+    // Todo: use (sorted) deleted_cons_
     for (Index i_read = 0; i_read < m; ++i_read) {
         if (!con_mask_.Get(i_read)) {
             if (i_write != i_read) {
@@ -24,6 +25,7 @@ void ModelInfo::CompressCons() {
     // Ac
     std::vector<Index> new_index_map(m, -1);
     Index next_new_index = 0;
+    // Todo: use (sorted) deleted_cons_
     for (Index ic = 0; ic < m; ++ic) {
         if (!con_mask_.Get(ic)) {
             new_index_map[ic] = next_new_index++;
@@ -64,6 +66,7 @@ void ModelInfo::CompressVars() {
     auto& domain = model_.GetDomain();
 
     Index i_write = 0;
+    // Todo: use (sorted) deleted_vars_
     for (Index i_read = 0; i_read < n; ++i_read) {
         if (!var_mask_.Get(i_read)) {
             if (i_write != i_read) {
@@ -78,6 +81,7 @@ void ModelInfo::CompressVars() {
     // Ar
     std::vector<Index> new_index_map(n, -1);
     Index next_new_index = 0;
+    // Todo: use (sorted) deleted_vars_
     for (Index iv = 0; iv < n; ++iv) {
         if (!var_mask_.Get(iv)) {
             new_index_map[iv] = next_new_index++;
@@ -125,6 +129,31 @@ void ModelInfo::CalcActivities() {
         }
         activities_[ic] = act;
     }
+}
+
+void ModelInfo::FixVar(Index iv, Scalar val) {
+    model_.GetObj().c0 += model_.GetObj().coefficients[iv] * val;
+
+    UpdVarBounds(iv, {0, 0});  // Убираем эту переменную из активити
+
+    for (SvIterator el(model_.GetAc().GetCol(iv)); el; ++el) {
+        const Bounds& rhs = model_.GetRhs()[el.index()];
+        model_.GetRhs()[el.index()] = {rhs.le - el.value() * val, rhs.ri - el.value() * val};
+    }
+}
+
+void ModelInfo::UpdVarBounds(Index iv, const Bounds& bnd) {
+    const Bounds& old_bnd = model_.GetBounds(iv);
+    const Bounds diff = {bnd.le - old_bnd.le, bnd.ri - old_bnd.ri};
+
+    for (SvIterator el(model_.GetAc().GetCol(iv)); el; ++el) {
+        const Bounds& act = activities_[el.index()];
+        activities_[el.index()] =
+            (el.value() >= 0)
+                ? Bounds{act.le + el.value() * diff.le, act.ri + el.value() * diff.ri}
+                : Bounds{act.le + el.value() * diff.ri, act.ri + el.value() * diff.le};
+    }
+    model_.SetBounds(iv, bnd);
 }
 
 }  // namespace reshala

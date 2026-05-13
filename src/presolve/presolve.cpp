@@ -4,6 +4,7 @@ namespace reshala {
 
 Presolver::Presolver(MilpModel& model) : model_(model), info_(model) {
     rules_.push_back(std::make_unique<Rule31>());
+    rules_.push_back(std::make_unique<Rule32>());
     rules_.push_back(std::make_unique<Rule41>());
     rules_.push_back(std::make_unique<Rule44>());
 }
@@ -14,21 +15,24 @@ void Presolver::Presolve() {
     Index max_passes = 5;
 
     while (changed && pass < max_passes) {
+        std::cout << "Presolve pass " << pass << ": " << model_.GetNCons() << " x "
+                  << model_.GetNVars() << "\n";
         changed = false;
         info_.CalcActivities();
 
         for (auto& rule : rules_) {
             if (rule->Apply(info_, transforms_) == RuleResult::kReduced) {
                 changed = true;
+
+                // Todo: aggregate over the whole pass
+                if (info_.GetNDeletedCons() > 0) info_.CompressCons();
+                if (info_.GetNDeletedVars() > 0) info_.CompressVars();
             }
         }
 
-        if (info_.GetNDeletedCons() > 0) info_.CompressCons();
-        if (info_.GetNDeletedVars() > 0) info_.CompressVars();
         pass++;
     }
-    std::cout << "After presolve: " << model_.GetNCons() << " cons, " << model_.GetNVars()
-              << " vars\n";
+    std::cout << "After presolve: " << model_.GetNCons() << "  x " << model_.GetNVars() << "\n";
 }
 
 Solution Presolver::Postsolve(const Solution& sol) {

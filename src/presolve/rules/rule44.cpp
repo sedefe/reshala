@@ -30,15 +30,19 @@ RuleResult Rule44::Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>
         }
 
         if (eligible_down) {
-            FixVariableTransform tr(iv, model.GetBounds(iv).le);
-            tr.Do(info);
-            transforms.push_back(std::make_unique<FixVariableTransform>(tr));
+            Scalar value = model.GetBounds(iv).le;
+            transforms.push_back(
+                std::make_unique<FixVariableTransform>(FixVariableTransform(iv, value)));
+            info.FixVar(iv, value);
+            info.MaskVar(iv);
 
             n_reduced++;
         } else if (eligible_up) {
-            FixVariableTransform tr(iv, model.GetBounds(iv).ri);
-            tr.Do(info);
-            transforms.push_back(std::make_unique<FixVariableTransform>(tr));
+            Scalar value = model.GetBounds(iv).ri;
+            transforms.push_back(
+                std::make_unique<FixVariableTransform>(FixVariableTransform(iv, value)));
+            info.FixVar(iv, value);
+            info.MaskVar(iv);
 
             n_reduced++;
         }

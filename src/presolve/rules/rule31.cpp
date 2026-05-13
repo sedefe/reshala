@@ -6,13 +6,12 @@ RuleResult Rule31::Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>
     MilpModel& model = info.GetModel();
     Index n_reduced = 0;
 
-    // Обратный порядок тут нужен, чтобы в постсолве индексация не поехала
     for (Index ic = 0; ic < model.GetNCons(); ic++) {
         if (info.GetConMask(ic)) continue;
 
         const Bounds& act = info.GetActivity(ic);
         const Bounds& rhs = model.GetRhs()[ic];
-        if (SoftGe(act.le, rhs.le) and SoftLe(act.ri, rhs.ri)) {
+        if (WeakGe(act.le, rhs.le) and WeakLe(act.ri, rhs.ri)) {
             info.MaskCon(ic);
             n_reduced++;
         }

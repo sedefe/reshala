@@ -36,19 +36,23 @@ class ModelInfo {
 
     void CompressCons();
     void CompressVars();
-    void CalcActivities();
 
+    void CalcActivities();
     const Bounds& GetActivity(Index ic) const { return activities_[ic]; }
+    Bounds& GetActivity(Index ic) { return activities_[ic]; }
 
     Index GetNDeletedCons() const { return deleted_cons_.size(); }
     Index GetNDeletedVars() const { return deleted_vars_.size(); }
+
+    void FixVar(Index iv, Scalar val);
+    void UpdVarBounds(Index iv, const Bounds& bnd);
 
    private:
     MilpModel& model_;
 
     BitMask con_mask_;
     BitMask var_mask_;
-    std::vector<Index> deleted_cons_;  // Todo а так нужны ли эти ребята
+    std::vector<Index> deleted_cons_;
     std::vector<Index> deleted_vars_;
 
     std::vector<Bounds> activities_;
