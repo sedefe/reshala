@@ -6,29 +6,21 @@ MilpSolver::MilpSolver(MilpModel& model)
     : model(model), presolver(model), mip_state(model), bnb(model, mip_state) {}
 
 Solution MilpSolver::Solve() {
+    mip_state.UpdDual(kInf);
     presolver.Presolve();
 
     DualSimplex ds(model);
     Solution sol = ds.Solve();
     std::cout << "Root LP: " << sol.y << "\n";
 
+    mip_state.TestPrimal(sol);
+    mip_state.UpdDual(sol.y);
 
-    // Wrap into MipState
-    if (sol.status != LpStatus::kOptimal) {
-        return sol;
+    if (!mip_state.Converged()) {
+        bnb.Solve(sol);
     }
 
-    if (model.IsIntegerFeasible(sol.x)) {
-        return presolver.Postsolve(sol);
-    }
-
-    bnb.Solve(sol);
-
-    if (mip_state.GetBestSol().status == LpStatus::kOptimal) {
-        return presolver.Postsolve(mip_state.GetBestSol());
-    } else {
-        return {LpStatus::kInfeasible};
-    }
+    return presolver.Postsolve(mip_state.GetBestSol());
 }
 
 }  // namespace reshala

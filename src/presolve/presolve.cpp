@@ -23,6 +23,10 @@ void Presolver::Presolve() {
 }
 
 Solution Presolver::Postsolve(const Solution& sol) {
+    if (sol.status != LpStatus::kOptimal) {
+        return sol;
+    }
+
     Solution res = sol;
     for (auto it = transforms_.rbegin(); it != transforms_.rend(); ++it) {
         (*it)->Undo(res);

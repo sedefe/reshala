@@ -17,10 +17,10 @@ struct Node {
 
 class MipState {
    public:
-    MipState(const MilpModel& model) {
+    MipState(const MilpModel& model) : model_(model) {
         best_sol_ = {LpStatus::kInfeasible, kInf, {}};
         dual_ = -kInf;
-        obj_gcd_ = GetObjectiveGcd(model);
+        obj_gcd_ = GetObjectiveGcd();
         Recalc();
     }
     const Solution& GetBestSol() const { return best_sol_; }
@@ -30,12 +30,12 @@ class MipState {
     Scalar GetCutoff() const { return cutoff_; };
 
     bool TestPrimal(const Solution& sol) {
-        if (best_sol_.y > sol.y) {
-            best_sol_ = sol;
-            Recalc();
-            return true;
-        }
-        return false;
+        if (sol.status != LpStatus::kOptimal) return false;
+        if (best_sol_.y <= sol.y) return false;
+        if (!model_.IsIntegerFeasible(sol.x)) return false;
+        best_sol_ = sol;
+        Recalc();
+        return true;
     }
     void UpdDual(Scalar dual) {
         dual_ = dual;
@@ -44,22 +44,23 @@ class MipState {
     bool Converged() const { return cutoff_ <= dual_; }
 
    private:
+    const MilpModel& model_;
     Scalar dual_;
     Scalar cutoff_;
     Scalar obj_gcd_;
     Scalar gap_;
     Solution best_sol_;
 
-    Index GetObjectiveGcd(const MilpModel& model) {
+    Index GetObjectiveGcd() {
         Index res = 0;
-        for (Index iv = 0; iv < model.GetNVars(); ++iv) {
-            if (model.GetIntegrality(iv)) {
-                if (GetFraction(model.GetObj().coefficients[iv]) == 0.0) {
-                    res = std::gcd(res, Index(model.GetObj().coefficients[iv]));
+        for (Index iv = 0; iv < model_.GetNVars(); ++iv) {
+            if (model_.GetIntegrality(iv)) {
+                if (GetFraction(model_.GetObj().coefficients[iv]) == 0.0) {
+                    res = std::gcd(res, Index(model_.GetObj().coefficients[iv]));
                 } else {
                     return 0;
                 }
-            } else if (model.GetObj().coefficients[iv] != 0.0) {
+            } else if (model_.GetObj().coefficients[iv] != 0.0) {
                 return 0;
             }
         }
