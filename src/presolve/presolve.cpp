@@ -27,6 +27,8 @@ void Presolver::Presolve() {
         if (info_.GetNDeletedVars() > 0) info_.CompressVars();
         pass++;
     }
+    std::cout << "After presolve: " << model_.GetNCons() << " cons, " << model_.GetNVars()
+              << " vars\n";
 }
 
 Solution Presolver::Postsolve(const Solution& sol) {

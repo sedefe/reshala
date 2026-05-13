@@ -9,7 +9,7 @@ std::string FileReadStatus2Str(FileReadStatus status) {
         case FileReadStatus::kOk:
             return "Ok";
         case FileReadStatus::kFsError:
-            return "FS error";
+            return "Filesystem error";
         case FileReadStatus::kParseError:
             return "Parsing error";
         default:

@@ -14,6 +14,7 @@ int main(int argc, char** argv) {
     auto read_status = io.Read(argv[1]);
     MilpModel& model = io.GetModel();
     if (read_status != FileReadStatus::kOk) {
+        std::cerr << FileReadStatus2Str(read_status) << "\n";
         exit(0);
     }
     const MilpModel model_copy = model;
