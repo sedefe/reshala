@@ -11,8 +11,8 @@ class MilpSolver {
 
     Solution Solve();
 
-    MipState mip_state;
     MilpModel& model;
+    MipState mip_state;
 
     Presolver presolver;
     BnbSolver bnb;

@@ -60,4 +60,6 @@ void ModelInfo::CompressVars() {
     deleted_vars.clear();
 }
 
+void ModelInfo::CalcActivities() {}
+
 }  // namespace reshala

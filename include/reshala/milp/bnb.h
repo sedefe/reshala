@@ -16,8 +16,8 @@ class BnbSolver {
     void Solve(const Solution& sol);
 
    private:
-    MipState& mip_state_;
     MilpModel& model_;
+    MipState& mip_state_;
     std::vector<Node> nodes;
     Index n_nodes_ = 0;
 

@@ -52,10 +52,11 @@ std::vector<TestCase> ReadTestCases(const std::string& csv_path) {
     return tests;
 }
 
-bool RunTest(TestCase& tc) {
+void RunTest(TestCase& tc) {
     Io io;
     std::filesystem::path file_path("tests/models/" + tc.name + ".mps");
-    auto read_status = io.Read(file_path.c_str());
+    [[maybe_unused]] auto read_status = io.Read(file_path.c_str());
+    assert(read_status == FileReadStatus::kOk);
 
     MilpModel& model = io.GetModel();
     MilpModel model_copy = model;
@@ -74,8 +75,6 @@ bool RunTest(TestCase& tc) {
     if (tc.sol.status == LpStatus::kOptimal) {
         tc.report = model_copy.GetFeasReport(tc.sol.x);
     }
-
-    return true;
 }
 
 int main() {
@@ -89,7 +88,7 @@ int main() {
         printf("%-20s: ", tc.name.c_str());
         fflush(stdout);
 
-        bool res = RunTest(tc);
+        RunTest(tc);
         printf("%6.3f sec ", tc.time.count() / 1e6);
 
         auto status = LpStatus2Str(tc.sol.status);
@@ -113,8 +112,8 @@ int main() {
         if (tc.sol.status == LpStatus::kOptimal) {
             printf("Feasibility (I/B/C): ");
             auto& [iv, bv, cv] = tc.report;
-            for (Scalar* p : {&iv, &bv, &cv}) {
-                if (iv <= kEpsZero) {
+            for (Scalar* s : {&iv, &bv, &cv}) {
+                if (*s <= kEpsZero) {
                     printf("√");
                 } else {
                     printf("X");

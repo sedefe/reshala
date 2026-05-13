@@ -20,7 +20,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
 # ----------------------------------------
 # Library
 # ----------------------------------------
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 add_executable(${PROJECT_NAME}-cli ${EXE_SOURCES} src/main.cpp)
 add_library(${PROJECT_NAME}-lib SHARED ${LIB_SOURCES})

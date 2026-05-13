@@ -20,7 +20,6 @@ Index MostInfeasible::Branch(const Node& node) {
     Scalar x_floor = floor(node.sol.x[candidate]);
     const Bounds& bnd = model_.GetBounds(candidate);
     std::array<Bounds, 2> cand_bounds{{{bnd.le, x_floor}, {x_floor + 1, bnd.ri}}};
-    size_t num_children = 0;
 
     for (Index i = 0; i < 2; i++) {
         model_.SetBounds(candidate, cand_bounds[i]);

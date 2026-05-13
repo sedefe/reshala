@@ -18,7 +18,7 @@ void BnbSolver::Solve(const Solution& sol) {
             break;
         }
 
-        Index candidate = branching.Branch(node);
+        branching.Branch(node);
         DebugPrint();
 
         Index best = branching.FindBestChild();

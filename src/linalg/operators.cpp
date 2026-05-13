@@ -104,7 +104,7 @@ void dot(const DenseVector& dv1, const DenseVector& dv2, Scalar& res) {
 
 void MulScmSv(const SparseColMatrix& scm, const SparseVector& sv, DenseVector& res) {
     auto m = scm.GetNRows();
-    auto n = scm.GetNCols();
+    [[maybe_unused]] auto n = scm.GetNCols();
     assert(n == sv.dim() && "Scm x Sv: incompatible sizes");
 
     res.assign(m, Scalar(0));
@@ -163,7 +163,7 @@ void MulDmDv(const DenseMatrix& dm, const DenseVector& dv, DenseVector& res) {
 
 void MulDmSv(const DenseMatrix& dm, const SparseVector& sv, DenseVector& res) {
     auto m = dm.GetNRows();
-    auto n = dm.GetNCols();
+    [[maybe_unused]] auto n = dm.GetNCols();
     assert(n == sv.dim() && "Dm x Sv: incompatible sizes");
 
     for (Index i = 0; i < m; i++) {

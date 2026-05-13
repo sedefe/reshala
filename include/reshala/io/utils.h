@@ -9,7 +9,7 @@
 namespace reshala {
 
 enum class FileReadStatus { kOk, kFsError, kParseError };
-std::string FileReadResult2Str(FileReadStatus status);
+std::string FileReadStatus2Str(FileReadStatus status);
 
 enum class ExpType { kGe, kLe, kEq, kNon };
 Bounds ExpType2Bounds(ExpType exp_type, Scalar rhs);

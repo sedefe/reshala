@@ -43,6 +43,8 @@ class ModelInfo {
     BitMask var_mask;
     std::vector<Index> deleted_cons;
     std::vector<Index> deleted_vars;
+
+    void CalcActivities();
 };
 
 }  // namespace reshala

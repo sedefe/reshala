@@ -159,6 +159,8 @@ void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
             case ExpType::kEq:
                 model_.SetBounds(index, BoundsIntersection(bnd, {rhs, rhs}));
                 break;
+            default:
+                assert(false && "Unknown ExpType");
         }
     }
 }

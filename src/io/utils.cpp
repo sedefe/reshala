@@ -4,7 +4,7 @@
 
 namespace reshala {
 
-std::string FileReadResult2Str(FileReadStatus status) {
+std::string FileReadStatus2Str(FileReadStatus status) {
     switch (status) {
         case FileReadStatus::kOk:
             return "Ok";
