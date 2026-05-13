@@ -18,33 +18,40 @@ class BitMask {
 class ModelInfo {
    public:
     ModelInfo(MilpModel& model)
-        : model_(model), con_mask(model.GetNCons()), var_mask(model.GetNVars()) {}
+        : model_(model), con_mask_(model.GetNCons()), var_mask_(model.GetNVars()) {}
 
     const MilpModel& GetModel() const { return model_; }
     MilpModel& GetModel() { return model_; }
 
     void MaskCon(Index ic) {
-        con_mask.Set(ic);
-        deleted_cons.push_back(ic);
+        con_mask_.Set(ic);
+        deleted_cons_.push_back(ic);
     }
     void MaskVar(Index iv) {
-        var_mask.Set(iv);
-        deleted_vars.push_back(iv);
+        var_mask_.Set(iv);
+        deleted_vars_.push_back(iv);
     }
-    inline bool GetConMask(Index ic) const { return con_mask.Get(ic); }
-    inline bool GetVarMask(Index ic) const { return var_mask.Get(ic); }
+    inline bool GetConMask(Index ic) const { return con_mask_.Get(ic); }
+    inline bool GetVarMask(Index ic) const { return var_mask_.Get(ic); }
 
+    void CompressCons();
     void CompressVars();
+    void CalcActivities();
+
+    const Bounds& GetActivity(Index ic) const { return activities_[ic]; }
+
+    Index GetNDeletedCons() const { return deleted_cons_.size(); }
+    Index GetNDeletedVars() const { return deleted_vars_.size(); }
 
    private:
     MilpModel& model_;
 
-    BitMask con_mask;
-    BitMask var_mask;
-    std::vector<Index> deleted_cons;
-    std::vector<Index> deleted_vars;
+    BitMask con_mask_;
+    BitMask var_mask_;
+    std::vector<Index> deleted_cons_;  // Todo а так нужны ли эти ребята
+    std::vector<Index> deleted_vars_;
 
-    void CalcActivities();
+    std::vector<Bounds> activities_;
 };
 
 }  // namespace reshala

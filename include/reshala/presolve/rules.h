@@ -22,6 +22,13 @@ class Rule {
     RuleType type;  // New int field
 };
 
+class Rule31 : public Rule {
+   public:
+    Rule31() : Rule(RuleType::kFast) {}
+    RuleResult Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>>& transforms_);
+    std::string Name() const { return "3.1 Removal of redundant constraints"; }
+};
+
 class Rule41 : public Rule {
    public:
     Rule41() : Rule(RuleType::kFast) {}

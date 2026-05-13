@@ -3,6 +3,7 @@
 namespace reshala {
 
 Presolver::Presolver(MilpModel& model) : model_(model), info_(model) {
+    rules_.push_back(std::make_unique<Rule31>());
     rules_.push_back(std::make_unique<Rule41>());
     rules_.push_back(std::make_unique<Rule44>());
 }
@@ -14,14 +15,16 @@ void Presolver::Presolve() {
 
     while (changed && pass < max_passes) {
         changed = false;
+        info_.CalcActivities();
+
         for (auto& rule : rules_) {
             if (rule->Apply(info_, transforms_) == RuleResult::kReduced) {
                 changed = true;
             }
         }
-        if (changed) {
-            info_.CompressVars();
-        }
+
+        if (info_.GetNDeletedCons() > 0) info_.CompressCons();
+        if (info_.GetNDeletedVars() > 0) info_.CompressVars();
         pass++;
     }
 }
