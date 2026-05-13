@@ -1,5 +1,7 @@
 #pragma once
 
+#include <assert.h>
+
 #include <algorithm>
 #include <ostream>
 #include <vector>
@@ -14,6 +16,11 @@ class SparseVector {
 
     SparseVector(Index dim) : dim_(dim) {}
     SparseVector(Index dim, Index i, Scalar v) : dim_(dim) { Push(i, v); }
+    SparseVector(Index dim, const std::vector<Index> &indices, const std::vector<Scalar> &values) {
+        dim_ = dim;
+        indices_ = std::move(indices);
+        values_ = std::move(values);
+    }
     SparseVector(Index dim, const Scalar *array) : dim_(dim) {
         for (Index i = 0; i < dim; i++) {
             if (!IsZero(array[i])) {
@@ -21,14 +28,6 @@ class SparseVector {
             }
         }
     }
-
-    // Build from unsorted or sorted lists (caller guarantees sorted & unique? we sort)
-    SparseVector(Index dim, const std::vector<Index> &indices, const std::vector<Scalar> &values) {
-        dim_ = dim;
-        Assign(indices, values);
-    }
-
-    void SetDim(Index dim) { dim_ = dim; }
 
     Scalar At(Index idx) const {
         auto pos = FindIndex(idx);
@@ -39,6 +38,11 @@ class SparseVector {
     void Clear() {
         indices_.clear();
         values_.clear();
+    }
+
+    void Resize(size_t n) {
+        indices_.resize(n);
+        values_.resize(n);
     }
 
     void Reserve(size_t n) {
@@ -52,38 +56,24 @@ class SparseVector {
     }
 
     void Erase(Index i) {
-        indices_.erase(indices_.begin() + i);
-        values_.erase(values_.begin() + i);
+        auto it = std::lower_bound(indices_.begin(), indices_.end(), i);
+        assert(it != indices_.end() && *it == i);
+
+        Index pos = std::distance(indices_.begin(), it);
+        indices_.erase(indices_.begin() + pos);
+        values_.erase(values_.begin() + pos);
+
+        for (Index j = pos; j < indices_.size(); ++j) {
+            indices_[j]--;
+        }
     }
 
     const std::vector<Index> &indices() const { return indices_; }
+    std::vector<Index> &indices() { return indices_; }
     const std::vector<Scalar> &values() const { return values_; }
+    std::vector<Scalar> &values() { return values_; }
     Index dim() const { return dim_; }
-
-    // ----- modify whole structure -----
-    void Assign(const std::vector<Index> &indices, const std::vector<Scalar> &values) {
-        // copy and sort by index, merging duplicates by summing values
-        std::vector<std::pair<Index, Scalar>> pairs;
-        pairs.reserve(indices.size());
-        for (size_t i = 0; i < indices.size(); ++i) pairs.emplace_back(indices[i], values[i]);
-        std::sort(pairs.begin(), pairs.end(),
-                  [](const auto &a, const auto &b) { return a.first < b.first; });
-
-        indices_.clear();
-        values_.clear();
-        for (const auto &p : pairs) {
-            if (!indices_.empty() && indices_.back() == p.first) {
-                values_.back() += p.second;
-                if (values_.back() == Scalar(0)) {
-                    indices_.pop_back();
-                    values_.pop_back();
-                }
-            } else if (p.second != Scalar(0)) {
-                indices_.push_back(p.first);
-                values_.push_back(p.second);
-            }
-        }
-    }
+    void SetDim(Index dim) { dim_ = dim; }
 
     friend std::ostream &operator<<(std::ostream &os, const SparseVector &sv);
 

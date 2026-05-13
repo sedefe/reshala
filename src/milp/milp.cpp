@@ -6,7 +6,6 @@ MilpSolver::MilpSolver(MilpModel& model)
     : model(model), presolver(model), mip_state(model), bnb(model, mip_state) {}
 
 Solution MilpSolver::Solve() {
-    mip_state.UpdDual(kInf);
     presolver.Presolve();
 
     DualSimplex ds(model);

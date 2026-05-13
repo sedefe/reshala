@@ -165,8 +165,10 @@ void DualSimplex::Chuzc() {
         }
     }
 
-    theta_p = d_p[iv_entering] * primal_infeasibility / a_pq;
-    theta_d = s_p * c_j_entering / a_pq;
+    if (iv_entering >= 0) {
+        theta_p = d_p[iv_entering] * primal_infeasibility / a_pq;
+        theta_d = s_p * c_j_entering / a_pq;
+    }
 }
 
 void DualSimplex::Ftran() {

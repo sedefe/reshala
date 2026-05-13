@@ -28,7 +28,8 @@ int main(int argc, char** argv) {
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     std::cout << "Solved in " << duration.count() / 1e3 << " ms\n";
 
-    std::cout << "Status: " << LpStatus2Str(sol.status) << ", objective: " << sol.y << "\n";
+    std::cout << "Status: " << LpStatus2Str(sol.status) << ", objective: " << FMT(-10, 5) << sol.y
+              << "\n";
     if (sol.status == LpStatus::kOptimal) {
         auto rep = model_copy.GetFeasReport(sol.x);
         std::cout << "Violations: int " << rep.max_int_infeas << ", bnd " << rep.max_bnd_infeas

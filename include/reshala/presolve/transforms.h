@@ -1,6 +1,6 @@
 #pragma once
 
-#include "reshala/model/milp_model.h"
+#include "reshala/presolve/model_info.h"
 
 namespace reshala {
 
@@ -8,7 +8,7 @@ class Transform {
    public:
     virtual ~Transform() = default;
 
-    virtual void Do(MilpModel& model) = 0;
+    virtual void Do(ModelInfo& info) = 0;
     virtual void Undo(Solution& sol) = 0;
 };
 
@@ -17,7 +17,7 @@ class FixVariableTransform : public Transform {
     FixVariableTransform(Index iv, Scalar val)
         : iv_(iv), val_(val) {}
 
-    void Do(MilpModel& model) override;
+    void Do(ModelInfo& info) override;
     void Undo(Solution& sol) override;
 
    private:

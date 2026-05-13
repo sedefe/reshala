@@ -45,10 +45,10 @@ class Domain {
         types_.push_back(Bounds2Type(b));
         integrality_.push_back(i);
     }
-    inline void Erase(Index iv) {
-        bounds_.erase(bounds_.begin() + iv);
-        types_.erase(types_.begin() + iv);
-        integrality_.erase(integrality_.begin() + iv);
+    inline void Move(Index i_read, Index i_write) {
+        bounds_[i_write] = std::move(bounds_[i_read]);
+        types_[i_write] = std::move(types_[i_read]);
+        integrality_[i_write] = std::move(integrality_[i_read]);
     }
 
    private:

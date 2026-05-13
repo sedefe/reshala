@@ -2,8 +2,9 @@
 
 namespace reshala {
 
-Presolver::Presolver(MilpModel& model) : model_(model) {
+Presolver::Presolver(MilpModel& model) : model_(model), info_(model) {
     rules_.push_back(std::make_unique<Rule41>());
+    rules_.push_back(std::make_unique<Rule44>());
 }
 
 void Presolver::Presolve() {
@@ -14,9 +15,12 @@ void Presolver::Presolve() {
     while (changed && pass < max_passes) {
         changed = false;
         for (auto& rule : rules_) {
-            if (rule->Apply(model_, transforms_) == RuleResult::kReduced) {
+            if (rule->Apply(info_, transforms_) == RuleResult::kReduced) {
                 changed = true;
             }
+        }
+        if (changed) {
+            info_.CompressVars();
         }
         pass++;
     }
