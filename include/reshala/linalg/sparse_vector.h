@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "reshala/constants.h"
+#include "reshala/utils.h"
 
 namespace reshala {
 
