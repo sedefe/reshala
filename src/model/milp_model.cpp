@@ -91,11 +91,12 @@ std::ostream& operator<<(std::ostream& os, const MilpModel& model) {
     for (Index i = 0; i < m; i++) {
         const SparseVector& lhs = model.Ar_.GetRows()[i];
         const Bounds& rhs = model.rhs_[i];
-        if (rhs.le != -kInf) {
-            os << lhs << " >= " << rhs.le << std::endl;
-        }
-        if (rhs.ri != kInf) {
-            os << lhs << " <= " << rhs.ri << std::endl;
+
+        if (rhs.le == rhs.ri) {
+            os << lhs << " = " << rhs.le << std::endl;
+        } else {
+            if (rhs.le != -kInf) os << lhs << " >= " << rhs.le << std::endl;
+            if (rhs.ri != kInf) os << lhs << " <= " << rhs.ri << std::endl;
         }
     }
 
