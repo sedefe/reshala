@@ -23,11 +23,9 @@ void Presolver::Presolve() {
         for (auto& rule : rules_) {
             if (rule->Apply(info_, transforms_) == RuleResult::kReduced) {
                 changed = true;
-
-                // Todo: aggregate over the whole pass
-                if (info_.GetNDeletedCons() > 0) info_.CompressCons();
-                if (info_.GetNDeletedVars() > 0) info_.CompressVars();
             }
+            if (info_.GetNDeletedCons() > 0) info_.CompressCons();
+            if (info_.GetNDeletedVars() > 0) info_.CompressVars();
         }
 
         pass++;
@@ -41,6 +39,11 @@ Solution Presolver::Postsolve(const Solution& sol) {
     }
 
     Solution res = sol;
+    res.x.assign(info_.GetOrigNVars(), kNan);
+    for (Index iv = 0; iv < sol.x.size(); iv++) {
+        res.x[info_.GetOrigVarIdx()[iv]] = sol.x[iv];
+    }
+
     for (auto it = transforms_.rbegin(); it != transforms_.rend(); ++it) {
         (*it)->Undo(res);
     }

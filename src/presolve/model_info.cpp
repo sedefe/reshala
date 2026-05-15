@@ -2,6 +2,15 @@
 
 namespace reshala {
 
+ModelInfo::ModelInfo(MilpModel& model)
+    : model_(model), con_mask_(model.GetNCons()), var_mask_(model.GetNVars()) {
+    orig_n_vars_ = model.GetNVars();
+    orig_var_idx_.resize(orig_n_vars_);
+    for (Index iv = 0; iv < orig_n_vars_; ++iv) {
+        orig_var_idx_[iv] = iv;
+    }
+}
+
 void ModelInfo::CompressCons() {
     auto m = model_.GetNCons();
     auto n = model_.GetNVars();
@@ -70,6 +79,7 @@ void ModelInfo::CompressVars() {
     for (Index i_read = 0; i_read < n; ++i_read) {
         if (!var_mask_.Get(i_read)) {
             if (i_write != i_read) {
+                orig_var_idx_[i_write] = std::move(orig_var_idx_[i_read]);
                 coeffs[i_write] = std::move(coeffs[i_read]);
                 model_.GetAc().GetCol(i_write) = std::move(model_.GetAc().GetCol(i_read));
                 domain.Move(i_read, i_write);

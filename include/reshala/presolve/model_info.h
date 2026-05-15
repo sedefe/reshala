@@ -17,8 +17,7 @@ class BitMask {
 
 class ModelInfo {
    public:
-    ModelInfo(MilpModel& model)
-        : model_(model), con_mask_(model.GetNCons()), var_mask_(model.GetNVars()) {}
+    ModelInfo(MilpModel& model);
 
     const MilpModel& GetModel() const { return model_; }
     MilpModel& GetModel() { return model_; }
@@ -43,12 +42,20 @@ class ModelInfo {
 
     Index GetNDeletedCons() const { return deleted_cons_.size(); }
     Index GetNDeletedVars() const { return deleted_vars_.size(); }
+    const std::vector<Index>& GetDeletedCons() const { return deleted_cons_; }
+    const std::vector<Index>& GetDeletedVars() const { return deleted_vars_; }
 
     void FixVar(Index iv, Scalar val);
     void UpdVarBounds(Index iv, const Bounds& bnd);
 
+    inline Index GetOrigNVars() const { return orig_n_vars_; }
+    inline const std::vector<Index>& GetOrigVarIdx() const { return orig_var_idx_; }
+
    private:
     MilpModel& model_;
+
+    Index orig_n_vars_;
+    std::vector<Index> orig_var_idx_;
 
     BitMask con_mask_;
     BitMask var_mask_;
