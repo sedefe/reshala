@@ -1,6 +1,7 @@
 #pragma once
 
 #include "reshala/model/milp_model.h"
+#include "reshala/presolve/utils.h"
 
 namespace reshala {
 
@@ -51,7 +52,11 @@ class ModelInfo {
     inline Index GetOrigNVars() const { return orig_n_vars_; }
     inline const std::vector<Index>& GetOrigVarIdx() const { return orig_var_idx_; }
 
+    bool ProvenInfeasible() const { return infeasible_; }
+
    private:
+    bool infeasible_ = false;
+
     MilpModel& model_;
 
     Index orig_n_vars_;

@@ -9,7 +9,7 @@ RuleResult Rule41::Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>
     for (Index iv = 0; iv < model.GetNVars(); iv++) {
         if (info.GetVarMask(iv)) continue;
 
-        if (model.GetType(iv) == VarType::kFixed) {
+        if (model.GetType(iv) == BndType::kFixed) {
             const Bounds& bnd = model.GetBounds(iv);
             Scalar value = (bnd.le + bnd.ri) / 2;
 

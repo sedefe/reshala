@@ -4,11 +4,9 @@
 #include <string>
 
 #include "reshala/presolve/transforms.h"
+#include "reshala/presolve/utils.h"
 
 namespace reshala {
-
-enum class RuleType { kTrivial, kFast, kMedium, kExhaustive, kUnknown };
-enum class RuleResult { kSkipped, kUnchanged, kReduced, kInfeasible, kUnknown };
 
 class Rule {
    public:

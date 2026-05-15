@@ -164,6 +164,10 @@ void ModelInfo::UpdVarBounds(Index iv, const Bounds& bnd) {
                 : Bounds{act.le + el.value() * diff.ri, act.ri + el.value() * diff.le};
     }
     model_.SetBounds(iv, bnd);
+
+    if (model_.GetType(iv) == BndType::kInfeasible) {
+        infeasible_ = true;
+    }
 }
 
 }  // namespace reshala

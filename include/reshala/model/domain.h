@@ -7,8 +7,10 @@
 namespace reshala {
 
 struct Bounds {
-    Scalar le = 0.0;
-    Scalar ri = kInf;
+    Scalar le;
+    Scalar ri;
+
+    Bounds(Scalar l = 0.0, Scalar r = kInf) : le(l), ri(r) {}
 };
 
 inline Bounds BoundsIntersection(const Bounds &bnd1, const Bounds &bnd2) {
@@ -19,8 +21,8 @@ inline bool InBounds(Scalar val, const Bounds &bounds, Scalar eps) {
     return val + eps >= bounds.le && val - eps <= bounds.ri;
 }
 
-enum class VarType { kLower, kFree, kFixed, kUpper, kBoxed, kUnknown };
-VarType Bounds2Type(const Bounds &bounds);
+enum class BndType { kLower, kFree, kFixed, kUpper, kBoxed, kInfeasible };
+BndType Bounds2Type(const Bounds &bounds);
 
 class Domain {
    public:
@@ -29,7 +31,7 @@ class Domain {
         bounds_[iv] = bnds;
         types_[iv] = Bounds2Type(bnds);
     }
-    inline const VarType &GetType(Index iv) const { return types_[iv]; }
+    inline const BndType &GetType(Index iv) const { return types_[iv]; }
 
     inline bool GetIntegrality(Index iv) const { return integrality_[iv]; }
     inline void SetIntegrality(Index iv, bool b) { integrality_[iv] = b; }
@@ -53,7 +55,7 @@ class Domain {
 
    private:
     std::vector<Bounds> bounds_;
-    std::vector<VarType> types_;
+    std::vector<BndType> types_;
     std::vector<bool> integrality_;
 };
 

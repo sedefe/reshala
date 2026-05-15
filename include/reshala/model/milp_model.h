@@ -35,7 +35,7 @@ class MilpModel {
     inline void SetDomain(const Domain& domain) { domain_ = domain; }
     inline const Bounds& GetBounds(Index iv) const { return domain_.GetBounds(iv); }
     inline void SetBounds(Index iv, const Bounds& bnd) { domain_.SetBounds(iv, bnd); }
-    inline const VarType& GetType(Index iv) const { return domain_.GetType(iv); }
+    inline const BndType& GetType(Index iv) const { return domain_.GetType(iv); }
 
     inline bool GetIntegrality(Index iv) const { return domain_.GetIntegrality(iv); }
     inline void SetIntegrality(Index iv, bool b) { domain_.SetIntegrality(iv, b); }

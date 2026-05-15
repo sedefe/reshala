@@ -1,9 +1,10 @@
 #pragma once
 
-#include <chrono>
 #include <cmath>
+#include <chrono>
 
 #include "reshala/constants.h"
+#include "reshala/logging.h"
 
 namespace reshala {
 
@@ -16,6 +17,7 @@ inline bool StrongLt(Scalar x, Scalar y) { return x - y < -kEpsZero; }
 inline bool WeakEq(Scalar x, Scalar y) { return IsZero(x - y); }
 
 inline Scalar Floor(Scalar x) { return std::floor(x); }
+inline Scalar Round(Scalar x) { return std::round(x); }
 inline Scalar Ceil(Scalar x) { return std::ceil(x); }
 
 inline Scalar GetFraction(Scalar x) {

@@ -17,9 +17,9 @@ struct Node {
 
 class MipState {
    public:
-    MipState(const MilpModel& model) : model_(model) {
-        best_sol_ = {LpStatus::kInfeasible, kInf, {}};
-        dual_ = -kInf;
+    MipState(const MilpModel& model, const Solution best_sol = {LpStatus::kInfeasible, kInf, {}},
+             Scalar dual = -kInf)
+        : model_(model), best_sol_(best_sol), dual_(dual) {
         obj_gcd_ = GetObjectiveGcd();
         Recalc();
     }

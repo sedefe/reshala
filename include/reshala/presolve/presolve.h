@@ -13,7 +13,7 @@ class Presolver {
    public:
     Presolver(MilpModel& model);
 
-    void Presolve();
+    LpStatus Presolve();
     Solution Postsolve(const Solution&);
 
    private:

@@ -3,21 +3,38 @@
 namespace reshala {
 
 MilpSolver::MilpSolver(MilpModel& model)
-    : model(model), mip_state(model), presolver(model), bnb(model, mip_state) {}
+    : model(model),
+      mip_state(model),
+      presolver(model),
+      heuristics(model, mip_state),
+      bnb(model, mip_state) {}
 
 Solution MilpSolver::Solve() {
-    presolver.Presolve();
+    LpStatus presolve_status = presolver.Presolve();
+    if (presolve_status != LpStatus::kUnknown) {
+        return presolver.Postsolve({presolve_status, model.GetObj().c0, {}});
+    }
 
     DualSimplex ds(model);
+    auto start = std::chrono::high_resolution_clock::now();
     Solution sol = ds.Solve();
-    std::cout << "Root LP: " << sol.y << "\n";
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    std::cout << "Root LP: " << sol.y << ", " << duration.count() / 1e3 << " ms\n";
 
     mip_state.TestPrimal(sol);
     mip_state.UpdDual(sol.y);
-
-    if (!mip_state.Converged()) {
-        bnb.Solve(sol);
+    if (mip_state.Converged()) {
+        return presolver.Postsolve(mip_state.GetBestSol());
     }
+
+    Solution sol_h = heuristics.Run(sol);
+    mip_state.TestPrimal(sol_h);
+    if (mip_state.Converged()) {
+        return presolver.Postsolve(mip_state.GetBestSol());
+    }
+
+    bnb.Solve(sol);
 
     return presolver.Postsolve(mip_state.GetBestSol());
 }

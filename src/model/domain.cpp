@@ -3,22 +3,22 @@
 
 namespace reshala {
 
-VarType Bounds2Type(const Bounds &bounds) {
+BndType Bounds2Type(const Bounds &bounds) {
     auto l = bounds.le;
     auto u = bounds.ri;
     if ((-kInf < l) && (u == kInf)) {
-        return VarType::kLower;
+        return BndType::kLower;
     } else if ((-kInf == l) && (u < kInf)) {
-        return VarType::kUpper;
+        return BndType::kUpper;
     } else if ((-kInf < l) && (l + kEpsZero < u) && (u < kInf)) {
-        return VarType::kBoxed;
+        return BndType::kBoxed;
     } else if ((-kInf == l) && (u == kInf)) {
-        return VarType::kFree;
+        return BndType::kFree;
     } else if ((-kInf < l) && IsZero(u - l) && (u < kInf)) {
-        return VarType::kFixed;
+        return BndType::kFixed;
     }
-    std::cerr << "Strange bounds for variable: " << l << " .. " << u << "\n";
-    return VarType::kUnknown;
+    // std::cerr << "Strange bounds for variable: " << l << " .. " << u << "\n";
+    return BndType::kInfeasible;
 }
 
 }  // namespace reshala

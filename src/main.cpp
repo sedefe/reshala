@@ -12,11 +12,11 @@ int main(int argc, char** argv) {
     Io io;
     std::cout << "Reading " << argv[1] << "\n";
     auto read_status = io.Read(argv[1]);
-    MilpModel& model = io.GetModel();
     if (read_status != FileReadStatus::kOk) {
         std::cerr << FileReadStatus2Str(read_status) << "\n";
         exit(0);
     }
+    MilpModel& model = io.GetModel();
     const MilpModel model_copy = model;
     // std::cout << model;
     std::cout << model.GetNCons() << " cons, " << model.GetNVars() << " vars\n";

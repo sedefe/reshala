@@ -148,7 +148,7 @@ void DualSimplex::Chuzc() {
     iv_entering = -1;
 
     for (Index iv = 0; iv < n; iv++) {
-        if (model_.GetType(non_basis[iv]) == VarType::kFixed) {
+        if (model_.GetType(non_basis[iv]) == BndType::kFixed) {
             continue;
         }
         a_pj = a_p[iv] * (s_p * d_p[iv]);
@@ -248,7 +248,7 @@ void DualSimplex::UnforceBounds() { model_.SetDomain(initial_domain); }
 void DualSimplex::SetXnValue(Index iv) {
     const Bounds& bnd = model_.GetBounds(non_basis[iv]);
     switch (model_.GetType(non_basis[iv])) {
-        case VarType::kBoxed:
+        case BndType::kBoxed:
             if (c_n[iv] >= 0.0) {
                 d_p[iv] = 1;
                 x_n[iv] = bnd.le;
@@ -257,19 +257,19 @@ void DualSimplex::SetXnValue(Index iv) {
                 x_n[iv] = bnd.ri;
             }
             break;
-        case VarType::kLower:
+        case BndType::kLower:
             d_p[iv] = 1;
             x_n[iv] = bnd.le;
             break;
-        case VarType::kUpper:
+        case BndType::kUpper:
             d_p[iv] = -1;
             x_n[iv] = bnd.ri;
             break;
-        case VarType::kFree:
+        case BndType::kFree:
             d_p[iv] = 1;  // Todo тут ещё a_p[iv] надо смотреть
             x_n[iv] = 0.0;
             break;
-        case VarType::kFixed:
+        case BndType::kFixed:
             d_p[iv] = 0;
             x_n[iv] = bnd.le;
             break;

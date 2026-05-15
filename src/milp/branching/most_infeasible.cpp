@@ -5,7 +5,7 @@
 namespace reshala {
 
 Index MostInfeasible::Branch(const Node& node) {
-    Index candidate = 0;
+    Index candidate = -1;
     Scalar max_fraction = -kInf;
 
     for (Index iv = 0; iv < node.sol.x.size(); ++iv) {
