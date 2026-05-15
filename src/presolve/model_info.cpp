@@ -147,8 +147,8 @@ void ModelInfo::FixVar(Index iv, Scalar val) {
     UpdVarBounds(iv, {0, 0});  // Убираем эту переменную из активити
 
     for (SvIterator el(model_.GetAc().GetCol(iv)); el; ++el) {
-        const Bounds& rhs = model_.GetRhs()[el.index()];
-        model_.GetRhs()[el.index()] = {rhs.le - el.value() * val, rhs.ri - el.value() * val};
+        const Bounds& rhs = model_.GetRhs(el.index());
+        model_.GetRhs(el.index()) = {rhs.le - el.value() * val, rhs.ri - el.value() * val};
     }
 }
 

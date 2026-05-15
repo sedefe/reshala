@@ -26,6 +26,8 @@ class MilpModel {
 
     const std::vector<Bounds>& GetRhs() const { return rhs_; }
     std::vector<Bounds>& GetRhs() { return rhs_; }
+    const Bounds& GetRhs(Index ic) const { return rhs_[ic]; }
+    Bounds& GetRhs(Index ic) { return rhs_[ic]; }
 
     const Domain& GetVars() const { return domain_; }
     Domain& GetVars() { return domain_; }

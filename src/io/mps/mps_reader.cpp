@@ -149,7 +149,7 @@ void MpsReader::FinalizeRhs() {
     for (Index ic = 0; ic < names_.cons.size(); ic++) {
         auto con_type = con_types[ic];
         auto rhs = con_rhs[ic];
-        model_.GetRhs()[ic] = ExpType2Bounds(con_type, rhs);
+        model_.GetRhs(ic) = ExpType2Bounds(con_type, rhs);
     }
 }
 

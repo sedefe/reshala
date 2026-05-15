@@ -14,7 +14,7 @@ RuleResult Rule44::Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>
         bool eligible_down = model.GetObj().coefficients[iv] >= 0;
 
         for (SvIterator el(model.GetAc().GetCol(iv)); el & (eligible_up || eligible_down); ++el) {
-            const Bounds& rhs = model.GetRhs()[el.index()];
+            const Bounds& rhs = model.GetRhs(el.index());
             if (rhs.le == -kInf) {
                 eligible_down &= el.value() >= 0;
                 eligible_up &= el.value() <= 0;

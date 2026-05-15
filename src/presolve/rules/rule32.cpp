@@ -10,7 +10,7 @@ RuleResult Rule32::Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>
         if (info.GetConMask(ic)) continue;
 
         const Bounds& act = info.GetActivity(ic);
-        const Bounds& rhs = model.GetRhs()[ic];
+        const Bounds& rhs = model.GetRhs(ic);
         for (SvIterator el(model.GetAr().GetRow(ic)); el; ++el) {
             if (IsZero(el.value())) continue;
 

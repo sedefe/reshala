@@ -10,7 +10,7 @@ RuleResult Rule31::Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>
         if (info.GetConMask(ic)) continue;
 
         const Bounds& act = info.GetActivity(ic);
-        const Bounds& rhs = model.GetRhs()[ic];
+        const Bounds& rhs = model.GetRhs(ic);
         if (WeakGe(act.le, rhs.le) and WeakLe(act.ri, rhs.ri)) {
             info.MaskCon(ic);
             n_reduced++;
