@@ -63,13 +63,10 @@ void RunTest(TestCase& tc) {
     MilpSolver solver(model);
     Solution sol;
 
-    auto start = std::chrono::high_resolution_clock::now();
-    {
+    auto [_, time] = MEASURE_TIME({
         CoutSuppressor suppressor;
         tc.sol = solver.Solve();
-    }
-    auto end = std::chrono::high_resolution_clock::now();
-    auto time = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    });
     tc.time = time;
 
     if (tc.sol.status == LpStatus::kOptimal) {

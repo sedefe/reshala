@@ -22,11 +22,7 @@ int main(int argc, char** argv) {
     std::cout << model.GetNCons() << " cons, " << model.GetNVars() << " vars\n";
 
     MilpSolver milp(model);
-
-    auto start = std::chrono::high_resolution_clock::now();
-    const Solution& sol = milp.Solve();
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    auto [sol, duration] = MEASURE_TIME(milp.Solve());
     std::cout << "Solved in " << duration.count() / 1e3 << " ms\n";
 
     std::cout << "Status: " << LpStatus2Str(sol.status) << ", objective: " << FMT(-10, 5) << sol.y

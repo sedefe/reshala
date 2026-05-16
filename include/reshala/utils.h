@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cmath>
 #include <chrono>
+#include <cmath>
 
 #include "reshala/constants.h"
 #include "reshala/logging.h"
@@ -24,5 +24,14 @@ inline Scalar GetFraction(Scalar x) {
     Scalar nearest = std::round(x);
     return std::abs(x - nearest);
 }
+
+#define MEASURE_TIME(expr)                                                                  \
+    [&]() {                                                                                 \
+        auto start = std::chrono::high_resolution_clock::now();                             \
+        auto result = (expr);                                                               \
+        auto end = std::chrono::high_resolution_clock::now();                               \
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start); \
+        return std::pair{result, duration};                                                 \
+    }()
 
 }  // namespace reshala

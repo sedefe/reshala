@@ -16,10 +16,7 @@ Solution MilpSolver::Solve() {
     }
 
     DualSimplex ds(model);
-    auto start = std::chrono::high_resolution_clock::now();
-    Solution sol = ds.Solve();
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    auto [sol, duration] = MEASURE_TIME(ds.Solve());
     std::cout << "Root LP: " << sol.y << ", " << duration.count() / 1e3 << " ms\n";
 
     mip_state.TestPrimal(sol);

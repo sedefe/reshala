@@ -13,10 +13,7 @@ class AbstractHeuristic {
     Solution Run(MilpModel& model, const Solution& relaxed, const MipState& mip_state) {
         std::cout << "Running " << name_ << "\n";
 
-        auto start = std::chrono::high_resolution_clock::now();
-        auto sol = InternalRun(model, relaxed, mip_state);
-        auto end = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        auto [sol, duration] = MEASURE_TIME(InternalRun(model, relaxed, mip_state));
         std::cout << "Finished in " << duration.count() / 1e3 << " ms\n";
 
         if (sol.status == LpStatus::kOptimal) {
