@@ -17,7 +17,8 @@ Solution MilpSolver::Solve() {
 
     DualSimplex ds(model);
     auto [sol, duration] = MEASURE_TIME(ds.Solve());
-    std::cout << "Root LP: " << sol.y << ", " << duration.count() / 1e3 << " ms\n";
+    std::cout << "Root LP: " << sol.y << ", " << duration.count() / 1e3 << " ms, " << ds.GetNIter()
+              << " iterations\n";
 
     mip_state.TestPrimal(sol);
     mip_state.UpdDual(sol.y);
@@ -25,8 +26,7 @@ Solution MilpSolver::Solve() {
         return presolver.Postsolve(mip_state.GetBestSol());
     }
 
-    Solution sol_h = heuristics.Run(sol);
-    mip_state.TestPrimal(sol_h);
+    heuristics.Run(sol);
     if (mip_state.Converged()) {
         return presolver.Postsolve(mip_state.GetBestSol());
     }

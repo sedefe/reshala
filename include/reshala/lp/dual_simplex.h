@@ -11,6 +11,8 @@ class DualSimplex {
     DualSimplex(MilpModel& model);
     Solution Solve();
 
+    Index GetNIter() const { return n_iter; }
+
    private:
     MilpModel& model_;
 

@@ -17,7 +17,7 @@ class AbstractHeuristic {
         std::cout << "Finished in " << duration.count() / 1e3 << " ms\n";
 
         if (sol.status == LpStatus::kOptimal) {
-            std::cout << "Found solution " << FMT(-10, 5) << sol.x;
+            std::cout << "Found solution " << FMT(-10, 5) << sol.y << "\n";
         } else {
             std::cout << "Did not find any solution\n";
         }

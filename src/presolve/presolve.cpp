@@ -41,8 +41,7 @@ LpStatus Presolver::Presolve() {
         return LpStatus::kInfeasible;
     }
     if (model_.GetNVars() == 0) {
-        // Todo check this
-        // assert(model_.GetNCons() == 0);
+        assert(model_.GetNCons() == 0);
         std::cout << "Presolve reduced to empty\n";
         return LpStatus::kOptimal;
     }

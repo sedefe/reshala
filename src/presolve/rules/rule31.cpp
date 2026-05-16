@@ -15,6 +15,11 @@ RuleResult Rule31::Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>
             info.MaskCon(ic);
             n_reduced++;
         }
+
+        if (StrongGt(act.le, rhs.ri) or StrongLt(act.ri, rhs.le)) {
+            info.ClaimInfeasible();
+            break;
+        }
     }
 
     return n_reduced > 0 ? RuleResult::kReduced : RuleResult::kUnchanged;

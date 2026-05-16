@@ -53,6 +53,7 @@ class ModelInfo {
     inline const std::vector<Index>& GetOrigVarIdx() const { return orig_var_idx_; }
 
     bool ProvenInfeasible() const { return infeasible_; }
+    void ClaimInfeasible() { infeasible_ = true; }
 
    private:
     bool infeasible_ = false;
