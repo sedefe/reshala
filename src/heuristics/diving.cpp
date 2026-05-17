@@ -5,7 +5,7 @@
 namespace reshala {
 
 Solution Diving::InternalRun(MilpModel& model, const Solution& relaxed, const MipState& mip_state) {
-    Solution res;
+    Solution sol;
 
     Fixing(type_, model, relaxed.x);
 
@@ -15,17 +15,12 @@ Solution Diving::InternalRun(MilpModel& model, const Solution& relaxed, const Mi
         return presolver.Postsolve({presolve_status, model.GetObj().c0, {}});
     }
 
-    MipState mip_state_copy(model, mip_state.GetBestSol(), mip_state.GetDual());
     DualSimplex ds(model);
-    while (true) {
-        Solution sol = ds.Solve(false);
+    sol = ds.Solve(false);
 
+    while (true) {
         if (sol.status == LpStatus::kInfeasible) break;
         if (model.IsIntegerFeasible(sol.x)) break;
-        mip_state_copy.UpdDual(sol.y);
-        if (mip_state_copy.Converged()) {
-            break;
-        }
 
         Index cand = GetCandidate(model, relaxed, sol);
 
@@ -33,24 +28,22 @@ Solution Diving::InternalRun(MilpModel& model, const Solution& relaxed, const Mi
         Scalar lb = Floor(sol.x[cand]);
         Scalar rb = lb + 1;
 
-        // Todo: enhance
+        // Todo: enhance logic, don't set constant bounds
         const Bounds& bnd = model.GetBounds(cand);
         if (sol.x[cand] - bnd.le > bnd.ri - sol.x[cand])
             bounds_priority = {{{lb, lb}, {rb, rb}}};
         else
             bounds_priority = {{{rb, rb}, {lb, lb}}};
 
-        Solution child;
         // Todo: choose the best child
         for (Index i = 0; i < 2; ++i) {
-            DualSimplex ds1(model);
             model.SetBounds(cand, bounds_priority[i]);
-            child = ds1.Solve(false);
-            if (child.status == LpStatus::kOptimal) break;
+            sol = ds.Solve(true);
+            if (sol.status == LpStatus::kOptimal) break;
         }
     }
 
-    return presolver.Postsolve(res);
+    return presolver.Postsolve(sol);
 }
 
 Index Diving::GetCandidate(const MilpModel& model, const Solution& relaxed, const Solution& sol) {
