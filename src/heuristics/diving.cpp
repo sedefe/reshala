@@ -16,9 +16,9 @@ Solution Diving::InternalRun(MilpModel& model, const Solution& relaxed, const Mi
     }
 
     MipState mip_state_copy(model, mip_state.GetBestSol(), mip_state.GetDual());
+    DualSimplex ds(model);
     while (true) {
-        DualSimplex ds(model);
-        Solution sol = ds.Solve();
+        Solution sol = ds.Solve(false);
 
         if (sol.status == LpStatus::kInfeasible) break;
         if (model.IsIntegerFeasible(sol.x)) break;
@@ -45,7 +45,7 @@ Solution Diving::InternalRun(MilpModel& model, const Solution& relaxed, const Mi
         for (Index i = 0; i < 2; ++i) {
             DualSimplex ds1(model);
             model.SetBounds(cand, bounds_priority[i]);
-            child = ds1.Solve();
+            child = ds1.Solve(false);
             if (child.status == LpStatus::kOptimal) break;
         }
     }

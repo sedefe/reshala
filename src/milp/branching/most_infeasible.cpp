@@ -24,7 +24,7 @@ Index MostInfeasible::Branch(const Node& node) {
     for (Index i = 0; i < 2; i++) {
         model_.SetBounds(candidate, cand_bounds[i]);
         DualSimplex ds(model_);
-        auto sol = ds.Solve();
+        auto sol = ds.Solve(false);
         children_[i] = Node(node.level + 1, sol, model_.GetDomain());
     }
 

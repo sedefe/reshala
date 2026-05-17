@@ -9,7 +9,7 @@ namespace reshala {
 class DualSimplex {
    public:
     DualSimplex(MilpModel& model);
-    Solution Solve();
+    Solution Solve(bool warm);
 
     Index GetNIter() const { return n_iter; }
 

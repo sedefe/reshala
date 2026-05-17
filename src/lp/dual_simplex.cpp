@@ -7,7 +7,7 @@ namespace reshala {
 DualSimplex::DualSimplex(MilpModel& model)
     : model_(model), m(model_.GetNCons()), n(model_.GetNVars()), Binv(m, m) {
     basis.resize(m);
-    non_basis.resize(m);
+    non_basis.resize(n);
     index2nb.resize(m + n);
     c_n.resize(n);
     x_b.resize(m);
@@ -49,12 +49,14 @@ void DualSimplex::Init() {
     for (Scalar& x : x_b) x = -x;
 }
 
-Solution DualSimplex::Solve() {
+Solution DualSimplex::Solve(bool warm) {
     model_.AddSlacks();
     ForceBounds();
     LpStatus status;
 
-    Init();
+    if (!warm) {
+        Init();
+    }
     while (true) {
         n_iter += 1;
         // DebugPrint();

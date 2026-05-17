@@ -16,7 +16,7 @@ Solution MilpSolver::Solve() {
     }
 
     DualSimplex ds(model);
-    auto [sol, duration] = MEASURE_TIME(ds.Solve());
+    auto [sol, duration] = MEASURE_TIME(ds.Solve(false));
     std::cout << "Root LP: " << sol.y << ", " << duration.count() / 1e3 << " ms, " << ds.GetNIter()
               << " iterations\n";
 
