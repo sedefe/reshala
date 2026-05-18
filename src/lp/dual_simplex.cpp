@@ -15,12 +15,12 @@ DualSimplex::DualSimplex(MilpModel& model)
     e_p.resize(m);
     a_p.resize(n);
     a_q.resize(m);
-    d_p.resize(n);
+    d_n.resize(n);
     n_iter = 0;
 }
 
 DsState DualSimplex::Store() const {
-    return {basis, non_basis, index2nb, c_n, x_b, x_n, d_p, Binv};
+    return {basis, non_basis, index2nb, c_n, x_b, x_n, d_n, Binv};
 }
 
 void DualSimplex::Restore(const DsState& state) {
@@ -30,12 +30,12 @@ void DualSimplex::Restore(const DsState& state) {
     c_n = state.c_n;
     x_b = state.x_b;
     x_n = state.x_n;
-    d_p = state.d_p;
+    d_n = state.d_n;
     Binv = state.Binv;
 }
 
 void DualSimplex::Init() {
-    // basic -> non_basis -> c_n -> x_n -> x_b
+    // basic -> non_basis -> c_n -> d_n -> x_b
     basis.resize(m);
     non_basis.resize(n);
     index2nb.resize(n + m);
@@ -57,7 +57,36 @@ void DualSimplex::Init() {
 
     x_n = std::vector<Scalar>(n, 0);
     for (Index iv = 0; iv < n; iv++) {
-        SetXnValue(iv);
+        const Bounds& bnd = model_.GetBounds(non_basis[iv]);
+        switch (model_.GetType(non_basis[iv])) {
+            case BndType::kBoxed:
+                if (c_n[iv] >= 0.0) {
+                    d_n[iv] = 1;
+                    x_n[iv] = bnd.le;
+                } else {
+                    d_n[iv] = -1;
+                    x_n[iv] = bnd.ri;
+                }
+                break;
+            case BndType::kLower:
+                d_n[iv] = 1;
+                x_n[iv] = bnd.le;
+                break;
+            case BndType::kUpper:
+                d_n[iv] = -1;
+                x_n[iv] = bnd.ri;
+                break;
+            case BndType::kFree:
+                d_n[iv] = 1;  // Todo тут ещё a_p[iv] надо смотреть
+                x_n[iv] = 0.0;
+                break;
+            case BndType::kFixed:
+                d_n[iv] = 0;
+                x_n[iv] = bnd.le;
+                break;
+            default:
+                assert(false);
+        }
     }
 
     MulScmDv(model_.GetAc(), x_n, x_b);
@@ -169,8 +198,8 @@ void DualSimplex::Chuzc() {
         if (model_.GetType(non_basis[iv]) == BndType::kFixed) {
             continue;
         }
-        a_pj = a_p[iv] * (s_p * d_p[iv]);
-        c_j = c_n[iv] * d_p[iv];
+        a_pj = a_p[iv] * (s_p * d_n[iv]);
+        c_j = c_n[iv] * d_n[iv];
 
         if (a_pj > kEpsZero) {
             auto ratio = c_j / a_pj;
@@ -184,7 +213,7 @@ void DualSimplex::Chuzc() {
     }
 
     if (iv_entering >= 0) {
-        theta_p = d_p[iv_entering] * primal_infeasibility / a_pq;
+        theta_p = d_n[iv_entering] * primal_infeasibility / a_pq;
         theta_d = s_p * c_j_entering / a_pq;
     }
 }
@@ -230,6 +259,8 @@ void DualSimplex::Update() {
     index2nb[non_basis[iv_entering]] = -1;
     std::swap(basis[iv_leaving], non_basis[iv_entering]);
 
+    auto x_q_old = x_n[iv_entering];
+
     {  // Update c_n
         for (Index iv = 0; iv < n; iv++) {
             c_n[iv] -= theta_d * a_p[iv];
@@ -237,19 +268,18 @@ void DualSimplex::Update() {
         c_n[iv_entering] = -theta_d;
     }
 
-    auto x_q_old = x_n[iv_entering];
-    {  // Update x_n
+    {  // Update d_n
         const Bounds& bnd = model_.GetBounds(non_basis[iv_entering]);
         BndType type = model_.GetType(non_basis[iv_entering]);
         if (type == BndType::kFixed) {
-            d_p[iv_entering] = 0;  // A fixed can't enter the basis
+            d_n[iv_entering] = 0;  // A fixed can't enter the basis
             x_n[iv_entering] = bnd.le;
         } else {
             if (s_p > 0) {
-                d_p[iv_entering] = -1;
+                d_n[iv_entering] = -1;
                 x_n[iv_entering] = bnd.ri;
             } else {
-                d_p[iv_entering] = 1;
+                d_n[iv_entering] = 1;
                 x_n[iv_entering] = bnd.le;
             }
         }
@@ -272,39 +302,6 @@ void DualSimplex::ForceBounds() {
 
 void DualSimplex::UnforceBounds() { model_.SetDomain(initial_domain); }
 
-void DualSimplex::SetXnValue(Index iv) {
-    const Bounds& bnd = model_.GetBounds(non_basis[iv]);
-    switch (model_.GetType(non_basis[iv])) {
-        case BndType::kBoxed:
-            if (c_n[iv] >= 0.0) {
-                d_p[iv] = 1;
-                x_n[iv] = bnd.le;
-            } else {
-                d_p[iv] = -1;
-                x_n[iv] = bnd.ri;
-            }
-            break;
-        case BndType::kLower:
-            d_p[iv] = 1;
-            x_n[iv] = bnd.le;
-            break;
-        case BndType::kUpper:
-            d_p[iv] = -1;
-            x_n[iv] = bnd.ri;
-            break;
-        case BndType::kFree:
-            d_p[iv] = 1;  // Todo тут ещё a_p[iv] надо смотреть
-            x_n[iv] = 0.0;
-            break;
-        case BndType::kFixed:
-            d_p[iv] = 0;
-            x_n[iv] = bnd.le;
-            break;
-        default:
-            assert(false);
-    }
-}
-
 void DualSimplex::DebugPrint() {
     DenseVector x(n);
     for (Index iv = 0; iv < m; iv++) {
@@ -325,8 +322,8 @@ void DualSimplex::DebugPrint() {
     std::cout << "c_n: ";
     for (auto x : c_n) std::cout << x << " ";
     std::cout << "\n";
-    std::cout << "x_n: ";
-    for (auto x : x_n) std::cout << x << " ";
+    std::cout << "d_n: ";
+    for (auto x : d_n) std::cout << x << " ";
     std::cout << "\n";
     std::cout << "x_b: ";
     for (auto x : x_b) std::cout << x << " ";

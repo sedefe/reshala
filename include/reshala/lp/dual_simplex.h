@@ -14,7 +14,7 @@ struct DsState {
     DenseVector c_n;
     DenseVector x_b;
     DenseVector x_n;
-    std::vector<int8_t> d_p;
+    std::vector<int8_t> d_n;
 
     DenseMatrix Binv;
 };
@@ -45,7 +45,7 @@ class DualSimplex {
     DenseVector e_p;
     DenseVector a_p;
     DenseVector a_q;
-    std::vector<int8_t> d_p;  // типы небазисных переменных
+    std::vector<int8_t> d_n;  // типы небазисных переменных
 
     int8_t s_p;
     Scalar primal_infeasibility;
@@ -65,7 +65,7 @@ class DualSimplex {
     void Ftran();
     void Update();
 
-    inline void SetXnValue(Index iv);
+    inline Scalar GetXnValue(Index iv);
     Domain initial_domain;
     void ForceBounds();
     void UnforceBounds();
