@@ -8,6 +8,7 @@ namespace reshala {
 class AbstractHeuristic {
    public:
     AbstractHeuristic(const std::string& name) : name_(name) {}
+    virtual ~AbstractHeuristic() = default;
     const std::string& GetName() const { return name_; }
 
     Solution Run(MilpModel& model, const Solution& relaxed, const MipState& mip_state) {

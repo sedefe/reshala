@@ -5,7 +5,6 @@ project(reshala VERSION 0.1.0 LANGUAGES CXX)
 # Build options
 # ----------------------------------------
 option(BUILD_TESTS "Build test executable" ON)
-option(BUILD_EXAMPLES "Build examples" OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -16,6 +15,13 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG")
+
+option(ENABLE_SANITIZERS "Enable Address and UndefinedBehavior sanitizers" ON)
+if(ENABLE_SANITIZERS AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+    message(STATUS "Enabling sanitizers (ASan + UBSan)")
+    add_compile_options(-fsanitize=address,undefined -g -O1)
+    add_link_options(-fsanitize=address,undefined)
+endif()
 
 # ----------------------------------------
 # Library
@@ -31,14 +37,6 @@ target_include_directories(${PROJECT_NAME}-lib
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-
-# ----------------------------------------
-# Examples
-# ----------------------------------------
-if(BUILD_EXAMPLES)
-    add_executable(simple_mip examples/simple_mip.cpp)
-    target_link_libraries(simple_mip milp_solver)
-endif()
 
 # ----------------------------------------
 # Tests
