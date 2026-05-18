@@ -10,6 +10,7 @@ namespace reshala {
 
 class DenseMatrix {
    public:
+    DenseMatrix() {}
     DenseMatrix(Index m, Index n) : m_(m), n_(n) { data_.resize(m * n); };
 
     Index GetNRows() const { return m_; }

@@ -19,6 +19,21 @@ DualSimplex::DualSimplex(MilpModel& model)
     n_iter = 0;
 }
 
+DsState DualSimplex::Store() const {
+    return {basis, non_basis, index2nb, c_n, x_b, x_n, d_p, Binv};
+}
+
+void DualSimplex::Restore(const DsState& state) {
+    basis = state.basis;
+    non_basis = state.non_basis;
+    index2nb = state.index2nb;
+    c_n = state.c_n;
+    x_b = state.x_b;
+    x_n = state.x_n;
+    d_p = state.d_p;
+    Binv = state.Binv;
+}
+
 void DualSimplex::Init() {
     // basic -> non_basis -> c_n -> x_n -> x_b
     basis.resize(m);
@@ -57,6 +72,7 @@ Solution DualSimplex::Solve(bool warm) {
     if (!warm) {
         Init();
     }
+
     while (true) {
         n_iter += 1;
         // DebugPrint();
@@ -77,7 +93,7 @@ Solution DualSimplex::Solve(bool warm) {
             status = LpStatus::kInfeasible;
             break;
         }
-        // std::cout << "Entering: " << iv_entering << " (" << non_basis[iv_entering] << "\n";
+        // std::cout << "Entering: " << iv_entering << " (" << non_basis[iv_entering] << ")\n";
 
         Ftran();
         Update();
@@ -209,6 +225,9 @@ void DualSimplex::Update() {
             }
         }
     }
+
+    index2nb[basis[iv_leaving]] = iv_entering;
+    index2nb[non_basis[iv_entering]] = -1;
     std::swap(basis[iv_leaving], non_basis[iv_entering]);
 
     {  // Update c_n
@@ -221,12 +240,18 @@ void DualSimplex::Update() {
     auto x_q_old = x_n[iv_entering];
     {  // Update x_n
         const Bounds& bnd = model_.GetBounds(non_basis[iv_entering]);
-        if (s_p > 0) {
-            d_p[iv_entering] = -1;
-            x_n[iv_entering] = bnd.ri;
-        } else {
-            d_p[iv_entering] = 1;
+        BndType type = model_.GetType(non_basis[iv_entering]);
+        if (type == BndType::kFixed) {
+            d_p[iv_entering] = 0;  // A fixed can't enter the basis
             x_n[iv_entering] = bnd.le;
+        } else {
+            if (s_p > 0) {
+                d_p[iv_entering] = -1;
+                x_n[iv_entering] = bnd.ri;
+            } else {
+                d_p[iv_entering] = 1;
+                x_n[iv_entering] = bnd.le;
+            }
         }
     }
 

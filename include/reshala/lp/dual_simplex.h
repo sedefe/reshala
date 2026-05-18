@@ -6,12 +6,28 @@
 
 namespace reshala {
 
+struct DsState {
+    std::vector<Index> basis;
+    std::vector<Index> non_basis;
+    std::vector<Index> index2nb;
+
+    DenseVector c_n;
+    DenseVector x_b;
+    DenseVector x_n;
+    std::vector<int8_t> d_p;
+
+    DenseMatrix Binv;
+};
+
 class DualSimplex {
    public:
     DualSimplex(MilpModel& model);
     Solution Solve(bool warm);
 
     Index GetNIter() const { return n_iter; }
+
+    DsState Store() const;
+    void Restore(const DsState& state);
 
    private:
     MilpModel& model_;

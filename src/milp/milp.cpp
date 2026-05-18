@@ -31,7 +31,7 @@ Solution MilpSolver::Solve() {
         return presolver.Postsolve(mip_state.GetBestSol());
     }
 
-    bnb.Solve(sol);
+    bnb.Solve(ds, sol);
 
     return presolver.Postsolve(mip_state.GetBestSol());
 }

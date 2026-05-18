@@ -2,8 +2,8 @@
 
 namespace reshala {
 
-void BnbSolver::Solve(const Solution& sol) {
-    Node root(1, sol, model_.GetDomain());
+void BnbSolver::Solve(DualSimplex& ds, const Solution& relaxed) {
+    Node root(1, relaxed, model_.GetDomain(), ds.Store());
     nodes.push_back(root);
 
     while (!nodes.empty()) {
@@ -18,7 +18,7 @@ void BnbSolver::Solve(const Solution& sol) {
             break;
         }
 
-        branching.Branch(node);
+        branching.Branch(node, ds);
         DebugPrint();
 
         Index best = branching.FindBestChild();

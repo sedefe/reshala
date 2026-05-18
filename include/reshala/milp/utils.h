@@ -2,6 +2,7 @@
 
 #include <numeric>
 
+#include "reshala/lp/dual_simplex.h"
 #include "reshala/model/milp_model.h"
 #include "reshala/utils.h"
 
@@ -9,10 +10,14 @@ namespace reshala {
 
 struct Node {
     Node() {}
-    Node(Index l, const Solution& s, const Domain& d) : level(l), sol(s), domain(d) {}
+    Node(Index l, const Solution& s, const Domain& d, const DsState& st)
+        : level(l), sol(s), domain(d), ds_state(st) {
+    }
     Index level;
     Solution sol;
     Domain domain;
+
+    DsState ds_state;
 };
 
 class MipState {
