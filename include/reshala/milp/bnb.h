@@ -10,10 +10,10 @@ namespace reshala {
 
 class BnbSolver {
    public:
-    BnbSolver(MilpModel& model, MipState& mip_state)
-        : model_(model), ds_(ds_), mip_state_(mip_state), branching(model) {}
+    BnbSolver(MilpModel& model, DualSimplex& ds, MipState& mip_state)
+        : model_(model), ds_(ds), mip_state_(mip_state), branching(model) {}
 
-    void Solve(DualSimplex& ds, const Solution& relaxed);
+    void Solve(const Solution& relaxed);
 
    private:
     MilpModel& model_;

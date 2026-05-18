@@ -2,8 +2,8 @@
 
 namespace reshala {
 
-void BnbSolver::Solve(DualSimplex& ds, const Solution& relaxed) {
-    Node root(1, relaxed, model_.GetDomain(), ds.Store());
+void BnbSolver::Solve(const Solution& relaxed) {
+    Node root(1, relaxed, model_.GetDomain(), ds_.Store());
     nodes.push_back(root);
 
     while (!nodes.empty()) {
@@ -18,7 +18,7 @@ void BnbSolver::Solve(DualSimplex& ds, const Solution& relaxed) {
             break;
         }
 
-        branching.Branch(node, ds);
+        branching.Branch(node, ds_);
         DebugPrint();
 
         Index best = branching.FindBestChild();
@@ -56,11 +56,11 @@ void BnbSolver::UpdDual() {
 
 void BnbSolver::DebugPrint() {
     if (n_nodes_ % 50 == 1) {
-        std::cout << "==================================================================\n";
-        std::cout << "lev | left       | right      | dual       | primal     | gap,%   \n";
-        std::cout << "==================================================================\n";
+        std::cout << "===========================================================================\n";
+        std::cout << "lev | LPiter | left       | right      | dual       | primal     | gap,%   \n";
+        std::cout << "===========================================================================\n";
     }
-    std::cout << FMT(3, 5) << nodes.size() << " | " << FMT(10, 5) << branching.GetChild(0).sol.y
+    std::cout << FMT(3, 5) << nodes.size() << " | " << FMT(6, 5) << ds_.GetNIter() << " | " << FMT(10, 5) << branching.GetChild(0).sol.y
               << " | " << FMT(10, 5) << branching.GetChild(1).sol.y << " | " << FMT(10, 5)
               << mip_state_.GetDual() << " | " << FMT(10, 5) << mip_state_.GetPrimal() << " | "
               << FMT(7, 4) << mip_state_.GetGap() * 1e2 << "\n"

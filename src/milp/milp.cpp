@@ -7,7 +7,7 @@ MilpSolver::MilpSolver(MilpModel& model)
       mip_state(model),
       presolver(model),
       heuristics(model, mip_state),
-      bnb(model, mip_state) {}
+      bnb(model, *ds, mip_state) {}
 
 Solution MilpSolver::Solve() {
     LpStatus presolve_status = presolver.Presolve();
@@ -15,9 +15,9 @@ Solution MilpSolver::Solve() {
         return presolver.Postsolve({presolve_status, model.GetObj().c0, {}});
     }
 
-    DualSimplex ds(model);
-    auto [sol, duration] = MEASURE_TIME(ds.Solve(false));
-    std::cout << "Root LP: " << sol.y << ", " << duration.count() / 1e3 << " ms, " << ds.GetNIter()
+    ds.emplace(model);
+    auto [sol, duration] = MEASURE_TIME(ds->Solve(false));
+    std::cout << "Root LP: " << sol.y << ", " << duration.count() / 1e3 << " ms, " << ds->GetNIter()
               << " iterations\n";
 
     mip_state.TestPrimal(sol);
@@ -31,7 +31,7 @@ Solution MilpSolver::Solve() {
         return presolver.Postsolve(mip_state.GetBestSol());
     }
 
-    bnb.Solve(ds, sol);
+    bnb.Solve(sol);
 
     return presolver.Postsolve(mip_state.GetBestSol());
 }
