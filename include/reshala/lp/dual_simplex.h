@@ -13,7 +13,6 @@ struct DsState {
 
     DenseVector c_n;
     DenseVector x_b;
-    DenseVector x_n;
     std::vector<int8_t> d_n;
 
     DenseMatrix Binv;
@@ -41,7 +40,6 @@ class DualSimplex {
 
     DenseVector c_n;
     DenseVector x_b;
-    DenseVector x_n;
     DenseVector e_p;
     DenseVector a_p;
     DenseVector a_q;

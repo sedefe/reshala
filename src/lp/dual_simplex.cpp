@@ -11,7 +11,6 @@ DualSimplex::DualSimplex(MilpModel& model)
     index2nb.resize(m + n);
     c_n.resize(n);
     x_b.resize(m);
-    x_n.resize(n);
     e_p.resize(m);
     a_p.resize(n);
     a_q.resize(m);
@@ -19,9 +18,7 @@ DualSimplex::DualSimplex(MilpModel& model)
     n_iter = 0;
 }
 
-DsState DualSimplex::Store() const {
-    return {basis, non_basis, index2nb, c_n, x_b, x_n, d_n, Binv};
-}
+DsState DualSimplex::Store() const { return {basis, non_basis, index2nb, c_n, x_b, d_n, Binv}; }
 
 void DualSimplex::Restore(const DsState& state) {
     basis = state.basis;
@@ -29,7 +26,6 @@ void DualSimplex::Restore(const DsState& state) {
     index2nb = state.index2nb;
     c_n = state.c_n;
     x_b = state.x_b;
-    x_n = state.x_n;
     d_n = state.d_n;
     Binv = state.Binv;
 }
@@ -55,7 +51,7 @@ void DualSimplex::Init() {
 
     c_n = model_.GetObj().coefficients;
 
-    x_n = std::vector<Scalar>(n, 0);
+    DenseVector x_n(n, 0);
     for (Index iv = 0; iv < n; iv++) {
         const Bounds& bnd = model_.GetBounds(non_basis[iv]);
         switch (model_.GetType(non_basis[iv])) {
@@ -141,7 +137,7 @@ Solution DualSimplex::Solve(bool warm) {
         }
         for (Index iv = 0; iv < n; iv++) {
             if (non_basis[iv] < n) {
-                x[non_basis[iv]] = x_n[iv];
+                x[non_basis[iv]] = GetXnValue(iv);
             }
         }
     }
@@ -255,11 +251,11 @@ void DualSimplex::Update() {
         }
     }
 
+    auto x_q_old = GetXnValue(iv_entering);
+
     index2nb[basis[iv_leaving]] = iv_entering;
     index2nb[non_basis[iv_entering]] = -1;
     std::swap(basis[iv_leaving], non_basis[iv_entering]);
-
-    auto x_q_old = x_n[iv_entering];
 
     {  // Update c_n
         for (Index iv = 0; iv < n; iv++) {
@@ -273,14 +269,11 @@ void DualSimplex::Update() {
         BndType type = model_.GetType(non_basis[iv_entering]);
         if (type == BndType::kFixed) {
             d_n[iv_entering] = 0;  // A fixed can't enter the basis
-            x_n[iv_entering] = bnd.le;
         } else {
             if (s_p > 0) {
                 d_n[iv_entering] = -1;
-                x_n[iv_entering] = bnd.ri;
             } else {
                 d_n[iv_entering] = 1;
-                x_n[iv_entering] = bnd.le;
             }
         }
     }
@@ -291,6 +284,12 @@ void DualSimplex::Update() {
         }
         x_b[iv_leaving] = theta_p + x_q_old;
     }
+}
+
+inline Scalar DualSimplex::GetXnValue(Index iv) {
+    // Todo обрабатывать свободные переменные, глядя на a_p
+    const Bounds& bnd = model_.GetBounds(non_basis[iv]);
+    return (d_n[iv] >= 0) ? bnd.le : bnd.ri;
 }
 
 void DualSimplex::ForceBounds() {
@@ -308,7 +307,7 @@ void DualSimplex::DebugPrint() {
         if (basis[iv] < n) x[basis[iv]] = x_b[iv];
     }
     for (Index iv = 0; iv < n; iv++) {
-        if (non_basis[iv] < n) x[non_basis[iv]] = x_n[iv];
+        if (non_basis[iv] < n) x[non_basis[iv]] = GetXnValue(iv);
     }
     auto res = model_.PrepareSolution(LpStatus::kOptimal, x);
 
