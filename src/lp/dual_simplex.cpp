@@ -240,13 +240,15 @@ void DualSimplex::Update() {
         Scalar multiplier;
         dot(row, delta, multiplier);
         multiplier = 1 / (1 + multiplier);
+        SparseVector row_sv(row);
+        row_sv *= multiplier;
 
         DenseVector d(m, 0);
         MulDmSv(Binv, delta, d);
 
         for (Index i = 0; i < m; i++) {
-            for (Index j = 0; j < m; j++) {
-                Binv.RowView(i)[j] -= d[i] * row[j] * multiplier;
+            for (SvIterator el(row_sv); el; ++el) {
+                Binv.RowView(i)[el.index()] -= d[i] * el.value();
             }
         }
     }

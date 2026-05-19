@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "reshala/constants.h"
+#include "reshala/linalg/dense_vector.h"
 #include "reshala/utils.h"
 
 namespace reshala {
@@ -29,6 +30,7 @@ class SparseVector {
             }
         }
     }
+    SparseVector(const DenseVector &vec) : SparseVector(vec.size(), vec.data()) {}
 
     Scalar At(Index idx) const {
         auto pos = FindIndex(idx);
@@ -76,6 +78,10 @@ class SparseVector {
     Index dim() const { return dim_; }
     void SetDim(Index dim) { dim_ = dim; }
 
+    inline SparseVector &operator*=(Scalar x) {
+        for (Scalar &v : values_) v *= x;
+        return *this;
+    }
     friend std::ostream &operator<<(std::ostream &os, const SparseVector &sv);
 
    private:
