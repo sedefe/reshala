@@ -22,6 +22,8 @@ class BnbSolver {
     std::vector<Node> nodes;
     Index n_nodes_ = 0;
 
+    Node curr_node;
+
     MostInfeasible branching;
 
     void SolveRoot();

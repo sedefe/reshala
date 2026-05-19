@@ -9,16 +9,16 @@ void BnbSolver::Solve(const Solution& relaxed) {
     while (!nodes.empty()) {
         UpdDual();
 
-        Node node = nodes.back();
+        curr_node = std::move(nodes.back());
         nodes.pop_back();
         n_nodes_++;
-        model_.SetDomain(node.domain);
+        model_.SetDomain(curr_node.domain);
 
         if (mip_state_.Converged()) {
             break;
         }
 
-        branching.Branch(node, ds_);
+        branching.Branch(curr_node, ds_);
         DebugPrint();
 
         Index best = branching.FindBestChild();
@@ -56,14 +56,18 @@ void BnbSolver::UpdDual() {
 
 void BnbSolver::DebugPrint() {
     if (n_nodes_ % 50 == 1) {
-        std::cout << "===========================================================================\n";
-        std::cout << "lev | LPiter | left       | right      | dual       | primal     | gap,%   \n";
-        std::cout << "===========================================================================\n";
+        std::cout
+            << "===========================================================================\n";
+        std::cout
+            << "lev | LPiter | left       | right      | dual       | primal     | gap,%   \n";
+        std::cout
+            << "===========================================================================\n";
     }
-    std::cout << FMT(3, 5) << nodes.size() << " | " << FMT(6, 5) << ds_.GetNIter() << " | " << FMT(10, 5) << branching.GetChild(0).sol.y
-              << " | " << FMT(10, 5) << branching.GetChild(1).sol.y << " | " << FMT(10, 5)
-              << mip_state_.GetDual() << " | " << FMT(10, 5) << mip_state_.GetPrimal() << " | "
-              << FMT(7, 4) << mip_state_.GetGap() * 1e2 << "\n"
+    std::cout << FMT(3, 5) << curr_node.level << " | " << FMT(6, 5) << ds_.GetNIter() << " | "
+              << FMT(10, 5) << branching.GetChild(0).sol.y << " | " << FMT(10, 5)
+              << branching.GetChild(1).sol.y << " | " << FMT(10, 5) << mip_state_.GetDual() << " | "
+              << FMT(10, 5) << mip_state_.GetPrimal() << " | " << FMT(7, 4)
+              << mip_state_.GetGap() * 1e2 << "\n"
               << FMT_DEFAULT;
 }
 
