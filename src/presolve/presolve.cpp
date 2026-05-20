@@ -5,6 +5,7 @@ namespace reshala {
 Presolver::Presolver(MilpModel& model) : model_(model), info_(model) {
     rules_.push_back(std::make_unique<Rule31>());
     rules_.push_back(std::make_unique<Rule32>());
+    rules_.push_back(std::make_unique<Rule35>());
     rules_.push_back(std::make_unique<Rule41>());
     rules_.push_back(std::make_unique<Rule44>());
 }
@@ -51,7 +52,7 @@ LpStatus Presolver::Presolve() {
 
 Solution Presolver::Postsolve(const Solution& sol) {
     if (sol.status != LpStatus::kOptimal) {
-        return sol;
+        return {sol.status, kInf, {}};
     }
 
     Solution res = sol;

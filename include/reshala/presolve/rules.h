@@ -34,6 +34,13 @@ class Rule32 : public Rule {
     std::string Name() const { return "3.2 Bound strengthening"; }
 };
 
+class Rule35 : public Rule {
+   public:
+    Rule35() : Rule(RuleType::kFast) {}
+    RuleResult Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>>& transforms_);
+    std::string Name() const { return "3.5 GCD & scaling"; }
+};
+
 class Rule41 : public Rule {
    public:
     Rule41() : Rule(RuleType::kFast) {}

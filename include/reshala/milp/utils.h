@@ -1,7 +1,5 @@
 #pragma once
 
-#include <numeric>
-
 #include "reshala/lp/dual_simplex.h"
 #include "reshala/model/milp_model.h"
 #include "reshala/utils.h"
@@ -11,8 +9,7 @@ namespace reshala {
 struct Node {
     Node() {}
     Node(Index l, const Solution& s, const Domain& d, const DsState& st)
-        : level(l), sol(s), domain(d), ds_state(st) {
-    }
+        : level(l), sol(s), domain(d), ds_state(st) {}
     Index level;
     Solution sol;
     Domain domain;
@@ -25,7 +22,7 @@ class MipState {
     MipState(const MilpModel& model, const Solution best_sol = {LpStatus::kInfeasible, kInf, {}},
              Scalar dual = -kInf)
         : model_(model), best_sol_(best_sol), dual_(dual) {
-        obj_gcd_ = GetObjectiveGcd();
+        int_obj_ = ObjIsInteger();
         Recalc();
     }
     const Solution& GetBestSol() const { return best_sol_; }
@@ -52,31 +49,28 @@ class MipState {
     const MilpModel& model_;
     Scalar dual_;
     Scalar cutoff_;
-    Scalar obj_gcd_;
+    bool int_obj_;
     Scalar gap_;
     Solution best_sol_;
 
-    Index GetObjectiveGcd() {
-        Index res = 0;
+    bool ObjIsInteger() {
         for (Index iv = 0; iv < model_.GetNVars(); ++iv) {
             if (model_.GetIntegrality(iv)) {
-                if (GetFraction(model_.GetObj().coefficients[iv]) == 0.0) {
-                    res = std::gcd(res, Index(model_.GetObj().coefficients[iv]));
-                } else {
-                    return 0;
+                if (GetFraction(model_.GetObj().coefficients[iv]) != 0.0) {
+                    return false;
                 }
             } else if (model_.GetObj().coefficients[iv] != 0.0) {
-                return 0;
+                return false;
             }
         }
-        return res;
+        return true;
     }
 
     void Recalc() {
         Scalar primal = best_sol_.y;
         cutoff_ = best_sol_.status == LpStatus::kInfeasible
                       ? kInf
-                      : primal - std::max(abs(primal) * kMipGap, obj_gcd_ - kEpsZero);
+                      : primal - std::max(std::abs(primal) * kMipGap, int_obj_ ? 1.0 : 0.0);
         gap_ = primal == 0 ? (dual_ == 0 ? 0 : kInf) : std::abs(1 - dual_ / primal);
     }
 };

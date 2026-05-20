@@ -11,10 +11,11 @@ enum class Sense { kMin, kMax };
 class Objective {
    public:
     DenseVector coefficients;
+    Scalar mult;
     Scalar c0;
     Sense orig_sense;  // for output only, we actually always minimize
 
-    Objective() : coefficients(), c0(0.0), orig_sense(Sense::kMin) {}
+    Objective() : coefficients(), mult(1.0), c0(0.0), orig_sense(Sense::kMin) {}
 
     Objective(const Objective& other) = default;
     Objective(Objective&& other) noexcept = default;
@@ -25,13 +26,13 @@ class Objective {
     Scalar evaluate(const DenseVector& x) const {
         Scalar res = 0;
         dot(coefficients, x, res);
-        return res + c0;
+        return res * mult + c0;
     }
 
     Scalar evaluate(const SparseVector& x) const {
         Scalar res = 0;
         dot(coefficients, x, res);
-        return res + c0;
+        return res * mult + c0;
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Objective& obj) {
