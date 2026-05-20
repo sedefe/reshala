@@ -175,12 +175,16 @@ void DualSimplex::Chuzr() {
 void DualSimplex::Btran() { e_p.assign(Binv.RowView(iv_leaving), Binv.RowView(iv_leaving) + m); }
 
 void DualSimplex::Price() {
-    // Todo: row-wise pricing
-    for (Index iv = 0; iv < n; iv++) {
-        if (non_basis[iv] < n) {
-            dot(e_p, model_.GetAc().GetCol(non_basis[iv]), a_p[iv]);
-        } else {
-            a_p[iv] = e_p[non_basis[iv] - n];
+    a_p.assign(n, 0.0);
+    for (Index ic = 0; ic < m; ic++) {
+        if (IsZero(e_p[ic])) continue;
+        for (SvIterator el(model_.GetAr().GetRow(ic)); el; ++el) {
+            if (index2nb[el.index()] >= 0) {
+                a_p[index2nb[el.index()]] += e_p[ic] * el.value();
+            }
+        }
+        if (index2nb[n + ic] >= 0) {
+            a_p[index2nb[n + ic]] += e_p[ic];
         }
     }
 }
