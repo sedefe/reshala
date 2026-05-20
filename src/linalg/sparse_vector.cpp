@@ -10,7 +10,9 @@ std::ostream& operator<<(std::ostream& os, const SparseVector& sv) {
 
     for (Index i = 0; i < sv.indices_.size(); ++i) {
         Scalar v = sv.values_[i];
-        if (i > 0) {
+        if (i == 0) {
+            os << (v >= 0 ? "" : "- ");
+        } else {
             os << (v >= 0 ? " + " : " - ");
         }
         v = std::abs(v);
