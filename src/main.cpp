@@ -28,9 +28,11 @@ int main(int argc, char** argv) {
     std::cout << "Status: " << LpStatus2Str(sol.status) << ", objective: " << FMT(-10, 5) << sol.y
               << "\n";
     if (sol.status == LpStatus::kOptimal) {
+        std::cout << "=== Checking ===\n";
+        auto y = model_copy.GetObj().evaluate(sol.x);
+        std::cout << "Objective: " << FMT(-10, 5) << y << "\n";
         auto rep = model_copy.GetFeasReport(sol.x);
-        std::cout << "Violations: int " << rep.max_int_infeas << ", bnd " << rep.max_bnd_infeas
-                  << ", con " << rep.max_con_infeas << "\n";
+        std::cout << rep << "\n";
         io.PrintValues(std::cout, sol.x);
     }
 }

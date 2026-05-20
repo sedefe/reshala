@@ -142,7 +142,7 @@ void ModelInfo::CalcActivities() {
 }
 
 void ModelInfo::FixVar(Index iv, Scalar val) {
-    model_.GetObj().c0 += model_.GetObj().coefficients[iv] * val;
+    model_.GetObj().c0 += model_.GetObj().mult * (model_.GetObj().coefficients[iv] * val);
 
     UpdVarBounds(iv, {0, 0});  // Убираем эту переменную из активити
 

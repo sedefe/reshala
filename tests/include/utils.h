@@ -26,15 +26,17 @@ bool CompareScalars(Scalar x_desired, Scalar x_real) {
     if (std::isnan(x_desired) && std::isnan(x_real)) {
         return true;
     }
-    if (std::isinf(x_desired) && std::isinf(x_real) && ((x_desired > 0 && x_real > 0) || (x_desired < 0 && x_real < 0))) {
+    if (std::isinf(x_desired) && std::isinf(x_real) &&
+        ((x_desired > 0 && x_real > 0) || (x_desired < 0 && x_real < 0))) {
         return true;
     }
 
-    Scalar rel_tol = 1e-4;
-    auto diff = std::fabs(x_real- x_desired);
-    auto den = std::fmax(std::fabs(x_desired), rel_tol);
+    constexpr Scalar kRelTol = 1e-4;
 
-    return diff / den <= rel_tol;
+    auto diff = std::fabs(x_real - x_desired);
+    auto den = std::fmax(std::fabs(x_desired), kRelTol);
+
+    return diff / den <= kRelTol;
 }
 
 }  // namespace reshala

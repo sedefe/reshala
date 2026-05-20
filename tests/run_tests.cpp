@@ -116,8 +116,8 @@ int main() {
 
         if (tc.sol.status == LpStatus::kOptimal) {
             printf("Feasibility (I/B/C): ");
-            auto& [iv, bv, cv] = tc.report;
-            for (Scalar* s : {&iv, &bv, &cv}) {
+            auto& [aii, abi, aci, rbi, rci] = tc.report;
+            for (Scalar* s : {&aii, &abi, &aci}) {
                 if (*s <= kEpsZero) {
                     printf("√");
                 } else {

@@ -18,26 +18,33 @@ bool MilpModel::IsIntegerFeasible(const std::vector<Scalar>& x) const {
 
 FeasibilityReport MilpModel::GetFeasReport(const std::vector<Scalar>& x) const {
     FeasibilityReport rep;
-    rep.max_int_infeas = 0;
-    rep.max_bnd_infeas = 0;
-    rep.max_con_infeas = 0;
+    Scalar abs_infeas, rel_infeas;
+
+    auto CheckBounds = [](const Bounds& bnd, Scalar value, Scalar& max_abs_infeas,
+                          Scalar& max_rel_infeas) {
+        Scalar le_inf = std::max(bnd.le - value, 0.0);
+        Scalar ri_inf = std::max(value - bnd.ri, 0.0);
+
+        Scalar abs_infeas = std::max(le_inf, ri_inf);
+        Scalar rel_infeas = std::max(le_inf / std::max(std::abs(bnd.le), 1.0),
+                                     ri_inf / std::max(std::abs(bnd.ri), 1.0));
+
+        max_abs_infeas = std::max(max_abs_infeas, max_abs_infeas);
+        max_rel_infeas = std::max(max_rel_infeas, max_rel_infeas);
+    };
 
     for (Index iv = 0; iv < GetNVars(); iv++) {
         if (GetIntegrality(iv)) {
-            rep.max_int_infeas = std::max(rep.max_int_infeas, GetFraction(x[iv]));
+            rep.abs_int_infeas = std::max(rep.abs_int_infeas, GetFraction(x[iv]));
         }
-        const Bounds& bnd = GetBounds(iv);
-        rep.max_bnd_infeas = std::max(rep.max_bnd_infeas, bnd.le - x[iv]);
-        rep.max_bnd_infeas = std::max(rep.max_bnd_infeas, x[iv] - bnd.ri);
+        CheckBounds(GetBounds(iv), x[iv], rep.abs_bnd_infeas, rep.rel_bnd_infeas);
     }
 
     auto m = GetNCons();
     DenseVector y(m);
     MulScmDv(Ac_, x, y);
     for (Index ic = 0; ic < m; ic++) {
-        const Bounds& bnd = rhs_[ic];
-        rep.max_con_infeas = std::max(rep.max_con_infeas, bnd.le - y[ic]);
-        rep.max_con_infeas = std::max(rep.max_con_infeas, y[ic] - bnd.ri);
+        CheckBounds(rhs_[ic], y[ic], rep.abs_con_infeas, rep.rel_con_infeas);
     }
 
     return rep;
