@@ -109,7 +109,14 @@ void MpsReader::ParseRows(const std::vector<std::string>& tokens) {
         con_types.push_back(exp_type);
         model_.GetRhs().push_back(ExpType2Bounds(exp_type, 0.0));
     } else {
-        names_.obj = name;
+        // "If more than one free row is specified, the first one is used as the objective function
+        // and the others are discarded"
+        if (!has_obj) {
+            names_.obj = name;
+            has_obj = true;
+        } else {
+            discarded_free_rows.insert(name);
+        }
     }
 }
 
@@ -123,6 +130,10 @@ void MpsReader::ParseColumns(const std::vector<std::string>& tokens) {
         model_.GetVars().Push({}, int_marker);
     }
     for (Index i = 1; i < tokens.size(); i += 2) {
+        if (discarded_free_rows.find(tokens[i]) != discarded_free_rows.end()) {
+            continue;  // Skip free rows
+        }
+
         Scalar coeff = std::stod(tokens[i + 1]);
         if (tokens[i] != names_.obj) {
             Index ic = names_.cons.get_index(tokens[i]);

@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <fstream>
 #include <stdexcept>
+#include <unordered_set>
 
 #include "reshala/io/utils.h"
 #include "reshala/model/milp_model.h"
@@ -38,8 +39,10 @@ class MpsReader {
     Names& names_;
     Index line_number = 0;
 
+    bool has_obj = false;
     bool int_marker = false;
     std::vector<ExpType> con_types;
+    std::unordered_set<std::string> discarded_free_rows;
 
     void ThrowParseError(const std::string& message) {
         throw std::runtime_error("Line " + std::to_string(line_number) + ": " + message);
