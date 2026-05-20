@@ -30,7 +30,7 @@ MpsBoundType Str2MpsBoundType(const std::string&);
 
 class MpsReader {
    public:
-    MpsReader(MilpModel& model, Names& names) : model_(model),  names_(names) {}
+    MpsReader(MilpModel& model, Names& names) : model_(model), names_(names) {}
     FileReadStatus Read(const std::filesystem::path& path);
 
    private:
@@ -40,7 +40,6 @@ class MpsReader {
 
     bool int_marker = false;
     std::vector<ExpType> con_types;
-    std::vector<Scalar> con_rhs;
 
     void ThrowParseError(const std::string& message) {
         throw std::runtime_error("Line " + std::to_string(line_number) + ": " + message);
@@ -49,9 +48,8 @@ class MpsReader {
     void ParseRows(const std::vector<std::string>&);
     void ParseColumns(const std::vector<std::string>&);
     void ParseRhs(const std::vector<std::string>&);
+    void ParseRanges(const std::vector<std::string>&);
     void ParseBounds(const std::vector<std::string>&);
-
-    void FinalizeRhs();
 };
 
 }  // namespace reshala

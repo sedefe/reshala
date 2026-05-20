@@ -55,10 +55,9 @@ FileReadStatus MpsReader::Read(const std::filesystem::path& path) {
             current_state = MpsParseState::kRhs;
             continue;
         } else if (tokens.size() == 1 and tokens[0] == "RANGES") {
-            current_state = MpsParseState::kRhs;
-            ThrowParseError("Don't support RANGES section in MPS now");
+            current_state = MpsParseState::kRng;
+            continue;
         } else if (tokens.size() == 1 and tokens[0] == "BOUNDS") {
-            FinalizeRhs();
             size_t n_cons = names_.cons.size();
             size_t n_vars = names_.vars.size();
             model_.Resize(n_cons, n_vars);
@@ -83,6 +82,9 @@ FileReadStatus MpsReader::Read(const std::filesystem::path& path) {
             case MpsParseState::kRhs:
                 ParseRhs(tokens);
                 break;
+            case MpsParseState::kRng:
+                ParseRanges(tokens);
+                break;
             case MpsParseState::kBnd:
                 ParseBounds(tokens);
                 break;
@@ -105,7 +107,7 @@ void MpsReader::ParseRows(const std::vector<std::string>& tokens) {
     if (exp_type != ExpType::kNon) {
         names_.cons.get_index(name);
         con_types.push_back(exp_type);
-        con_rhs.push_back(0.0);
+        model_.GetRhs().push_back(ExpType2Bounds(exp_type, 0.0));
     } else {
         names_.obj = name;
     }
@@ -123,11 +125,11 @@ void MpsReader::ParseColumns(const std::vector<std::string>& tokens) {
     for (Index i = 1; i < tokens.size(); i += 2) {
         Scalar coeff = std::stod(tokens[i + 1]);
         if (tokens[i] != names_.obj) {
-            Index con_index = names_.cons.get_index(tokens[i]);
-            if (con_index >= model_.GetNCons()) {
+            Index ic = names_.cons.get_index(tokens[i]);
+            if (ic >= model_.GetNCons()) {
                 ThrowParseError("Constraint did not appear in ROWS: " + tokens[i]);
             }
-            model_.GetAr().GetRow(con_index).Push(var_index, coeff);
+            model_.GetAr().GetRow(ic).Push(var_index, coeff);
         } else {
             model_.GetObj().coefficients[var_index] = coeff;
         }
@@ -139,17 +141,37 @@ void MpsReader::ParseRhs(const std::vector<std::string>& tokens) {
         ThrowParseError("Bad RHS section");
     }
     for (Index i = 1; i < tokens.size(); i += 2) {
-        Index con_index = names_.cons.get_index(tokens[i]);
-        Scalar coeff = std::stod(tokens[i + 1]);
-        con_rhs[con_index] = coeff;
+        Index ic = names_.cons.get_index(tokens[i]);
+        Scalar rhs = std::stod(tokens[i + 1]);
+        model_.GetRhs(ic) = ExpType2Bounds(con_types[ic], rhs);
     }
 }
 
-void MpsReader::FinalizeRhs() {
-    for (Index ic = 0; ic < names_.cons.size(); ic++) {
-        auto con_type = con_types[ic];
-        auto rhs = con_rhs[ic];
-        model_.GetRhs(ic) = ExpType2Bounds(con_type, rhs);
+void MpsReader::ParseRanges(const std::vector<std::string>& tokens) {
+    if ((tokens.size() != 3) and (tokens.size() != 5)) {
+        ThrowParseError("Bad RANGES section");
+    }
+    for (Index i = 1; i < tokens.size(); i += 2) {
+        Index ic = names_.cons.get_index(tokens[i]);
+        Scalar range = std::stod(tokens[i + 1]);
+        Bounds& rhs = model_.GetRhs(ic);
+        switch (con_types[ic]) {
+            case ExpType::kGe:
+                model_.GetRhs(ic) = {rhs.le, rhs.le + std::abs(range)};
+                break;
+            case ExpType::kLe:
+                model_.GetRhs(ic) = {rhs.ri - std::abs(range), rhs.ri};
+                break;
+            case ExpType::kEq:
+                if (range > 0) {
+                    model_.GetRhs(ic) = {rhs.le, rhs.ri + std::abs(range)};
+                } else {
+                    model_.GetRhs(ic) = {rhs.le - std::abs(range), rhs.ri};
+                }
+                break;
+            default:
+                ThrowParseError("Unknown type for constraint " + tokens[i]);
+        }
     }
 }
 
