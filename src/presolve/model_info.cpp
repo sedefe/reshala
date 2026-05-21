@@ -170,4 +170,25 @@ void ModelInfo::UpdVarBounds(Index iv, const Bounds& bnd) {
     }
 }
 
+void ModelInfo::UpdCoeff(Index ic, Index iv, Scalar val) {
+    // Todo Вообще это можно быстрее делать, т.к. к части из следующих операций доступ есть из тех
+    // мест, где мы вызываем этот апдейт
+    Scalar& value_ref = model_.GetAr().GetRow(ic).AtRef(iv);
+    assert(std::signbit(value_ref) == std::signbit(val));
+    auto d = val - value_ref;
+    const Bounds& bnd = model_.GetBounds(iv);
+
+    if (val >= 0) {
+        activities_[ic].ri -= d * bnd.ri;
+        activities_[ic].le -= d * bnd.le;
+    } else {
+        activities_[ic].ri -= d * bnd.le;
+        activities_[ic].le -= d * bnd.ri;
+    }
+
+    // Coeffs
+    model_.GetAc().GetCol(iv).AtRef(ic) = val;
+    value_ref = val;
+}
+
 }  // namespace reshala

@@ -14,7 +14,7 @@ namespace reshala {
 
 class SparseVector {
    public:
-    class Iterator;
+    class IteratorBase;
 
     SparseVector(Index dim) : dim_(dim) {}
     SparseVector(Index dim, Index i, Scalar v) : dim_(dim) { Push(i, v); }
@@ -35,6 +35,11 @@ class SparseVector {
     Scalar At(Index idx) const {
         auto pos = FindIndex(idx);
         return (pos != indices_.end()) ? values_[pos - indices_.begin()] : Scalar(0);
+    }
+    Scalar &AtRef(Index idx) {
+        auto pos = FindIndex(idx);
+        assert(pos != indices_.end());
+        return values_[pos - indices_.begin()];
     }
 
     size_t Size() const { return indices_.size(); }
@@ -103,29 +108,37 @@ class SparseVector {
     }
 };
 
-class SparseVector::Iterator {
+template <bool IsConst>
+class IteratorBase {
+    using VectorType = std::conditional_t<IsConst, const SparseVector, SparseVector>;
+    using ScalarType = std::conditional_t<IsConst, const Scalar, Scalar>;
+    using IndexType = std::conditional_t<IsConst, const Index, Index>;
+
    public:
-    Iterator(const SparseVector &sv) : sv_(sv), pos_(0) {}
+    IteratorBase(VectorType &sv) : sv_(sv), pos_(0) {}
 
-    operator bool() const { return pos_ < sv_.indices_.size(); }
+    operator bool() const { return pos_ < sv_.indices().size(); }
 
-    Iterator &operator++() {
-        if (pos_ < sv_.indices_.size()) {
+    IteratorBase &operator++() {
+        if (pos_ < sv_.indices().size()) {
             ++pos_;
         }
         return *this;
     }
 
-    std::pair<Index, Scalar> operator*() const { return {sv_.indices_[pos_], sv_.values_[pos_]}; }
+    std::pair<Index, Scalar> operator*() const { return {sv_.indices()[pos_], sv_.values()[pos_]}; }
 
-    Index index() const { return sv_.indices_[pos_]; }
-    Scalar value() const { return sv_.values_[pos_]; }
+    inline Index index() const { return sv_.indices()[pos_]; }
+    inline IndexType& indexRef() { return sv_.indices()[pos_]; }
+    inline Scalar value() const { return sv_.values()[pos_]; }
+    inline ScalarType& valueRef() { return sv_.values()[pos_]; }
 
    private:
-    const SparseVector &sv_;
-    size_t pos_;
+    VectorType &sv_;
+    Index pos_;
 };
 
-using SvIterator = SparseVector::Iterator;
+using SvIterator = IteratorBase<false>;
+using ConstSvIterator = IteratorBase<true>;
 
 }  // namespace reshala

@@ -47,7 +47,9 @@ class ModelInfo {
     const std::vector<Index>& GetDeletedVars() const { return deleted_vars_; }
 
     void FixVar(Index iv, Scalar val);
+    void UpdRhs(Index ic, const Bounds& bnd);  // Todo
     void UpdVarBounds(Index iv, const Bounds& bnd);
+    void UpdCoeff(Index ic, Index iv, Scalar val);
 
     inline Index GetOrigNVars() const { return orig_n_vars_; }
     inline const std::vector<Index>& GetOrigVarIdx() const { return orig_var_idx_; }
