@@ -6,6 +6,12 @@
 
 namespace reshala {
 
+Index MilpModel::GetNnz() const {
+    Index res = 0;
+    for (const auto& row : Ar_.GetRows()) res += row.Size();
+    return res;
+}
+
 bool MilpModel::IsIntegerFeasible(const std::vector<Scalar>& x) const {
     assert(x.size() == GetNVars());
     for (Index iv = 0; iv < GetNVars(); iv++) {

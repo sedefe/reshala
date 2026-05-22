@@ -14,6 +14,7 @@ class MilpModel {
 
     Index GetNCons() const { return Ac_.GetNRows(); }
     Index GetNVars() const { return Ac_.GetNCols(); }
+    Index GetNnz() const;
 
     const Objective& GetObj() const { return obj_; }
     Objective& GetObj() { return obj_; }
