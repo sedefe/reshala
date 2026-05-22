@@ -16,8 +16,8 @@ RuleResult Rule32::Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>
 
             const Bounds& bnd = model.GetBounds(el.index());
             Scalar val = el.value();
-            const Bounds act1 = val > 0 ? Bounds{act.le - val * bnd.le, act.ri - val * bnd.ri}
-                                        : Bounds{act.le - val * bnd.ri, act.ri - val * bnd.le};
+            const Bounds act1 = (val >= 0) ? Bounds{act.le - val * bnd.le, act.ri - val * bnd.ri}
+                                           : Bounds{act.le - val * bnd.ri, act.ri - val * bnd.le};
 
             Scalar le_derived, ri_derived;
             if (el.value() > 0) {

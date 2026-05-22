@@ -20,8 +20,8 @@ RuleResult Rule33::Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>
             const Bounds& bnd = model.GetBounds(iv);
             if (bnd.le != 0.0 or bnd.ri != 1) continue;  // Todo handle general integers
             Scalar val = el.value();
-            const Bounds act1 = val > 0 ? Bounds{act.le - val * bnd.le, act.ri - val * bnd.ri}
-                                        : Bounds{act.le - val * bnd.ri, act.ri - val * bnd.le};
+            const Bounds act1 = (val >= 0) ? Bounds{act.le - val * bnd.le, act.ri - val * bnd.ri}
+                                           : Bounds{act.le - val * bnd.ri, act.ri - val * bnd.le};
             Scalar d = 0;
             if (rhs.le == -kInf) {  // Todo вынести из цикла
                 if (val > 0) {

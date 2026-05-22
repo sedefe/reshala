@@ -129,12 +129,13 @@ void ModelInfo::CalcActivities() {
         Bounds act = {0, 0};
         for (SvIterator el(model_.GetAr().GetRow(ic)); el; ++el) {
             const Bounds& bnd = model_.GetBounds(el.index());
-            if (el.value() >= 0) {
-                act.le += el.value() * bnd.le;
-                act.ri += el.value() * bnd.ri;
+            Scalar val = el.value();
+            if (val >= 0) {
+                act.le += val * bnd.le;
+                act.ri += val * bnd.ri;
             } else {
-                act.le += el.value() * bnd.ri;
-                act.ri += el.value() * bnd.le;
+                act.le += val * bnd.ri;
+                act.ri += val * bnd.le;
             }
         }
         activities_[ic] = act;
@@ -163,10 +164,11 @@ void ModelInfo::UpdVarBounds(Index iv, const Bounds& bnd) {
 
     for (SvIterator el(model_.GetAc().GetCol(iv)); el; ++el) {
         const Bounds& act = activities_[el.index()];
+        Scalar val = el.value();
         activities_[el.index()] =
-            (el.value() >= 0)
-                ? Bounds{act.le + el.value() * diff.le, act.ri + el.value() * diff.ri}
-                : Bounds{act.le + el.value() * diff.ri, act.ri + el.value() * diff.le};
+            (val >= 0)  // Todo Логика повторяется в 3.2 и 3.3. Перенести в утилиты?
+                ? Bounds{act.le + val * diff.le, act.ri + val * diff.ri}
+                : Bounds{act.le + val * diff.ri, act.ri + val * diff.le};
     }
     model_.SetBounds(iv, bnd);
 
