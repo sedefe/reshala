@@ -32,11 +32,21 @@ RuleResult Rule33::Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>
                         n_reduced++;
                     }
                 } else {
-                    //
+                    d = (rhs.ri - val - act1.ri);
+                    if (-val >= d and StrongGt(d, 0)) {
+                        info.UpdCoeff(ic, iv, val + d);
+                        // info.UpdRhs(ic, {-kInf, rhs.ri});
+                        n_reduced++;
+                    }
                 }
             } else {
                 if (val > 0) {
-                    //
+                    d = (act1.le + val - rhs.le);
+                    if (val >= d and StrongGt(d, 0)) {
+                        info.UpdCoeff(ic, iv, val - d);
+                        // info.UpdRhs(ic, {rhs.le, kInf});
+                        n_reduced++;
+                    }
                 } else {
                     d = (act1.le - rhs.le);
                     if (-val >= d and StrongGt(d, 0)) {

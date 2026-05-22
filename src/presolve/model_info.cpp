@@ -181,8 +181,9 @@ void ModelInfo::UpdVarBounds(Index iv, const Bounds& bnd) {
 void ModelInfo::UpdCoeff(Index ic, Index iv, Scalar val) {
     // Todo Вообще это можно быстрее делать, т.к. к части из следующих операций доступ есть из тех
     // мест, где мы вызываем этот апдейт
+    // Todo handle near-zeros
     Scalar& value_ref = model_.GetAr().GetRow(ic).AtRef(iv);
-    assert(std::signbit(value_ref) == std::signbit(val));
+    assert((value_ref >= 0 and val >= 0) or (value_ref <= 0 and val <= 0));
     auto d = val - value_ref;
     const Bounds& bnd = model_.GetBounds(iv);
 
