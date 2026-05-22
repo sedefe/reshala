@@ -152,6 +152,10 @@ void ModelInfo::FixVar(Index iv, Scalar val) {
     }
 }
 
+void ModelInfo::UpdRhs(Index ic, const Bounds& bnd) {
+    model_.GetRhs(ic) = bnd;
+}
+
 void ModelInfo::UpdVarBounds(Index iv, const Bounds& bnd) {
     const Bounds& old_bnd = model_.GetBounds(iv);
     const Bounds diff = {bnd.le - old_bnd.le, bnd.ri - old_bnd.ri};

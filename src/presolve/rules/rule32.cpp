@@ -15,17 +15,17 @@ RuleResult Rule32::Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>
             if (IsZero(el.value())) continue;
 
             const Bounds& bnd = model.GetBounds(el.index());
-            const Bounds act1 =
-                el.value() > 0 ? Bounds{act.le - el.value() * bnd.le, act.ri - el.value() * bnd.ri}
-                               : Bounds{act.le - el.value() * bnd.ri, act.ri - el.value() * bnd.le};
+            Scalar val = el.value();
+            const Bounds act1 = val > 0 ? Bounds{act.le - val * bnd.le, act.ri - val * bnd.ri}
+                                        : Bounds{act.le - val * bnd.ri, act.ri - val * bnd.le};
 
             Scalar le_derived, ri_derived;
             if (el.value() > 0) {
-                le_derived = (rhs.le - act1.ri) / el.value();
-                ri_derived = (rhs.ri - act1.le) / el.value();
+                le_derived = (rhs.le - act1.ri) / val;
+                ri_derived = (rhs.ri - act1.le) / val;
             } else {
-                le_derived = (rhs.ri - act1.le) / el.value();
-                ri_derived = (rhs.le - act1.ri) / el.value();
+                le_derived = (rhs.ri - act1.le) / val;
+                ri_derived = (rhs.le - act1.ri) / val;
             }
             if (model.GetIntegrality(el.index())) {
                 le_derived = Ceil(le_derived);
