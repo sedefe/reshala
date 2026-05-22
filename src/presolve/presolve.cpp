@@ -16,22 +16,26 @@ LpStatus Presolver::Presolve() {
     Index pass = 0;
     Index max_passes = 5;
 
+    PrintHeader();
     while (changed && pass < max_passes && !info_.ProvenInfeasible()) {
-        std::cout << "Presolve pass " << pass << ": " << model_.GetNCons() << " x "
-                  << model_.GetNVars() << "\n";
         changed = false;
         info_.CalcActivities();
 
         for (auto& rule : rules_) {
+            auto diff_stat = info_.stat;
             auto res = rule->Apply(info_, transforms_);
+            if (res == RuleResult::kReduced) {
+                changed = true;
+
+                diff_stat = info_.stat - diff_stat;
+                PrintStat(*rule, diff_stat);
+
+            } else
+                continue;
 
             if (info_.ProvenInfeasible()) break;
             if (info_.GetNDeletedCons() > 0) info_.CompressCons();
             if (info_.GetNDeletedVars() > 0) info_.CompressVars();
-
-            if (res == RuleResult::kReduced) {
-                changed = true;
-            }
         }
 
         pass++;
@@ -66,6 +70,17 @@ Solution Presolver::Postsolve(const Solution& sol) {
         (*it)->Undo(res);
     }
     return res;
+}
+
+void Presolver::PrintHeader() const {
+    std::cout << "Rule name       RmC   RmV   ChB   ChR   ChC\n";
+}
+
+void Presolver::PrintStat(const Rule& rule, const PresolveStat& stat) const {
+    std::cout << std::left << std::setw(12) << rule.Name() << ": " << std::right << std::setw(5)
+              << stat.n_rm_con << " " << std::setw(5) << stat.n_rm_var << " " << std::setw(5)
+              << stat.n_ch_bnd << " " << std::setw(5) << stat.n_ch_rhs << " " << std::setw(5)
+              << stat.n_ch_coeff << "\n";
 }
 
 }  // namespace reshala

@@ -24,42 +24,42 @@ class Rule31 : public Rule {
    public:
     Rule31() : Rule(RuleType::kFast) {}
     RuleResult Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>>& transforms_);
-    std::string Name() const { return "3.1 Removal of redundant constraints"; }
+    std::string Name() const { return "3.1 RedCon"; }
 };
 
 class Rule32 : public Rule {
    public:
     Rule32() : Rule(RuleType::kFast) {}
     RuleResult Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>>& transforms_);
-    std::string Name() const { return "3.2 Bound strengthening"; }
+    std::string Name() const { return "3.2 BndStr"; }
 };
 
 class Rule33 : public Rule {
    public:
     Rule33() : Rule(RuleType::kFast) {}
     RuleResult Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>>& transforms_);
-    std::string Name() const { return "3.3 Coefficient strengthening"; }
+    std::string Name() const { return "3.3 CoefStr"; }
 };
 
 class Rule35 : public Rule {
    public:
     Rule35() : Rule(RuleType::kFast) {}
     RuleResult Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>>& transforms_);
-    std::string Name() const { return "3.5 GCD & scaling"; }
+    std::string Name() const { return "3.5 Scaling"; }
 };
 
 class Rule41 : public Rule {
    public:
     Rule41() : Rule(RuleType::kFast) {}
     RuleResult Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>>& transforms_);
-    std::string Name() const { return "4.1 Removal of fixed variables"; }
+    std::string Name() const { return "4.1 FixVar"; }
 };
 
 class Rule44 : public Rule {
    public:
     Rule44() : Rule(RuleType::kFast) {}
     RuleResult Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>>& transforms_);
-    std::string Name() const { return "4.4 Dual fixing"; }
+    std::string Name() const { return "4.4 DualFix"; }
 };
 
 }  // namespace reshala

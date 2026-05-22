@@ -154,6 +154,7 @@ void ModelInfo::FixVar(Index iv, Scalar val) {
 
 void ModelInfo::UpdRhs(Index ic, const Bounds& bnd) {
     model_.GetRhs(ic) = bnd;
+    stat.n_ch_rhs++;
 }
 
 void ModelInfo::UpdVarBounds(Index iv, const Bounds& bnd) {
@@ -172,6 +173,7 @@ void ModelInfo::UpdVarBounds(Index iv, const Bounds& bnd) {
     if (model_.GetType(iv) == BndType::kInfeasible) {
         infeasible_ = true;
     }
+    stat.n_ch_bnd++;
 }
 
 void ModelInfo::UpdCoeff(Index ic, Index iv, Scalar val) {
@@ -193,6 +195,7 @@ void ModelInfo::UpdCoeff(Index ic, Index iv, Scalar val) {
     // Coeffs
     model_.GetAc().GetCol(iv).AtRef(ic) = val;
     value_ref = val;
+    stat.n_ch_coeff++;
 }
 
 }  // namespace reshala
