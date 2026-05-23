@@ -201,7 +201,7 @@ void DualSimplex::Chuzc() {
         a_pj = a_p[iv] * (s_p * d_n[iv]);
         c_j = c_n[iv] * d_n[iv];
 
-        if (a_pj > kEpsZero) {
+        if (a_pj > kPivotTolerance) {
             auto ratio = c_j / a_pj;
             if (ratio < min_ratio) {
                 min_ratio = ratio;
@@ -328,7 +328,7 @@ void DualSimplex::DebugPrint() {
     for (auto x : c_n) std::cout << x << " ";
     std::cout << "\n";
     std::cout << "d_n: ";
-    for (auto x : d_n) std::cout << x << " ";
+    for (auto x : d_n) std::cout << Index(x) << " ";
     std::cout << "\n";
     std::cout << "x_b: ";
     for (auto x : x_b) std::cout << x << " ";

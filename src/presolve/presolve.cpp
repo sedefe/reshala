@@ -39,7 +39,8 @@ LpStatus Presolver::Presolve() {
 
         pass++;
     }
-    std::cout << "After presolve: " << model_.GetNCons() << "  x " << model_.GetNVars() << "\n";
+    std::cout << "After presolve: " << model_.GetNCons() << " x " << model_.GetNVars() << ", "
+              << model_.GetNnz() << " nnz\n";
 
     if (info_.ProvenInfeasible()) {
         std::cout << "Presolve proved infeasibility\n";

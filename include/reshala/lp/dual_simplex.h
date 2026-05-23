@@ -19,6 +19,8 @@ struct DsState {
 };
 
 class DualSimplex {
+    Scalar kPivotTolerance = 1e-6;
+
    public:
     DualSimplex(MilpModel& model);
     Solution Solve(bool warm);

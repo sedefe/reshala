@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
     MilpModel& model = io.GetModel();
     const MilpModel model_copy = model;
     // std::cout << model;
-    std::cout << model.GetNCons() << " cons, " << model.GetNVars() << " vars\n";
+    std::cout << model.GetNCons() << " x " << model.GetNVars() << ", " << model.GetNnz() << " nnz\n";
 
     MilpSolver milp(model);
     auto [sol, duration] = MEASURE_TIME(milp.Solve());
