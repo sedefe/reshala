@@ -265,7 +265,13 @@ void DualSimplex::Update() {
 
     {  // Update c_n
         for (Index iv = 0; iv < n; iv++) {
+            Scalar old = c_n[iv];
             c_n[iv] -= theta_d * a_p[iv];
+            if (old * c_n[iv] < -0.1 and iv != iv_entering and
+                model_.GetType(non_basis[iv]) != BndType::kFixed) {
+                // Might make us dual infeasible
+                std::cerr << "Abnormal c_n update: " << old << " -> " << c_n[iv] << "\n";
+            }
         }
         c_n[iv_entering] = -theta_d;
     }
