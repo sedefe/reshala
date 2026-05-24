@@ -2,13 +2,14 @@
 
 namespace reshala {
 
-RuleResult Rule44::Apply(ModelTracker& info, std::vector<std::unique_ptr<Transform>>& transforms) {
-    const MilpModel& model = info.GetModel();
+RuleResult Rule44::Apply(ModelTracker& tracker,
+                         std::vector<std::unique_ptr<Transform>>& transforms) {
+    const MilpModel& model = tracker.GetModel();
     Index n_reduced = 0;
 
     // Todo: count locks?
     for (Index iv = 0; iv < model.GetNVars(); iv++) {
-        if (info.GetVarMask(iv)) continue;
+        if (tracker.GetVarMask(iv)) continue;
 
         bool eligible_up = model.GetObj().coefficients[iv] <= 0;
         bool eligible_down = model.GetObj().coefficients[iv] >= 0;
@@ -31,17 +32,17 @@ RuleResult Rule44::Apply(ModelTracker& info, std::vector<std::unique_ptr<Transfo
         if (eligible_down) {
             Scalar value = model.GetBounds(iv).le;
             transforms.push_back(std::make_unique<FixVariableTransform>(
-                FixVariableTransform(info.GetOrigVarIdx()[iv], value)));
-            info.FixVar(iv, value);
-            info.MaskVar(iv);
+                FixVariableTransform(tracker.GetOrigVarIdx()[iv], value)));
+            tracker.FixVar(iv, value);
+            tracker.MaskVar(iv);
 
             n_reduced++;
         } else if (eligible_up) {
             Scalar value = model.GetBounds(iv).ri;
             transforms.push_back(std::make_unique<FixVariableTransform>(
-                FixVariableTransform(info.GetOrigVarIdx()[iv], value)));
-            info.FixVar(iv, value);
-            info.MaskVar(iv);
+                FixVariableTransform(tracker.GetOrigVarIdx()[iv], value)));
+            tracker.FixVar(iv, value);
+            tracker.MaskVar(iv);
 
             n_reduced++;
         }

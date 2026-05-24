@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "reshala/model/milp_model.h"
-#include "reshala/presolve/model_info.h"
+#include "reshala/presolve/model_tracker.h"
 #include "reshala/presolve/rules.h"
 #include "reshala/presolve/transforms.h"
 
@@ -18,7 +18,7 @@ class Presolver {
 
    private:
     MilpModel& model_;
-    ModelInfo info_;
+    ModelTracker tracker_;
 
     std::vector<std::unique_ptr<Rule>> rules_;
     std::vector<std::unique_ptr<Transform>> transforms_;

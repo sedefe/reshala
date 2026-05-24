@@ -1,6 +1,6 @@
 #pragma once
 
-#include "reshala/presolve/model_info.h"
+#include "reshala/presolve/model_tracker.h"
 
 namespace reshala {
 

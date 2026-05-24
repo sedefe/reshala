@@ -2,22 +2,23 @@
 
 namespace reshala {
 
-RuleResult Rule31::Apply(ModelTracker& info, std::vector<std::unique_ptr<Transform>>& transforms) {
-    const MilpModel& model = info.GetModel();
+RuleResult Rule31::Apply(ModelTracker& tracker,
+                         std::vector<std::unique_ptr<Transform>>& transforms) {
+    const MilpModel& model = tracker.GetModel();
     Index n_reduced = 0;
 
     for (Index ic = 0; ic < model.GetNCons(); ic++) {
-        if (info.GetConMask(ic)) continue;
+        if (tracker.GetConMask(ic)) continue;
 
-        const Bounds& act = info.GetActivity(ic);
+        const Bounds& act = tracker.GetActivity(ic);
         const Bounds& rhs = model.GetRhs(ic);
         if (WeakGe(act.le, rhs.le) and WeakLe(act.ri, rhs.ri)) {
-            info.MaskCon(ic);
+            tracker.MaskCon(ic);
             n_reduced++;
         }
 
         if (StrongGt(act.le, rhs.ri) or StrongLt(act.ri, rhs.le)) {
-            info.ClaimInfeasible();
+            tracker.ClaimInfeasible();
             break;
         }
     }

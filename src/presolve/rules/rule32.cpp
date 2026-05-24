@@ -2,14 +2,15 @@
 
 namespace reshala {
 
-RuleResult Rule32::Apply(ModelTracker& info, std::vector<std::unique_ptr<Transform>>& transforms) {
-    const MilpModel& model = info.GetModel();
+RuleResult Rule32::Apply(ModelTracker& tracker,
+                         std::vector<std::unique_ptr<Transform>>& transforms) {
+    const MilpModel& model = tracker.GetModel();
     Index n_reduced = 0;
 
     for (Index ic = 0; ic < model.GetNCons(); ic++) {
-        if (info.GetConMask(ic)) continue;
+        if (tracker.GetConMask(ic)) continue;
 
-        const Bounds& act = info.GetActivity(ic);
+        const Bounds& act = tracker.GetActivity(ic);
         const Bounds& rhs = model.GetRhs(ic);
         for (SvIterator el(model.GetAr().GetRow(ic)); el; ++el) {
             if (IsZero(el.value())) continue;
@@ -34,7 +35,7 @@ RuleResult Rule32::Apply(ModelTracker& info, std::vector<std::unique_ptr<Transfo
 
             if (StrongGt(le_derived, bnd.le) or StrongLt(ri_derived, bnd.ri)) {
                 Bounds new_bnd = {std::max(bnd.le, le_derived), std::min(bnd.ri, ri_derived)};
-                info.UpdVarBounds(el.index(), new_bnd);
+                tracker.UpdVarBounds(el.index(), new_bnd);
                 n_reduced++;
             }
         }

@@ -4,15 +4,16 @@
 
 namespace reshala {
 
-RuleResult Rule52::Apply(ModelTracker& info, std::vector<std::unique_ptr<Transform>>& transforms) {
-    const MilpModel& model = info.GetModel();
+RuleResult Rule52::Apply(ModelTracker& tracker,
+                         std::vector<std::unique_ptr<Transform>>& transforms) {
+    const MilpModel& model = tracker.GetModel();
     Index n_reduced = 0;
 
     std::unordered_map<Index, std::vector<Index>> bins;
     for (Index ic = 0; ic < model.GetNCons(); ic++) {
-        if (info.GetConMask(ic)) continue;
+        if (tracker.GetConMask(ic)) continue;
         if (model.GetAr().GetRow(ic).Empty()) continue;
-        auto hash = HashRow(info, ic);
+        auto hash = HashRow(tracker, ic);
 
         bins[hash].push_back(ic);
     }
@@ -62,7 +63,7 @@ RuleResult Rule52::Apply(ModelTracker& info, std::vector<std::unique_ptr<Transfo
             Bounds rhs = model.GetRhs(bin[i_max_abs]);
             for (Index i : sub_bin) {
                 if (i == i_max_abs) continue;
-                info.MaskCon(bin[i]);
+                tracker.MaskCon(bin[i]);
                 Bounds rhs1 = model.GetRhs(bin[i]);
                 auto scale = bin_scales[i];
                 if (std::signbit(scale) == std::signbit(max_abs_scale)) {
@@ -74,18 +75,18 @@ RuleResult Rule52::Apply(ModelTracker& info, std::vector<std::unique_ptr<Transfo
                 rhs = BoundsIntersection(rhs, rhs1);
                 n_reduced++;
             }
-            info.UpdRhs(bin[i_max_abs], rhs);
+            tracker.UpdRhs(bin[i_max_abs], rhs);
         }
     }
 
     return n_reduced > 0 ? RuleResult::kReduced : RuleResult::kUnchanged;
 }
 
-Index Rule52::HashRow(const ModelTracker& info, Index ic) const {
-    const auto& row = info.GetModel().GetAr().GetRow(ic);
+Index Rule52::HashRow(const ModelTracker& tracker, Index ic) const {
+    const auto& row = tracker.GetModel().GetAr().GetRow(ic);
     Index hash = row.Size();
     for (Index iv : row.indices()) {
-        if (info.GetVarMask(iv)) continue;
+        if (tracker.GetVarMask(iv)) continue;
         hash = hash * 0x9E3779B9 + (iv + 0x3AB0D);
     }
     return hash;

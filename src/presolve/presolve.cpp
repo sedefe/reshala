@@ -2,7 +2,7 @@
 
 namespace reshala {
 
-Presolver::Presolver(MilpModel& model) : model_(model), info_(model) {
+Presolver::Presolver(MilpModel& model) : model_(model), tracker_(model) {
     rules_.push_back(std::make_unique<Rule31>());
     rules_.push_back(std::make_unique<Rule32>());
     rules_.push_back(std::make_unique<Rule33>());
@@ -18,21 +18,21 @@ LpStatus Presolver::Presolve() {
     Index max_passes = 5;
 
     PrintHeader();
-    while (changed && pass < max_passes && !info_.ProvenInfeasible()) {
+    while (changed && pass < max_passes && !tracker_.ProvenInfeasible()) {
         changed = false;
-        info_.CalcActivities();
+        tracker_.CalcActivities();
 
         for (auto& rule : rules_) {
-            PresolveStat diff_stat = info_.stat;
-            auto res = rule->Apply(info_, transforms_);
+            PresolveStat diff_stat = tracker_.stat;
+            auto res = rule->Apply(tracker_, transforms_);
 
-            if (info_.ProvenInfeasible()) break;
-            if (info_.GetNDeletedCons() > 0) info_.CompressCons();
-            if (info_.GetNDeletedVars() > 0) info_.CompressVars();
+            if (tracker_.ProvenInfeasible()) break;
+            if (tracker_.GetNDeletedCons() > 0) tracker_.CompressCons();
+            if (tracker_.GetNDeletedVars() > 0) tracker_.CompressVars();
 
             if (res == RuleResult::kReduced) {
                 changed = true;
-                diff_stat = info_.stat - diff_stat;
+                diff_stat = tracker_.stat - diff_stat;
                 PrintStat(*rule, diff_stat);
             } else
                 continue;
@@ -43,7 +43,7 @@ LpStatus Presolver::Presolve() {
     std::cout << "After presolve: " << model_.GetNCons() << " x " << model_.GetNVars() << ", "
               << model_.GetNnz() << " nnz\n";
 
-    if (info_.ProvenInfeasible()) {
+    if (tracker_.ProvenInfeasible()) {
         std::cout << "Presolve proved infeasibility\n";
         return LpStatus::kInfeasible;
     }
@@ -62,9 +62,9 @@ Solution Presolver::Postsolve(const Solution& sol) {
     }
 
     Solution res = sol;
-    res.x.assign(info_.GetOrigNVars(), kNan);
+    res.x.assign(tracker_.GetOrigNVars(), kNan);
     for (Index iv = 0; iv < sol.x.size(); iv++) {
-        res.x[info_.GetOrigVarIdx()[iv]] = sol.x[iv];
+        res.x[tracker_.GetOrigVarIdx()[iv]] = sol.x[iv];
     }
 
     for (auto it = transforms_.rbegin(); it != transforms_.rend(); ++it) {
