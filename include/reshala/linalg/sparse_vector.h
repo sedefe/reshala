@@ -42,23 +42,25 @@ class SparseVector {
         return values_[pos - indices_.begin()];
     }
 
-    size_t Size() const { return indices_.size(); }
-    void Clear() {
+    inline size_t Size() const { return indices_.size(); }
+    inline void Clear() {
         indices_.clear();
         values_.clear();
     }
 
-    void Resize(size_t n) {
+    inline bool Empty() const { return indices_.empty(); }
+
+    inline void Resize(size_t n) {
         indices_.resize(n);
         values_.resize(n);
     }
 
-    void Reserve(size_t n) {
+    inline void Reserve(size_t n) {
         indices_.reserve(n);
         values_.reserve(n);
     }
 
-    void Push(Index i, Scalar x) {
+    inline void Push(Index i, Scalar x) {
         indices_.push_back(i);
         values_.push_back(x);
     }
@@ -129,9 +131,9 @@ class IteratorBase {
     std::pair<Index, Scalar> operator*() const { return {sv_.indices()[pos_], sv_.values()[pos_]}; }
 
     inline Index index() const { return sv_.indices()[pos_]; }
-    inline IndexType& indexRef() { return sv_.indices()[pos_]; }
+    inline IndexType &indexRef() { return sv_.indices()[pos_]; }
     inline Scalar value() const { return sv_.values()[pos_]; }
-    inline ScalarType& valueRef() { return sv_.values()[pos_]; }
+    inline ScalarType &valueRef() { return sv_.values()[pos_]; }
 
    private:
     VectorType &sv_;

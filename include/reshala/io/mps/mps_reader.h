@@ -22,7 +22,7 @@ ExpType MpsChar2ExpType(char c) {
         case 'N':
             return ExpType::kNon;
         default:
-            throw std::invalid_argument("Unsupported MPS expression type: " + c);
+            throw std::invalid_argument("Unsupported MPS expression type: " + std::string(1, c));
             return ExpType::kNon;
     }
 }

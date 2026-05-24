@@ -32,7 +32,12 @@ RuleResult Rule35::Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>
         SparseVector& row = info.GetModel().GetAr().GetRow(ic);
         auto gcd = GetGcd(row.values());
         if (gcd > 1) {
+            // Todo: сделать метод ModelInfo для этого, чтобы в статистике нормально отображалось
             row *= (1. / gcd);
+            for (ConstSvIterator el(row); el; ++el) {
+                auto iv = el.index();
+                model.GetAc().GetCol(iv).AtRef(ic) /= gcd;
+            }
             info.GetActivity(ic).le /= gcd;
             info.GetActivity(ic).ri /= gcd;
             info.GetModel().GetRhs(ic).le /= gcd;

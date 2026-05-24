@@ -19,7 +19,7 @@ ExpType LpChar2ExpType(char c) {
         case '=':
             return ExpType::kEq;
         default:
-            throw std::invalid_argument("Unsupported LP expression type: " + c);
+            throw std::invalid_argument("Unsupported LP expression type: " + std::string(1, c));
             return ExpType::kNon;
     }
 }
@@ -31,7 +31,7 @@ struct Monom {
 
 class LpReader {
    public:
-    LpReader(MilpModel& model, Names& names) : model_(model),  names_(names) {}
+    LpReader(MilpModel& model, Names& names) : model_(model), names_(names) {}
     FileReadStatus Read(const std::filesystem::path& path);
 
    private:

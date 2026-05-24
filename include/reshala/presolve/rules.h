@@ -62,4 +62,17 @@ class Rule44 : public Rule {
     std::string Name() const { return "4.4 DualFix"; }
 };
 
+class Rule52 : public Rule {
+   public:
+    Rule52() : Rule(RuleType::kFast) {}
+    RuleResult Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>>& transforms_);
+    std::string Name() const { return "5.2 ParRows"; }
+
+   private:
+    std::vector<Scalar> bin_scales;
+    inline Index HashRow(const ModelInfo& info, Index ic) const;
+    bool Parallel(const SparseVector& sv1, Scalar scale1, const SparseVector& sv2,
+                  Scalar scale2) const;
+};
+
 }  // namespace reshala

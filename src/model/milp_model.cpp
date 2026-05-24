@@ -116,11 +116,11 @@ std::ostream& operator<<(std::ostream& os, const MilpModel& model) {
     os << "Bounds\n";
     for (Index i = 0; i < n; i++) {
         const Bounds& bnd = model.GetBounds(i);
-        if (bnd.le != 0.0) {
-            os << "x" << i << " >= " << bnd.le << std::endl;
-        }
-        if (bnd.ri != kInf) {
-            os << "x" << i << " <= " << bnd.ri << std::endl;
+        if (model.GetType(i) == BndType::kFixed) {
+            os << "x" << i << " = " << (bnd.le + bnd.ri) / 2 << std::endl;
+        } else {
+            if (bnd.le != 0.0) os << "x" << i << " >= " << bnd.le << std::endl;
+            if (bnd.ri != kInf) os << "x" << i << " <= " << bnd.ri << std::endl;
         }
     }
 
