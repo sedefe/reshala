@@ -2,8 +2,8 @@
 
 namespace reshala {
 
-RuleResult Rule41::Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>>& transforms) {
-    MilpModel& model = info.GetModel();
+RuleResult Rule41::Apply(ModelTracker& info, std::vector<std::unique_ptr<Transform>>& transforms) {
+    const MilpModel& model = info.GetModel();
     Index n_reduced = 0;
 
     for (Index iv = 0; iv < model.GetNVars(); iv++) {

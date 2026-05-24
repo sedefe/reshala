@@ -4,8 +4,8 @@
 
 namespace reshala {
 
-RuleResult Rule52::Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>>& transforms) {
-    MilpModel& model = info.GetModel();
+RuleResult Rule52::Apply(ModelTracker& info, std::vector<std::unique_ptr<Transform>>& transforms) {
+    const MilpModel& model = info.GetModel();
     Index n_reduced = 0;
 
     std::unordered_map<Index, std::vector<Index>> bins;
@@ -59,7 +59,7 @@ RuleResult Rule52::Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>
                 }
             }
 
-            Bounds& rhs = model.GetRhs(bin[i_max_abs]);
+            Bounds rhs = model.GetRhs(bin[i_max_abs]);
             for (Index i : sub_bin) {
                 if (i == i_max_abs) continue;
                 info.MaskCon(bin[i]);
@@ -74,13 +74,14 @@ RuleResult Rule52::Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>
                 rhs = BoundsIntersection(rhs, rhs1);
                 n_reduced++;
             }
+            info.UpdRhs(bin[i_max_abs], rhs);
         }
     }
 
     return n_reduced > 0 ? RuleResult::kReduced : RuleResult::kUnchanged;
 }
 
-Index Rule52::HashRow(const ModelInfo& info, Index ic) const {
+Index Rule52::HashRow(const ModelTracker& info, Index ic) const {
     const auto& row = info.GetModel().GetAr().GetRow(ic);
     Index hash = row.Size();
     for (Index iv : row.indices()) {

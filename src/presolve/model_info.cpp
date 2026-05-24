@@ -2,7 +2,7 @@
 
 namespace reshala {
 
-ModelInfo::ModelInfo(MilpModel& model)
+ModelTracker::ModelTracker(MilpModel& model)
     : model_(model), con_mask_(model.GetNCons()), var_mask_(model.GetNVars()) {
     orig_n_vars_ = model.GetNVars();
     orig_var_idx_.resize(orig_n_vars_);
@@ -11,7 +11,7 @@ ModelInfo::ModelInfo(MilpModel& model)
     }
 }
 
-void ModelInfo::CompressCons() {
+void ModelTracker::CompressCons() {
     auto m = model_.GetNCons();
     auto n = model_.GetNVars();
 
@@ -66,7 +66,7 @@ void ModelInfo::CompressCons() {
     deleted_cons_.clear();
 }
 
-void ModelInfo::CompressVars() {
+void ModelTracker::CompressVars() {
     auto m = model_.GetNCons();
     auto n = model_.GetNVars();
 
@@ -122,7 +122,7 @@ void ModelInfo::CompressVars() {
     deleted_vars_.clear();
 }
 
-void ModelInfo::CalcActivities() {
+void ModelTracker::CalcActivities() {
     auto m = model_.GetNCons();
     activities_.resize(m);
     for (Index ic = 0; ic < m; ic++) {
@@ -142,23 +142,23 @@ void ModelInfo::CalcActivities() {
     }
 }
 
-void ModelInfo::FixVar(Index iv, Scalar val) {
+void ModelTracker::FixVar(Index iv, Scalar val) {
     model_.GetObj().c0 += model_.GetObj().mult * (model_.GetObj().coefficients[iv] * val);
 
     UpdVarBounds(iv, {0, 0});  // Убираем эту переменную из активити
 
-    for (ConstSvIterator el(model_.GetAc().GetCol(iv)); el; ++el) {
+    for (SvIterator el(model_.GetAc().GetCol(iv)); el; ++el) {
         const Bounds& rhs = model_.GetRhs(el.index());
         model_.GetRhs(el.index()) = {rhs.le - el.value() * val, rhs.ri - el.value() * val};
     }
 }
 
-void ModelInfo::UpdRhs(Index ic, const Bounds& bnd) {
+void ModelTracker::UpdRhs(Index ic, const Bounds& bnd) {
     model_.GetRhs(ic) = bnd;
     stat.n_ch_rhs++;
 }
 
-void ModelInfo::UpdVarBounds(Index iv, const Bounds& bnd) {
+void ModelTracker::UpdVarBounds(Index iv, const Bounds& bnd) {
     const Bounds& old_bnd = model_.GetBounds(iv);
     const Bounds diff = {bnd.le - old_bnd.le, bnd.ri - old_bnd.ri};
 
@@ -178,7 +178,7 @@ void ModelInfo::UpdVarBounds(Index iv, const Bounds& bnd) {
     stat.n_ch_bnd++;
 }
 
-void ModelInfo::UpdCoeff(Index ic, Index iv, Scalar val) {
+void ModelTracker::UpdCoeff(Index ic, Index iv, Scalar val) {
     // Todo Вообще это можно быстрее делать, т.к. к части из следующих операций доступ есть из тех
     // мест, где мы вызываем этот апдейт
     // Todo handle near-zeros
@@ -198,6 +198,27 @@ void ModelInfo::UpdCoeff(Index ic, Index iv, Scalar val) {
     // Coeffs
     model_.GetAc().GetCol(iv).AtRef(ic) = val;
     value_ref = val;
+    stat.n_ch_coeff++;
+}
+
+void ModelTracker::ScaleObj(Scalar x) {
+    for (auto& val : model_.GetObj().coefficients) val *= x;
+    model_.GetObj().mult /= x;
+}
+
+void ModelTracker::ScaleRow(Index ic, Scalar x) {
+    SparseVector& row = model_.GetAr().GetRow(ic);
+    row *= x;
+    for (SvIterator el(row); el; ++el) {
+        auto iv = el.index();
+        model_.GetAc().GetCol(iv).AtRef(ic) *= x;
+    }
+    activities_[ic].le *= x;
+    activities_[ic].ri *= x;
+
+    const auto& rhs = model_.GetRhs(ic);
+    UpdRhs(ic, {rhs.le * x, rhs.ri * x});
+
     stat.n_ch_coeff++;
 }
 

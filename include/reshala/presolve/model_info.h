@@ -16,13 +16,12 @@ class BitMask {
     void Clear() { std::fill(data.begin(), data.end(), 0); }
 };
 
-class ModelInfo {
+class ModelTracker {
    public:
-    ModelInfo(MilpModel& model);
+    ModelTracker(MilpModel& model);
     PresolveStat stat;
 
     const MilpModel& GetModel() const { return model_; }
-    MilpModel& GetModel() { return model_; }
 
     void MaskCon(Index ic) {
         con_mask_.Set(ic);
@@ -49,10 +48,13 @@ class ModelInfo {
     const std::vector<Index>& GetDeletedCons() const { return deleted_cons_; }
     const std::vector<Index>& GetDeletedVars() const { return deleted_vars_; }
 
+    // Model transformations
     void FixVar(Index iv, Scalar val);
     void UpdRhs(Index ic, const Bounds& bnd);
     void UpdVarBounds(Index iv, const Bounds& bnd);
     void UpdCoeff(Index ic, Index iv, Scalar val);
+    void ScaleObj(Scalar x);
+    void ScaleRow(Index ic, Scalar x);
 
     inline Index GetOrigNVars() const { return orig_n_vars_; }
     inline const std::vector<Index>& GetOrigVarIdx() const { return orig_var_idx_; }

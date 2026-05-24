@@ -140,7 +140,7 @@ class IteratorBase {
     Index pos_;
 };
 
-using SvIterator = IteratorBase<false>;
-using ConstSvIterator = IteratorBase<true>;
+using MutableSvIterator = IteratorBase<false>;
+using SvIterator = IteratorBase<true>;
 
 }  // namespace reshala

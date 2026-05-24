@@ -16,32 +16,22 @@ Index GetGcd(const std::vector<Scalar>& vec) {
     return gcd;
 }
 
-RuleResult Rule35::Apply(ModelInfo& info, std::vector<std::unique_ptr<Transform>>& transforms) {
-    MilpModel& model = info.GetModel();
+RuleResult Rule35::Apply(ModelTracker& info, std::vector<std::unique_ptr<Transform>>& transforms) {
+    const MilpModel& model = info.GetModel();
     Index n_reduced = 0;
 
-    auto obj_gcd = GetGcd(info.GetModel().GetObj().coefficients);
+    auto obj_gcd = GetGcd(model.GetObj().coefficients);
     if (obj_gcd > 1) {
-        for (auto& x : info.GetModel().GetObj().coefficients) x /= obj_gcd;
-        info.GetModel().GetObj().mult *= obj_gcd;
+        info.ScaleObj(1. / obj_gcd);
     }
 
     for (Index ic = 0; ic < model.GetNCons(); ic++) {
         if (info.GetConMask(ic)) continue;
 
-        SparseVector& row = info.GetModel().GetAr().GetRow(ic);
+        const SparseVector& row = model.GetAr().GetRow(ic);
         auto gcd = GetGcd(row.values());
         if (gcd > 1) {
-            // Todo: сделать метод ModelInfo для этого, чтобы в статистике нормально отображалось
-            row *= (1. / gcd);
-            for (ConstSvIterator el(row); el; ++el) {
-                auto iv = el.index();
-                model.GetAc().GetCol(iv).AtRef(ic) /= gcd;
-            }
-            info.GetActivity(ic).le /= gcd;
-            info.GetActivity(ic).ri /= gcd;
-            info.GetModel().GetRhs(ic).le /= gcd;
-            info.GetModel().GetRhs(ic).ri /= gcd;
+            info.ScaleRow(ic, 1. / gcd);
             n_reduced++;
         }
     }
