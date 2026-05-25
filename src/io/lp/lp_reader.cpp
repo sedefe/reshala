@@ -43,7 +43,7 @@ FileReadStatus LpReader::Read(const std::filesystem::path& path) {
             }
             current_state = LpParseState::kBin;
             continue;
-        } else if (lower_line == "generals") {
+        } else if (lower_line == "generals" or lower_line == "integers") {
             if (!matrix_finalized) {
                 FinalizeMatrix();
             }
@@ -138,16 +138,32 @@ void LpReader::ParseConstraint(const std::vector<std::string>& tokens) {
 
 void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
     size_t n = tokens.size();
-    if (n % 3 != 0) {
-        ThrowParseError("Can't parse bounds");
+    if (n != 3 and n != 5) ThrowParseError("Can't parse bounds");
+
+    Index i_var = n - 3;  // 0 for "x <= 1", 2 for "0 <= x <= 1"
+    if (names_.vars.name_to_index.find(tokens[i_var]) == names_.vars.name_to_index.end()) {
+        ThrowParseError("Unexpected variable " + tokens[i_var] + " in Bounds section");
     }
-    for (Index i = 0; i < n; i += 3) {
-        if (names_.vars.name_to_index.find(tokens[i]) == names_.vars.name_to_index.end()) {
-            ThrowParseError("Unexpected variable " + tokens[i] + " in Bounds section");
+    Index index = names_.vars.get_index(tokens[i_var]);
+
+    std::vector<std::tuple<bool, ExpType, Scalar>> expressions;
+    if (n == 3) {
+        expressions.push_back({false, LpChar2ExpType(tokens[1][0]), std::stod(tokens[2])});
+    } else {  // (n == 5)
+        expressions.push_back({true, LpChar2ExpType(tokens[1][0]), std::stod(tokens[0])});
+        expressions.push_back({false, LpChar2ExpType(tokens[3][0]), std::stod(tokens[4])});
+    }
+
+    for (auto& tuple : expressions) {
+        bool do_swap = std::get<0>(tuple);
+        ExpType type = std::get<1>(tuple);
+        Scalar rhs = std::get<2>(tuple);
+        if (do_swap) {  // "0 <= x" -> "x >= 0"
+            if (type == ExpType::kGe)
+                type = ExpType::kLe;
+            else if (type == ExpType::kLe)
+                type = ExpType::kGe;
         }
-        Index index = names_.vars.get_index(tokens[i]);
-        ExpType type = LpChar2ExpType(tokens[i + 1][0]);
-        Scalar rhs = std::stod(tokens[i + 2]);
         const Bounds& bnd = model_.GetBounds(index);
         switch (type) {
             case ExpType::kGe:
