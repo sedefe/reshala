@@ -4,14 +4,21 @@
 #include "reshala/milp/milp.h"
 #include "utils.h"
 
+#define COLOR_GREEN "\033[32m"
+#define COLOR_RED "\033[31m"
+#define COLOR_RESET "\033[0m"
+#define MARK_SUCCESS COLOR_GREEN "√" COLOR_RESET
+#define MARK_FAILURE COLOR_RED "X" COLOR_RESET
+
 using namespace reshala;
 
 struct TestCase {
     std::string name;
     std::string status;
-    Scalar y;
+    Scalar y_desired;  // Сколько по бумажке должно быть
 
-    Solution sol;
+    Solution sol;     // Статус, решение и заявленный обжектив
+    Scalar y_actual;  // А ну если подставить решение в копию модели
     std::chrono::microseconds time;
     FeasibilityReport report;
 };
@@ -38,9 +45,9 @@ std::vector<TestCase> ReadTestCases(const std::string& csv_path) {
         tc.status = token;
         std::getline(ss, token, ',');
         if (tc.status == "Optimal") {
-            tc.y = std::stod(token);
+            tc.y_desired = std::stod(token);
         } else {
-            tc.y = kInf;
+            tc.y_desired = kInf;
         }
         std::getline(ss, token, ',');
         bool is_used = std::stoi(token);
@@ -71,6 +78,9 @@ void RunTest(TestCase& tc) {
 
     if (tc.sol.status == LpStatus::kOptimal) {
         tc.report = model_copy.GetFeasReport(tc.sol.x);
+        tc.y_actual = model_copy.GetObj().evaluate(tc.sol.x);
+    } else {
+        tc.y_actual = kInf;
     }
 }
 
@@ -99,32 +109,40 @@ int main() {
         auto status = LpStatus2Str(tc.sol.status);
         printf("%12s ", status.c_str());
         if (status == tc.status) {
-            printf("[√] ");
+            printf("[%s] ", MARK_SUCCESS);
         } else {
-            printf("[X] (%12s)", tc.status.c_str());
+            printf("[%s(%s)] ", MARK_FAILURE, tc.status.c_str());
             is_good = false;
         }
 
-        bool compare_y = CompareScalars(tc.y, tc.sol.y);
-        printf("Obj: %10.5g ", tc.sol.y);
-        if (compare_y) {
-            printf("[√] ");
+        bool compare_y_des = CompareScalars(tc.y_desired, tc.sol.y);
+        bool compare_y_act = CompareScalars(tc.y_actual, tc.sol.y);
+        printf("%10.5g ", tc.sol.y);
+        if (compare_y_des) {
+            printf("[%s", MARK_SUCCESS);
         } else {
-            printf("[X] (%.5g)", tc.y);
+            printf("[%s(%.5g)", MARK_FAILURE, tc.y_desired);
+            is_good = false;
+        }
+        if (compare_y_act) {
+            printf("%s] ", MARK_SUCCESS);
+        } else {
+            printf("%s(%.5g)] ", MARK_FAILURE, tc.y_actual);
             is_good = false;
         }
 
         if (tc.sol.status == LpStatus::kOptimal) {
-            printf("Feasibility (I/B/C): ");
+            printf("Feasibility (I/B/C): [");
             auto& [aii, abi, aci, rbi, rci] = tc.report;
             for (Scalar* s : {&aii, &abi, &aci}) {
                 if (*s <= kEpsZero) {
-                    printf("√");
+                    printf("%s", MARK_SUCCESS);
                 } else {
-                    printf("X");
+                    printf("%s", MARK_FAILURE);
                     is_good = false;
                 }
             }
+            printf("]");
         }
 
         printf("\n");
