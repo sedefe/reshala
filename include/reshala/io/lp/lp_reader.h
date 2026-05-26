@@ -39,6 +39,7 @@ class LpReader {
     Names& names_;
     Index line_number = 0;
     bool matrix_finalized = false;
+    std::vector<std::string> multiline;
 
     void ThrowParseError(const std::string& message) {
         throw std::runtime_error("Line " + std::to_string(line_number) + ": " + message);

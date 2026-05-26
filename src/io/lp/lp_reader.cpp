@@ -2,6 +2,11 @@
 
 namespace reshala {
 
+// О том, что строка закончилась, мы точно сможем узнать только глядя на следующую строку. Поэтому
+// для обжектива и ограничений суём все токены в вектор multiline и глядим на него только встретив
+// знак сравнения (для ограничений) или встретив следующую секцию (для обжектива). В некоторых
+// случаях секция ограничений опциональна, так что и эта логика не без огреха.
+
 FileReadStatus LpReader::Read(const std::filesystem::path& path) {
     std::ifstream file(path);
     if (!file.is_open()) {
@@ -9,6 +14,7 @@ FileReadStatus LpReader::Read(const std::filesystem::path& path) {
     }
 
     std::string line;
+    std::string con_exp_token;
     auto current_state = LpParseState::kNon;
 
     while (std::getline(file, line)) {
@@ -22,13 +28,17 @@ FileReadStatus LpReader::Read(const std::filesystem::path& path) {
 
         if (lower_line == "min" or lower_line == "minimize") {
             model_.GetObj().orig_sense = Sense::kMin;
+            multiline = {};
             current_state = LpParseState::kObj;
             continue;
         } else if (lower_line == "max" or lower_line == "maximize") {
             model_.GetObj().orig_sense = Sense::kMax;
+            multiline = {};
             current_state = LpParseState::kObj;
             continue;
         } else if (lower_line == "s.t." or lower_line == "subject to") {
+            ParseObjective(multiline);
+            multiline = {};
             current_state = LpParseState::kCon;
             continue;
         } else if (lower_line == "bounds") {
@@ -59,10 +69,15 @@ FileReadStatus LpReader::Read(const std::filesystem::path& path) {
 
         switch (current_state) {
             case LpParseState::kObj:
-                ParseObjective(tokens);
+                multiline.insert(multiline.end(), tokens.begin(), tokens.end());
                 break;
             case LpParseState::kCon:
-                ParseConstraint(tokens);
+                multiline.insert(multiline.end(), tokens.begin(), tokens.end());
+                con_exp_token = tokens[tokens.size() - 2];
+                if (con_exp_token[0] == '<' or con_exp_token[0] == '>' or con_exp_token[0] == '=') {
+                    ParseConstraint(multiline);
+                    multiline = {};
+                }
                 break;
             case LpParseState::kBnd:
                 ParseBounds(tokens);
@@ -183,6 +198,9 @@ void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
 
 void LpReader::ParseBinaries(const std::vector<std::string>& tokens) {
     for (const auto& str : tokens) {
+        if (names_.vars.name_to_index.find(str) == names_.vars.name_to_index.end()) {
+            ThrowParseError("Unexpected variable " + str + " in Binaries section");
+        }
         auto index = names_.vars.get_index(str);
         model_.SetIntegrality(index, true);
         const Bounds& bnd = model_.GetBounds(index);
@@ -192,9 +210,17 @@ void LpReader::ParseBinaries(const std::vector<std::string>& tokens) {
 
 void LpReader::ParseGenerals(const std::vector<std::string>& tokens) {
     for (const auto& str : tokens) {
+        if (names_.vars.name_to_index.find(str) == names_.vars.name_to_index.end()) {
+            ThrowParseError("Unexpected variable " + str + " in Generals section");
+        }
         auto index = names_.vars.get_index(str);
         model_.SetIntegrality(index, true);
     }
+}
+
+void sort_monoms(std::vector<Monom>& monoms) {
+    std::sort(monoms.begin(), monoms.end(),
+              [](const Monom& a, const Monom& b) { return a.index < b.index; });
 }
 
 void LpReader::ParseLincomb(const std::vector<std::string>& tokens, std::vector<Monom>& lhs,
@@ -220,6 +246,7 @@ void LpReader::ParseLincomb(const std::vector<std::string>& tokens, std::vector<
             coeff = 1.0;
         }
     }
+    sort_monoms(lhs);
 }
 
 void LpReader::FinalizeMatrix() {
