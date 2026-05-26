@@ -14,7 +14,7 @@ RuleResult Rule33::Apply(ModelTracker& tracker,
         if (std::isinf(rhs.le) + std::isinf(rhs.ri) != 1) continue;
         Bounds& act = tracker.GetActivity(ic);
 
-        for (SvIterator el(model.GetAr().GetRow(ic)); el; ++el) {
+        for (SvIterator el(model.GetRow(ic)); el; ++el) {
             Index iv = el.index();
             if (!model.GetIntegrality(iv)) continue;
             if (tracker.GetVarMask(iv)) continue;

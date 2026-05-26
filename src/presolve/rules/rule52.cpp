@@ -12,7 +12,7 @@ RuleResult Rule52::Apply(ModelTracker& tracker,
     std::unordered_map<Index, std::vector<Index>> bins;
     for (Index ic = 0; ic < model.GetNCons(); ic++) {
         if (tracker.GetConMask(ic)) continue;
-        if (model.GetAr().GetRow(ic).Empty()) continue;
+        if (model.GetRow(ic).Empty()) continue;
         auto hash = HashRow(tracker, ic);
 
         bins[hash].push_back(ic);
@@ -25,7 +25,7 @@ RuleResult Rule52::Apply(ModelTracker& tracker,
 
         bin_scales.assign(bin.size(), 0);
         for (Index i = 0; i < bin.size(); i++) {
-            for (const auto& value : model.GetAr().GetRow(bin[i]).values()) {
+            for (const auto& value : model.GetRow(bin[i]).values()) {
                 if (StrongGt(std::abs(value), std::abs(bin_scales[i]))) {
                     // Тут StrongGt, чтобы среди одинаково больших коэффициентов выбрать первый.
                     // Если строки параллельные, то максимальные элементы окажутся на одних местах.
@@ -38,8 +38,8 @@ RuleResult Rule52::Apply(ModelTracker& tracker,
         for (Index i = 1; i < bin.size(); i++) {
             bool not_par = true;
             for (auto& sub_bin : sub_bins) {
-                if (Parallel(model.GetAr().GetRow(bin[sub_bin[0]]), bin_scales[sub_bin[0]],
-                             model.GetAr().GetRow(bin[i]), bin_scales[i])) {
+                if (Parallel(model.GetRow(bin[sub_bin[0]]), bin_scales[sub_bin[0]],
+                             model.GetRow(bin[i]), bin_scales[i])) {
                     sub_bin.push_back(i);
                     not_par = false;
                     break;
@@ -83,7 +83,7 @@ RuleResult Rule52::Apply(ModelTracker& tracker,
 }
 
 Index Rule52::HashRow(const ModelTracker& tracker, Index ic) const {
-    const auto& row = tracker.GetModel().GetAr().GetRow(ic);
+    const auto& row = tracker.GetModel().GetRow(ic);
     Index hash = row.Size();
     for (Index iv : row.indices()) {
         if (tracker.GetVarMask(iv)) continue;

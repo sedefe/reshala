@@ -178,7 +178,7 @@ void DualSimplex::Price() {
     a_p.assign(n, 0.0);
     for (Index ic = 0; ic < m; ic++) {
         if (IsZero(e_p[ic])) continue;
-        for (SvIterator el(model_.GetAr().GetRow(ic)); el; ++el) {
+        for (SvIterator el(model_.GetRow(ic)); el; ++el) {
             if (index2nb[el.index()] >= 0) {
                 a_p[index2nb[el.index()]] += e_p[ic] * el.value();
             }
@@ -220,7 +220,7 @@ void DualSimplex::Chuzc() {
 
 void DualSimplex::Ftran() {
     if (non_basis[iv_entering] < n) {
-        MulDmSv(Binv, model_.GetAc().GetCol(non_basis[iv_entering]), a_q);
+        MulDmSv(Binv, model_.GetCol(non_basis[iv_entering]), a_q);
     } else {
         MulDmSv(Binv, SparseVector(m, non_basis[iv_entering] - n, 1.0), a_q);
     }
@@ -234,9 +234,9 @@ void DualSimplex::Update() {
     Index inb = non_basis[iv_entering];
 
     const SparseVector& leaving_col =
-        ib < n ? model_.GetAc().GetCol(ib) : SparseVector(m, ib - n, 1.0);
+        ib < n ? model_.GetCol(ib) : SparseVector(m, ib - n, 1.0);
     const SparseVector& entering_col =
-        inb < n ? model_.GetAc().GetCol(inb) : SparseVector(m, inb - n, 1.0);
+        inb < n ? model_.GetCol(inb) : SparseVector(m, inb - n, 1.0);
 
     {  // Update Binv
         const SparseVector delta = sub(entering_col, leaving_col);

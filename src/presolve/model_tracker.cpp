@@ -23,7 +23,7 @@ void ModelTracker::CompressCons() {
     for (Index i_read = 0; i_read < m; ++i_read) {
         if (!con_mask_.Get(i_read)) {
             if (i_write != i_read) {
-                model_.GetAr().GetRow(i_write) = std::move(model_.GetAr().GetRow(i_read));
+                model_.GetRow(i_write) = std::move(model_.GetRow(i_read));
                 rhs[i_write] = std::move(rhs[i_read]);
                 activities_[i_write] = std::move(activities_[i_read]);
             }
@@ -81,7 +81,7 @@ void ModelTracker::CompressVars() {
             if (i_write != i_read) {
                 orig_var_idx_[i_write] = std::move(orig_var_idx_[i_read]);
                 coeffs[i_write] = std::move(coeffs[i_read]);
-                model_.GetAc().GetCol(i_write) = std::move(model_.GetAc().GetCol(i_read));
+                model_.GetCol(i_write) = std::move(model_.GetCol(i_read));
                 domain.Move(i_read, i_write);
             }
             ++i_write;
@@ -127,7 +127,7 @@ void ModelTracker::CalcActivities() {
     activities_.resize(m);
     for (Index ic = 0; ic < m; ic++) {
         Bounds act = {0, 0};
-        for (SvIterator el(model_.GetAr().GetRow(ic)); el; ++el) {
+        for (SvIterator el(model_.GetRow(ic)); el; ++el) {
             const Bounds& bnd = model_.GetBounds(el.index());
             Scalar val = el.value();
             if (val >= 0) {
@@ -147,7 +147,7 @@ void ModelTracker::FixVar(Index iv, Scalar val) {
 
     UpdVarBounds(iv, {0, 0});  // Убираем эту переменную из активити
 
-    for (SvIterator el(model_.GetAc().GetCol(iv)); el; ++el) {
+    for (SvIterator el(model_.GetCol(iv)); el; ++el) {
         const Bounds& rhs = model_.GetRhs(el.index());
         model_.GetRhs(el.index()) = {rhs.le - el.value() * val, rhs.ri - el.value() * val};
     }
@@ -162,7 +162,7 @@ void ModelTracker::UpdVarBounds(Index iv, const Bounds& bnd) {
     const Bounds& old_bnd = model_.GetBounds(iv);
     const Bounds diff = {bnd.le - old_bnd.le, bnd.ri - old_bnd.ri};
 
-    for (SvIterator el(model_.GetAc().GetCol(iv)); el; ++el) {
+    for (SvIterator el(model_.GetCol(iv)); el; ++el) {
         const Bounds& act = activities_[el.index()];
         Scalar val = el.value();
         activities_[el.index()] =
@@ -182,7 +182,7 @@ void ModelTracker::UpdCoeff(Index ic, Index iv, Scalar val) {
     // Todo Вообще это можно быстрее делать, т.к. к части из следующих операций доступ есть из тех
     // мест, где мы вызываем этот апдейт
     // Todo handle near-zeros
-    Scalar& value_ref = model_.GetAr().GetRow(ic).AtRef(iv);
+    Scalar& value_ref = model_.GetRow(ic).AtRef(iv);
     assert((value_ref >= 0 and val >= 0) or (value_ref <= 0 and val <= 0));
     auto d = val - value_ref;
     const Bounds& bnd = model_.GetBounds(iv);
@@ -196,7 +196,7 @@ void ModelTracker::UpdCoeff(Index ic, Index iv, Scalar val) {
     }
 
     // Coeffs
-    model_.GetAc().GetCol(iv).AtRef(ic) = val;
+    model_.GetCol(iv).AtRef(ic) = val;
     value_ref = val;
     stat.n_ch_coeff++;
 }
@@ -207,11 +207,11 @@ void ModelTracker::ScaleObj(Scalar x) {
 }
 
 void ModelTracker::ScaleRow(Index ic, Scalar x) {
-    SparseVector& row = model_.GetAr().GetRow(ic);
+    SparseVector& row = model_.GetRow(ic);
     row *= x;
     for (SvIterator el(row); el; ++el) {
         auto iv = el.index();
-        model_.GetAc().GetCol(iv).AtRef(ic) *= x;
+        model_.GetCol(iv).AtRef(ic) *= x;
     }
     activities_[ic].le *= x;
     activities_[ic].ri *= x;

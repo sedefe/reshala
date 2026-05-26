@@ -19,11 +19,15 @@ class MilpModel {
     const Objective& GetObj() const { return obj_; }
     Objective& GetObj() { return obj_; }
 
-    const SparseColMatrix& GetAc() const { return Ac_; }
-    SparseColMatrix& GetAc() { return Ac_; }
+    inline const SparseColMatrix& GetAc() const { return Ac_; }
+    inline SparseColMatrix& GetAc() { return Ac_; }
+    inline const SparseVector& GetCol(Index i) const { return Ac_.GetCol(i); }
+    inline SparseVector& GetCol(Index i) { return Ac_.GetCol(i); }
 
-    const SparseRowMatrix& GetAr() const { return Ar_; }
-    SparseRowMatrix& GetAr() { return Ar_; }
+    inline const SparseRowMatrix& GetAr() const { return Ar_; }
+    inline SparseRowMatrix& GetAr() { return Ar_; }
+    inline const SparseVector& GetRow(Index i) const { return Ar_.GetRow(i); }
+    inline SparseVector& GetRow(Index i) { return Ar_.GetRow(i); }
 
     const std::vector<Bounds>& GetRhs() const { return rhs_; }
     std::vector<Bounds>& GetRhs() { return rhs_; }
@@ -42,6 +46,9 @@ class MilpModel {
 
     inline bool GetIntegrality(Index iv) const { return domain_.GetIntegrality(iv); }
     inline void SetIntegrality(Index iv, bool b) { domain_.SetIntegrality(iv, b); }
+    inline bool IsBinary(Index iv) const {
+        return GetIntegrality(iv) && (domain_.GetBounds(iv).ri - domain_.GetBounds(iv).le == 1);
+    }
 
     bool IsIntegerFeasible(const std::vector<Scalar>& x) const;
     FeasibilityReport GetFeasReport(const std::vector<Scalar>& x) const;

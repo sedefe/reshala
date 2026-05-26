@@ -140,7 +140,7 @@ void MpsReader::ParseColumns(const std::vector<std::string>& tokens) {
             if (ic >= model_.GetNCons()) {
                 ThrowParseError("Constraint did not appear in ROWS: " + tokens[i]);
             }
-            model_.GetAr().GetRow(ic).Push(var_index, coeff);
+            model_.GetRow(ic).Push(var_index, coeff);
         } else {
             model_.GetObj().coefficients[var_index] = coeff;
         }

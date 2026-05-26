@@ -12,7 +12,7 @@ RuleResult Rule32::Apply(ModelTracker& tracker,
 
         const Bounds& act = tracker.GetActivity(ic);
         const Bounds& rhs = model.GetRhs(ic);
-        for (SvIterator el(model.GetAr().GetRow(ic)); el; ++el) {
+        for (SvIterator el(model.GetRow(ic)); el; ++el) {
             if (IsZero(el.value())) continue;
 
             const Bounds& bnd = model.GetBounds(el.index());

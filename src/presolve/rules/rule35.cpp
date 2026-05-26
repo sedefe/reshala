@@ -29,7 +29,7 @@ RuleResult Rule35::Apply(ModelTracker& tracker,
     for (Index ic = 0; ic < model.GetNCons(); ic++) {
         if (tracker.GetConMask(ic)) continue;
 
-        const SparseVector& row = model.GetAr().GetRow(ic);
+        const SparseVector& row = model.GetRow(ic);
         auto gcd = GetGcd(row.values());
         if (gcd > 1) {
             tracker.ScaleRow(ic, 1. / gcd);
