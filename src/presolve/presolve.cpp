@@ -24,7 +24,7 @@ LpStatus Presolver::Presolve() {
 
         for (auto& rule : rules_) {
             PresolveStat diff_stat = tracker_.stat;
-            auto res = rule->Apply(tracker_, transforms_);
+            auto res = rule->Apply(tracker_);
 
             if (tracker_.ProvenInfeasible()) break;
             if (tracker_.GetNDeletedCons() > 0) tracker_.CompressCons();
@@ -67,7 +67,7 @@ Solution Presolver::Postsolve(const Solution& sol) {
         res.x[tracker_.GetOrigVarIdx()[iv]] = sol.x[iv];
     }
 
-    for (auto it = transforms_.rbegin(); it != transforms_.rend(); ++it) {
+    for (auto it = tracker_.GetTransforms().rbegin(); it != tracker_.GetTransforms().rend(); ++it) {
         (*it)->Undo(res);
     }
     return res;

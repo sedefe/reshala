@@ -151,6 +151,14 @@ void ModelTracker::FixVar(Index iv, Scalar val) {
         const Bounds& rhs = model_.GetRhs(el.index());
         model_.GetRhs(el.index()) = {rhs.le - el.value() * val, rhs.ri - el.value() * val};
     }
+
+    transforms_.push_back(
+        std::make_unique<FixVariableTransform>(FixVariableTransform(orig_var_idx_[iv], val)));
+}
+
+void ModelTracker::SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b) {
+    // iv1 <- a*iv2 + b
+    model_.GetObj().c0 += model_.GetObj().mult * (model_.GetObj().coefficients[iv1] * b);
 }
 
 void ModelTracker::UpdRhs(Index ic, const Bounds& bnd) {

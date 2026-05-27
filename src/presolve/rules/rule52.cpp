@@ -4,8 +4,7 @@
 
 namespace reshala {
 
-RuleResult Rule52::Apply(ModelTracker& tracker,
-                         std::vector<std::unique_ptr<Transform>>& transforms) {
+RuleResult Rule52::Apply(ModelTracker& tracker) {
     const MilpModel& model = tracker.GetModel();
     Index n_reduced = 0;
 

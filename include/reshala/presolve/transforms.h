@@ -1,6 +1,6 @@
 #pragma once
 
-#include "reshala/presolve/model_tracker.h"
+#include "reshala/model/solution.h"
 
 namespace reshala {
 
@@ -13,8 +13,7 @@ class Transform {
 
 class FixVariableTransform : public Transform {
    public:
-    FixVariableTransform(Index iv, Scalar val)
-        : iv_(iv), val_(val) {}
+    FixVariableTransform(Index iv, Scalar val) : iv_(iv), val_(val) {}
 
     void Undo(Solution& sol) override;
 

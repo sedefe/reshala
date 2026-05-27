@@ -2,8 +2,7 @@
 
 namespace reshala {
 
-RuleResult Rule44::Apply(ModelTracker& tracker,
-                         std::vector<std::unique_ptr<Transform>>& transforms) {
+RuleResult Rule44::Apply(ModelTracker& tracker) {
     const MilpModel& model = tracker.GetModel();
     Index n_reduced = 0;
 
@@ -31,19 +30,13 @@ RuleResult Rule44::Apply(ModelTracker& tracker,
 
         if (eligible_down) {
             Scalar value = model.GetBounds(iv).le;
-            transforms.push_back(std::make_unique<FixVariableTransform>(
-                FixVariableTransform(tracker.GetOrigVarIdx()[iv], value)));
             tracker.FixVar(iv, value);
             tracker.MaskVar(iv);
-
             n_reduced++;
         } else if (eligible_up) {
             Scalar value = model.GetBounds(iv).ri;
-            transforms.push_back(std::make_unique<FixVariableTransform>(
-                FixVariableTransform(tracker.GetOrigVarIdx()[iv], value)));
             tracker.FixVar(iv, value);
             tracker.MaskVar(iv);
-
             n_reduced++;
         }
     }

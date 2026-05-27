@@ -1,6 +1,7 @@
 #pragma once
 
 #include "reshala/model/milp_model.h"
+#include "reshala/presolve/transforms.h"
 #include "reshala/presolve/utils.h"
 
 namespace reshala {
@@ -50,6 +51,7 @@ class ModelTracker {
 
     // Model transformations
     void FixVar(Index iv, Scalar val);
+    void SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b);  // iv1 <- a*iv2 + b
     void UpdRhs(Index ic, const Bounds& bnd);
     void UpdVarBounds(Index iv, const Bounds& bnd);
     void UpdCoeff(Index ic, Index iv, Scalar val);
@@ -59,8 +61,12 @@ class ModelTracker {
     inline Index GetOrigNVars() const { return orig_n_vars_; }
     inline const std::vector<Index>& GetOrigVarIdx() const { return orig_var_idx_; }
 
-    bool ProvenInfeasible() const { return infeasible_; }
-    void ClaimInfeasible() { infeasible_ = true; }
+    inline bool ProvenInfeasible() const { return infeasible_; }
+    inline void ClaimInfeasible() { infeasible_ = true; }
+
+    inline const std::vector<std::unique_ptr<Transform>>& GetTransforms() const {
+        return transforms_;
+    }
 
    private:
     bool infeasible_ = false;
@@ -76,6 +82,8 @@ class ModelTracker {
     std::vector<Index> deleted_vars_;
 
     std::vector<Bounds> activities_;
+
+    std::vector<std::unique_ptr<Transform>> transforms_;
 };
 
 }  // namespace reshala
