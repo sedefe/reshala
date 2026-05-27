@@ -19,7 +19,9 @@ FileReadStatus LpReader::Read(const std::filesystem::path& path) {
 
     while (std::getline(file, line)) {
         line_number++;
-        while (line.back() == '\r') line.pop_back();
+        while (!line.empty() && line.back() == '\r') {
+            line.pop_back();
+        }
         if (line.empty() || line[0] == '\\') continue;
 
         auto tokens = tokenize_line(line);
