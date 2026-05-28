@@ -14,6 +14,7 @@ RuleResult Rule44::Apply(ModelTracker& tracker) {
         bool eligible_down = model.GetObj().coefficients[iv] >= 0;
 
         for (SvIterator el(model.GetCol(iv)); el & (eligible_up || eligible_down); ++el) {
+            if (tracker.GetConMask(el.index())) continue;
             const Bounds& rhs = model.GetRhs(el.index());
             if (rhs.le == -kInf) {
                 eligible_down &= el.value() >= 0;
