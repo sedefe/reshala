@@ -31,12 +31,10 @@ RuleResult Rule44::Apply(ModelTracker& tracker) {
         if (eligible_down) {
             Scalar value = model.GetBounds(iv).le;
             tracker.FixVar(iv, value);
-            tracker.MaskVar(iv);
             n_reduced++;
         } else if (eligible_up) {
             Scalar value = model.GetBounds(iv).ri;
             tracker.FixVar(iv, value);
-            tracker.MaskVar(iv);
             n_reduced++;
         }
     }

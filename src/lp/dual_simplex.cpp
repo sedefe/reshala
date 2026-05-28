@@ -233,13 +233,11 @@ void DualSimplex::Update() {
     Index ib = basis[iv_leaving];
     Index inb = non_basis[iv_entering];
 
-    const SparseVector& leaving_col =
-        ib < n ? model_.GetCol(ib) : SparseVector(m, ib - n, 1.0);
-    const SparseVector& entering_col =
-        inb < n ? model_.GetCol(inb) : SparseVector(m, inb - n, 1.0);
+    const SparseVector& leaving_col = ib < n ? model_.GetCol(ib) : SparseVector(m, ib - n, 1.0);
+    const SparseVector& entering_col = inb < n ? model_.GetCol(inb) : SparseVector(m, inb - n, 1.0);
 
     {  // Update Binv
-        const SparseVector delta = sub(entering_col, leaving_col);
+        const SparseVector delta = entering_col - leaving_col;
         const DenseVector row(Binv.RowView(iv_leaving), Binv.RowView(iv_leaving) + m);
         Scalar multiplier;
         dot(row, delta, multiplier);

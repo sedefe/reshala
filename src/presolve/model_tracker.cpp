@@ -154,11 +154,43 @@ void ModelTracker::FixVar(Index iv, Scalar val) {
 
     transforms_.push_back(
         std::make_unique<FixVariableTransform>(FixVariableTransform(orig_var_idx_[iv], val)));
+    MaskVar(iv);
 }
 
 void ModelTracker::SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b) {
     // iv1 <- a*iv2 + b
     model_.GetObj().c0 += model_.GetObj().mult * (model_.GetObj().coefficients[iv1] * b);
+    model_.GetObj().coefficients[iv2] += a * model_.GetObj().coefficients[iv1];
+
+    for (SvIterator el(model_.GetCol(iv1)); el; ++el) {
+        if (GetConMask(el.index())) continue;
+
+        // Todo: double iteration on col[iv1] & col[iv2]
+        Scalar val = el.value();
+        SparseVector& row = model_.GetRow(el.index());
+        row.Erase(iv1);
+
+        auto pos = row.FindIndex(iv2);
+        if (*pos == iv2) {  // Can update inplace
+            row.values()[pos - row.indices().begin()] += a * val;
+            // Проверяем на 0, иначе ниже при апдейте столбца Ac и Ar станут неконсистентны
+            if (IsZero(row.values()[pos - row.indices().begin()])) {
+                row.Erase(pos);
+            }
+        } else {  // Insert a new value
+            if (!IsZero(a * val)) {
+                row.Insert(iv2, a * val, pos);
+            }
+        }
+
+        const Bounds& rhs = model_.GetRhs(el.index());
+        model_.GetRhs(el.index()) = {rhs.le - el.value() * b, rhs.ri - el.value() * b};
+    }
+    model_.GetCol(iv2) = model_.GetCol(iv2) + a * model_.GetCol(iv1);
+
+    transforms_.push_back(std::make_unique<SimpleSubTransform>(
+        SimpleSubTransform(orig_var_idx_[iv1], a, orig_var_idx_[iv2], b)));
+    MaskVar(iv1);
 }
 
 void ModelTracker::UpdRhs(Index ic, const Bounds& bnd) {
@@ -219,6 +251,7 @@ void ModelTracker::ScaleRow(Index ic, Scalar x) {
     row *= x;
     for (SvIterator el(row); el; ++el) {
         auto iv = el.index();
+        if (GetVarMask(iv)) continue;
         model_.GetCol(iv).AtRef(ic) *= x;
     }
     activities_[ic].le *= x;

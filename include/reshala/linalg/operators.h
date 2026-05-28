@@ -5,7 +5,6 @@
 
 namespace reshala {
 
-SparseVector sub(const SparseVector& x, const SparseVector& y);
 void dot(const Scalar* ar1, const SparseVector& sv2, Scalar& res);
 void dot(const SparseVector& sv1, const SparseVector& sv2, Scalar& res);
 void dot(const DenseVector& dv1, const SparseVector& sv2, Scalar& res);

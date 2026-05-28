@@ -13,7 +13,6 @@ RuleResult Rule41::Apply(ModelTracker& tracker) {
             const Bounds& bnd = model.GetBounds(iv);
             Scalar value = (bnd.le + bnd.ri) / 2;
             tracker.FixVar(iv, value);
-            tracker.MaskVar(iv);
             n_reduced++;
         }
     }

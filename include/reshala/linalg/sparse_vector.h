@@ -32,12 +32,12 @@ class SparseVector {
     }
     SparseVector(const DenseVector &vec) : SparseVector(vec.size(), vec.data()) {}
 
-    Scalar At(Index idx) const {
-        auto pos = FindIndex(idx);
-        return (pos != indices_.end()) ? values_[pos - indices_.begin()] : Scalar(0);
-    }
-    Scalar &AtRef(Index idx) {
-        auto pos = FindIndex(idx);
+    // Scalar At(Index i) const {
+    //     auto pos = FindIndex(i);
+    //     return (pos != indices_.end()) ? values_[pos - indices_.begin()] : Scalar(0);
+    // }
+    Scalar &AtRef(Index i) {
+        auto pos = FindIndex(i);
         assert(pos != indices_.end());
         return values_[pos - indices_.begin()];
     }
@@ -65,17 +65,29 @@ class SparseVector {
         values_.push_back(x);
     }
 
-    void Erase(Index i) {
-        auto it = std::lower_bound(indices_.begin(), indices_.end(), i);
-        assert(it != indices_.end() && *it == i);
+    void Erase(typename std::vector<Index>::iterator it) {  // Erase by iterator
+        // Verify the iterator is valid (optional, for debugging)
+        assert(it >= indices_.begin() && it < indices_.end());
 
         Index pos = std::distance(indices_.begin(), it);
-        indices_.erase(indices_.begin() + pos);
+        indices_.erase(it);
         values_.erase(values_.begin() + pos);
+    }
 
-        for (Index j = pos; j < indices_.size(); ++j) {
-            indices_[j]--;
-        }
+    void Erase(Index i) {  // Erase by index, no reindexing
+        auto it = std::lower_bound(indices_.begin(), indices_.end(), i);
+        assert(it != indices_.end() && *it == i);
+        Erase(it);  // Reuse the iterator version
+    }
+
+    typename std::vector<Index>::iterator FindIndex(Index i) {
+        return std::lower_bound(indices_.begin(), indices_.end(), i);
+    }
+
+    void Insert(Index i, Scalar v, typename std::vector<Index>::const_iterator pos) {
+        Index d = pos - indices_.begin();
+        indices_.insert(pos, i);
+        values_.insert(values_.begin() + d, v);
     }
 
     const std::vector<Index> &indices() const { return indices_; }
@@ -85,6 +97,7 @@ class SparseVector {
     Index dim() const { return dim_; }
     void SetDim(Index dim) { dim_ = dim; }
 
+    // Arithmetics
     inline SparseVector &operator*=(Scalar x) {
         for (Scalar &v : values_) v *= x;
         return *this;
@@ -95,20 +108,12 @@ class SparseVector {
     Index dim_;
     std::vector<Index> indices_;
     std::vector<Scalar> values_;
-
-    typename std::vector<Index>::const_iterator FindIndex(Index idx) const {
-        return std::lower_bound(indices_.begin(), indices_.end(), idx);
-    }
-    typename std::vector<Index>::iterator FindIndex(Index idx) {
-        return std::lower_bound(indices_.begin(), indices_.end(), idx);
-    }
-
-    void Insert(Index idx, Scalar val, typename std::vector<Index>::iterator pos) {
-        size_t i = pos - indices_.begin();
-        indices_.insert(pos, idx);
-        values_.insert(values_.begin() + i, val);
-    }
 };
+
+SparseVector operator+(const SparseVector &sv1, const SparseVector &sv2);
+SparseVector operator-(const SparseVector &sv1, const SparseVector &sv2);
+SparseVector operator*(SparseVector sv, Scalar x);
+SparseVector operator*(Scalar x, SparseVector sv);
 
 template <bool IsConst>
 class IteratorBase {

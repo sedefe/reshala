@@ -4,53 +4,6 @@
 
 namespace reshala {
 
-SparseVector sub(const SparseVector& sv1, const SparseVector& sv2) {
-    assert(sv1.dim() == sv2.dim() && "SparseVector sub: vectors are of different dimentions");
-
-    std::vector<Index> result_indices;
-    std::vector<Scalar> result_values;
-
-    auto& x_indices = sv1.indices();
-    auto& x_values = sv1.values();
-    auto& y_indices = sv2.indices();
-    auto& y_values = sv2.values();
-
-    size_t i = 0, j = 0;
-    size_t x_size = x_indices.size();
-    size_t y_size = y_indices.size();
-
-    while (i < x_size || j < y_size) {
-        Index idx;
-        Scalar x_val = Scalar(0);
-        Scalar y_val = Scalar(0);
-
-        if (i < x_size && (j >= y_size || x_indices[i] < y_indices[j])) {
-            idx = x_indices[i];
-            x_val = x_values[i];
-            i++;
-        } else if (j < y_size && (i >= x_size || y_indices[j] < x_indices[i])) {
-            idx = y_indices[j];
-            y_val = y_values[j];
-            j++;
-        } else {
-            idx = x_indices[i];
-            x_val = x_values[i];
-            y_val = y_values[j];
-            i++;
-            j++;
-        }
-
-        Scalar result_val = x_val - y_val;
-
-        if (!IsZero(result_val)) {
-            result_indices.push_back(idx);
-            result_values.push_back(result_val);
-        }
-    }
-
-    return SparseVector(sv1.dim(), result_indices, result_values);
-}
-
 void dot(const SparseVector& sv1, const SparseVector& sv2, Scalar& res) {
     assert(sv1.dim() == sv2.dim() && "SparseVector dot: vectors are of different dimensions");
 

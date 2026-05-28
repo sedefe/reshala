@@ -22,4 +22,18 @@ class FixVariableTransform : public Transform {
     Scalar val_;
 };
 
+class SimpleSubTransform : public Transform {  // iv1 <- a * iv2 + b
+   public:
+    SimpleSubTransform(Index iv1, Scalar a, Index iv2, Scalar b)
+        : iv1_(iv1), a_(a), iv2_(iv2), b_(b) {}
+
+    void Undo(Solution& sol) override;
+
+   private:
+    Index iv1_;
+    Scalar a_;
+    Index iv2_;
+    Scalar b_;
+};
+
 }  // namespace reshala

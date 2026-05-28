@@ -7,6 +7,7 @@ Presolver::Presolver(MilpModel& model) : model_(model), tracker_(model) {
     rules_.push_back(std::make_unique<Rule32>());
     rules_.push_back(std::make_unique<Rule33>());
     rules_.push_back(std::make_unique<Rule35>());
+    rules_.push_back(std::make_unique<Rule36>());
     rules_.push_back(std::make_unique<Rule41>());
     rules_.push_back(std::make_unique<Rule44>());
     rules_.push_back(std::make_unique<Rule52>());
@@ -27,6 +28,7 @@ LpStatus Presolver::Presolve() {
             auto res = rule->Apply(tracker_);
 
             if (tracker_.ProvenInfeasible()) break;
+            // Todo: move this outside the loop
             if (tracker_.GetNDeletedCons() > 0) tracker_.CompressCons();
             if (tracker_.GetNDeletedVars() > 0) tracker_.CompressVars();
 
