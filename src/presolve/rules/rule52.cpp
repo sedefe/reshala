@@ -45,7 +45,7 @@ RuleResult Rule52::Apply(ModelTracker& tracker) {
                 }
             }
             if (not_par) {
-                sub_bins.push_back({bin[i]});
+                sub_bins.push_back({i});
             }
         }
         for (auto& sub_bin : sub_bins) {

@@ -28,9 +28,6 @@ LpStatus Presolver::Presolve() {
             auto res = rule->Apply(tracker_);
 
             if (tracker_.ProvenInfeasible()) break;
-            // Todo: move this outside the loop
-            if (tracker_.GetNDeletedCons() > 0) tracker_.CompressCons();
-            if (tracker_.GetNDeletedVars() > 0) tracker_.CompressVars();
 
             if (res == RuleResult::kReduced) {
                 changed = true;
@@ -39,6 +36,9 @@ LpStatus Presolver::Presolve() {
             } else
                 continue;
         }
+
+        if (tracker_.GetNDeletedCons() > 0) tracker_.CompressCons();
+        if (tracker_.GetNDeletedVars() > 0) tracker_.CompressVars();
 
         pass++;
     }
