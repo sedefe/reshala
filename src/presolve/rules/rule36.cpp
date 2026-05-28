@@ -47,7 +47,7 @@ RuleResult Rule36::Apply(ModelTracker& tracker) {
                     }
                 }
                 n_reduced++;
-                break;
+                continue;
             }
         }
     }
