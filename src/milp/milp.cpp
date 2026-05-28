@@ -10,14 +10,15 @@ MilpSolver::MilpSolver(MilpModel& model)
       bnb(model, *ds, mip_state) {}
 
 Solution MilpSolver::Solve() {
-    LpStatus presolve_status = presolver.Presolve();
+    auto [presolve_status, t_presolve] = MEASURE_TIME(presolver.Presolve());
+    std::cout << "Presolve finished in " << t_presolve.count() / 1e3 << " ms\n";
     if (presolve_status != LpStatus::kUnknown) {
         return presolver.Postsolve({presolve_status, model.GetObj().c0, {}});
     }
 
     ds.emplace(model);
-    auto [sol, duration] = MEASURE_TIME(ds->Solve(false));
-    std::cout << "Root LP: " << sol.y << ", " << duration.count() / 1e3 << " ms, " << ds->GetNIter()
+    auto [sol, t_root] = MEASURE_TIME(ds->Solve(false));
+    std::cout << "Root LP: " << sol.y << ", " << t_root.count() / 1e3 << " ms, " << ds->GetNIter()
               << " iterations\n";
 
     mip_state.TestPrimal(sol);
