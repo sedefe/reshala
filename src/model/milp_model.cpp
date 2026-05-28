@@ -35,8 +35,8 @@ FeasibilityReport MilpModel::GetFeasReport(const std::vector<Scalar>& x) const {
         Scalar rel_infeas = std::max(le_inf / std::max(std::abs(bnd.le), 1.0),
                                      ri_inf / std::max(std::abs(bnd.ri), 1.0));
 
-        max_abs_infeas = std::max(max_abs_infeas, max_abs_infeas);
-        max_rel_infeas = std::max(max_rel_infeas, max_rel_infeas);
+        max_abs_infeas = std::max(max_abs_infeas, abs_infeas);
+        max_rel_infeas = std::max(max_rel_infeas, rel_infeas);
     };
 
     for (Index iv = 0; iv < GetNVars(); iv++) {
