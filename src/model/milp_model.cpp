@@ -113,24 +113,37 @@ std::ostream& operator<<(std::ostream& os, const MilpModel& model) {
         }
     }
 
+    std::vector<Index> binaries, generals;
     os << "Bounds\n";
-    for (Index i = 0; i < n; i++) {
-        const Bounds& bnd = model.GetBounds(i);
-        if (model.GetType(i) == BndType::kFixed) {
-            os << "x" << i << " = " << (bnd.le + bnd.ri) / 2 << std::endl;
+    for (Index iv = 0; iv < n; iv++) {
+        const Bounds& bnd = model.GetBounds(iv);
+        if (model.GetType(iv) == BndType::kFixed) {
+            os << "x" << iv << " = " << (bnd.le + bnd.ri) / 2 << std::endl;
         } else {
-            if (bnd.le != 0.0) os << "x" << i << " >= " << bnd.le << std::endl;
-            if (bnd.ri != kInf) os << "x" << i << " <= " << bnd.ri << std::endl;
+            if (model.GetIntegrality(iv)) {
+                if (bnd.le == 0 and bnd.ri == 1) {
+                    binaries.push_back(iv);
+                    continue;
+                } else {
+                    generals.push_back(iv);
+                }
+            }
+            if (bnd.le != 0.0) os << "x" << iv << " >= " << bnd.le << std::endl;
+            if (bnd.ri != kInf) os << "x" << iv << " <= " << bnd.ri << std::endl;
         }
     }
 
-    os << "Generals\n";
-    for (Index i = 0; i < n; i++) {
-        if (model.GetIntegrality(i)) {
-            os << "x" << i << " ";
-        }
+    if (binaries.size()) {
+        os << "Binaries\n";
+        for (Index iv : binaries) os << "x" << iv << " ";
+        os << "\n";
     }
-    os << "\n";
+    if (generals.size()) {
+        os << "Generals\n";
+        for (Index iv : generals) os << "x" << iv << " ";
+        os << "\n";
+    }
+
     os << "End\n";
 
     return os;
