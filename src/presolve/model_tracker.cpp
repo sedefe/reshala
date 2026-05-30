@@ -126,20 +126,24 @@ void ModelTracker::CalcActivities() {
     auto m = model_.GetNCons();
     activities_.resize(m);
     for (Index ic = 0; ic < m; ic++) {
-        Bounds act = {0, 0};
-        for (SvIterator el(model_.GetRow(ic)); el; ++el) {
-            const Bounds& bnd = model_.GetBounds(el.index());
-            Scalar val = el.value();
-            if (val >= 0) {
-                act.le += val * bnd.le;
-                act.ri += val * bnd.ri;
-            } else {
-                act.le += val * bnd.ri;
-                act.ri += val * bnd.le;
-            }
-        }
-        activities_[ic] = act;
+        activities_[ic] = CalcActivity(ic);
     }
+}
+
+Bounds ModelTracker::CalcActivity(Index ic) const {
+    Bounds act = {0, 0};
+    for (SvIterator el(model_.GetRow(ic)); el; ++el) {
+        const Bounds& bnd = model_.GetBounds(el.index());
+        Scalar val = el.value();
+        if (val >= 0) {
+            act.le += val * bnd.le;
+            act.ri += val * bnd.ri;
+        } else {
+            act.le += val * bnd.ri;
+            act.ri += val * bnd.le;
+        }
+    }
+    return act;
 }
 
 void ModelTracker::FixVar(Index iv, Scalar val) {
@@ -162,30 +166,54 @@ void ModelTracker::SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b) {
     model_.GetObj().c0 += model_.GetObj().mult * (model_.GetObj().coefficients[iv1] * b);
     model_.GetObj().coefficients[iv2] += a * model_.GetObj().coefficients[iv1];
 
-    for (SvIterator el(model_.GetCol(iv1)); el; ++el) {
-        if (GetConMask(el.index())) continue;
+    const Bounds& bnd1 = model_.GetBounds(iv1);
+    const Bounds& bnd2 = model_.GetBounds(iv2);
 
-        // Todo: double iteration on col[iv1] & col[iv2]
-        Scalar val = el.value();
+    for (SvIterator el(model_.GetCol(iv1)); el; ++el) {
+        Index ic = el.index();
+        if (GetConMask(ic)) continue;
+
+        Scalar val_iv1 = el.value();
+        Scalar val_iv2 = a * val_iv1;
         SparseVector& row = model_.GetRow(el.index());
         row.Erase(iv1);
 
-        auto pos = row.FindIndex(iv2);
-        if (*pos == iv2) {  // Can update inplace
-            row.values()[pos - row.indices().begin()] += a * val;
+        Bounds& act = activities_[ic];
+        Bounds act1 = (val_iv1 >= 0)
+                          ? Bounds{act.le - val_iv1 * bnd1.le, act.ri - val_iv1 * bnd1.ri}
+                          : Bounds{act.le - val_iv1 * bnd1.ri, act.ri - val_iv1 * bnd1.le};
+
+        // Ar & activity
+        auto pos = row.FindIndex(iv2);  // Todo double iteration on iv1&iv2?
+        if (*pos == iv2) {              // Can update inplace
+            // Scalar
+            Scalar old_val_iv2 = row.values()[pos - row.indices().begin()];
+            Scalar new_val_iv2 = old_val_iv2 + val_iv2;
+            row.values()[pos - row.indices().begin()] = new_val_iv2;
             // Проверяем на 0, иначе ниже при апдейте столбца Ac и Ar станут неконсистентны
             if (IsZero(row.values()[pos - row.indices().begin()])) {
                 row.Erase(pos);
             }
+            act1 = (old_val_iv2 >= 0)
+                       ? Bounds{act1.le - old_val_iv2 * bnd2.le, act1.ri - old_val_iv2 * bnd2.ri}
+                       : Bounds{act1.le - old_val_iv2 * bnd2.ri, act1.ri - old_val_iv2 * bnd2.le};
+
+            act = (new_val_iv2 >= 0)
+                      ? Bounds{act1.le + new_val_iv2 * bnd2.le, act1.ri + new_val_iv2 * bnd2.ri}
+                      : Bounds{act1.le + new_val_iv2 * bnd2.ri, act1.ri + new_val_iv2 * bnd2.le};
         } else {  // Insert a new value
-            if (!IsZero(a * val)) {
-                row.Insert(iv2, a * val, pos);
+            if (!IsZero(val_iv2)) {
+                row.Insert(iv2, val_iv2, pos);
             }
+            act = (val_iv2 >= 0) ? Bounds{act1.le + val_iv2 * bnd2.le, act1.ri + val_iv2 * bnd2.ri}
+                                 : Bounds{act1.le + val_iv2 * bnd2.ri, act1.ri + val_iv2 * bnd2.le};
         }
 
+        // Rhs
         const Bounds& rhs = model_.GetRhs(el.index());
-        model_.GetRhs(el.index()) = {rhs.le - el.value() * b, rhs.ri - el.value() * b};
+        model_.GetRhs(el.index()) = {rhs.le - val_iv1 * b, rhs.ri - val_iv1 * b};
     }
+    // Ac
     model_.GetCol(iv2) = model_.GetCol(iv2) + a * model_.GetCol(iv1);
 
     transforms_.push_back(std::make_unique<SimpleSubTransform>(
@@ -202,15 +230,11 @@ void ModelTracker::UpdVarBounds(Index iv, const Bounds& bnd) {
     const Bounds& old_bnd = model_.GetBounds(iv);
     const Bounds diff = {bnd.le - old_bnd.le, bnd.ri - old_bnd.ri};
 
-    for (SvIterator el(model_.GetCol(iv)); el; ++el) {
-        const Bounds& act = activities_[el.index()];
-        Scalar val = el.value();
-        activities_[el.index()] =
-            (val >= 0)  // Todo Логика повторяется в 3.2 и 3.3. Перенести в утилиты?
-                ? Bounds{act.le + val * diff.le, act.ri + val * diff.ri}
-                : Bounds{act.le + val * diff.ri, act.ri + val * diff.le};
-    }
     model_.SetBounds(iv, bnd);
+    for (SvIterator el(model_.GetCol(iv)); el; ++el) {
+        // Todo fix after changing the activities update logic
+        activities_[el.index()] = CalcActivity(el.index());
+    }
 
     if (model_.GetType(iv) == BndType::kInfeasible) {
         infeasible_ = true;
@@ -228,11 +252,11 @@ void ModelTracker::UpdCoeff(Index ic, Index iv, Scalar val) {
     const Bounds& bnd = model_.GetBounds(iv);
 
     if (val >= 0) {
-        activities_[ic].ri -= d * bnd.ri;
-        activities_[ic].le -= d * bnd.le;
+        activities_[ic].ri += d * bnd.ri;
+        activities_[ic].le += d * bnd.le;
     } else {
-        activities_[ic].ri -= d * bnd.le;
-        activities_[ic].le -= d * bnd.ri;
+        activities_[ic].ri += d * bnd.le;
+        activities_[ic].le += d * bnd.ri;
     }
 
     // Coeffs

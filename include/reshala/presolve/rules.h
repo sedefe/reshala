@@ -16,61 +16,61 @@ class Rule {
     virtual RuleResult Apply(ModelTracker& tracker) = 0;
 
     virtual std::string Name() const = 0;
-    RuleType type;  // New int field
+    RuleType type;
 };
 
 class Rule31 : public Rule {
    public:
-    Rule31() : Rule(RuleType::kFast) {}
+    Rule31(RuleType t) : Rule(t) {}
     RuleResult Apply(ModelTracker& tracker);
     std::string Name() const { return "3.1 RedCon"; }
 };
 
 class Rule32 : public Rule {
    public:
-    Rule32() : Rule(RuleType::kFast) {}
+    Rule32(RuleType t) : Rule(t) {}
     RuleResult Apply(ModelTracker& tracker);
     std::string Name() const { return "3.2 BndStr"; }
 };
 
 class Rule33 : public Rule {
    public:
-    Rule33() : Rule(RuleType::kFast) {}
+    Rule33(RuleType t) : Rule(t) {}
     RuleResult Apply(ModelTracker& tracker);
     std::string Name() const { return "3.3 CoefStr"; }
 };
 
 class Rule35 : public Rule {
    public:
-    Rule35() : Rule(RuleType::kFast) {}
+    Rule35(RuleType t) : Rule(t) {}
     RuleResult Apply(ModelTracker& tracker);
     std::string Name() const { return "3.5 Scaling"; }
 };
 
 class Rule36 : public Rule {
    public:
-    Rule36() : Rule(RuleType::kFast) {}
+    Rule36(RuleType t) : Rule(t) {}
     RuleResult Apply(ModelTracker& tracker);
     std::string Name() const { return "3.6 SimProb"; }
 };
 
 class Rule41 : public Rule {
    public:
-    Rule41() : Rule(RuleType::kFast) {}
+    Rule41(RuleType t) : Rule(t) {}
     RuleResult Apply(ModelTracker& tracker);
     std::string Name() const { return "4.1 FixVar"; }
 };
 
 class Rule44 : public Rule {
    public:
-    Rule44() : Rule(RuleType::kFast) {}
+    Rule44(RuleType t) : Rule(t) {}
     RuleResult Apply(ModelTracker& tracker);
     std::string Name() const { return "4.4 DualFix"; }
 };
 
 class Rule52 : public Rule {
    public:
-    Rule52() : Rule(RuleType::kFast) {}
+    Rule52(RuleType t) : Rule(t) {}
     RuleResult Apply(ModelTracker& tracker);
     std::string Name() const { return "5.2 ParRows"; }
 

@@ -7,6 +7,7 @@ RuleResult Rule36::Apply(ModelTracker& tracker) {
     Index n_reduced = 0;
     for (Index ic = 0; ic < model.GetNCons(); ic++) {
         if (tracker.GetConMask(ic)) continue;
+
         auto rhs = model.GetRhs(ic);
         if (!IsZero(rhs.ri - rhs.le)) continue;
         Scalar b = (rhs.ri + rhs.le) / 2;
@@ -30,6 +31,7 @@ RuleResult Rule36::Apply(ModelTracker& tracker) {
                 for (SvIterator el(row); el; ++el) {
                     if (tracker.GetVarMask(el.index())) continue;
                     if (el.index() == iv_base) continue;
+
                     const auto& bnd = model.GetBounds(el.index());
                     Scalar range = bnd.ri - bnd.le;
                     if (a >= 0) {

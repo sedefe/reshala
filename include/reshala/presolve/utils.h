@@ -3,6 +3,17 @@
 namespace reshala {
 
 enum class RuleType { kTrivial, kFast, kMedium, kExhaustive, kUnknown };
+inline RuleType NextLevel(RuleType type) {
+    switch (type) {
+        case RuleType::kFast:
+            return RuleType::kMedium;
+        // case RuleType::kMedium:  // no exhaustive yet
+        //     return RuleType::kExhaustive;
+        default:
+            return RuleType::kUnknown;
+    }
+}
+
 enum class RuleResult { kSkipped, kUnchanged, kReduced, kUnknown };
 
 struct PresolveStat {

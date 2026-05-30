@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <memory>
 
 #include "reshala/model/milp_model.h"
@@ -19,7 +20,7 @@ class Presolver {
     MilpModel& model_;
     ModelTracker tracker_;
 
-    std::vector<std::unique_ptr<Rule>> rules_;
+    std::map<RuleType, std::vector<std::unique_ptr<Rule>>> rule_map_;
 
     void PrintHeader() const;
     void PrintStat(const Rule&, const PresolveStat& stat) const;

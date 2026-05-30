@@ -41,13 +41,14 @@ class ModelTracker {
     void CompressVars();
 
     void CalcActivities();
-    const Bounds& GetActivity(Index ic) const { return activities_[ic]; }
-    Bounds& GetActivity(Index ic) { return activities_[ic]; }
+    Bounds CalcActivity(Index ic) const;
+    inline const Bounds& GetActivity(Index ic) const { return activities_[ic]; }
+    inline Bounds& GetActivity(Index ic) { return activities_[ic]; }
 
-    Index GetNDeletedCons() const { return deleted_cons_.size(); }
-    Index GetNDeletedVars() const { return deleted_vars_.size(); }
-    const std::vector<Index>& GetDeletedCons() const { return deleted_cons_; }
-    const std::vector<Index>& GetDeletedVars() const { return deleted_vars_; }
+    inline Index GetNDeletedCons() const { return deleted_cons_.size(); }
+    inline Index GetNDeletedVars() const { return deleted_vars_.size(); }
+    inline const std::vector<Index>& GetDeletedCons() const { return deleted_cons_; }
+    inline const std::vector<Index>& GetDeletedVars() const { return deleted_vars_; }
 
     // Model transformations
     void FixVar(Index iv, Scalar val);
