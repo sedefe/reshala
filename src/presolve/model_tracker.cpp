@@ -212,13 +212,12 @@ void ModelTracker::UpdRhs(Index ic, const Bounds& bnd) {
 
 void ModelTracker::UpdVarBounds(Index iv, const Bounds& bnd) {
     const Bounds& old_bnd = model_.GetBounds(iv);
-    const Bounds diff = {bnd.le - old_bnd.le, bnd.ri - old_bnd.ri};
 
-    model_.SetBounds(iv, bnd);
     for (SvIterator el(model_.GetCol(iv)); el; ++el) {
-        // Todo fix after changing the activities update logic
-        activities_[el.index()] = CalcActivity(el.index());
+        activities_[el.index()].RmTerm(el.value(), old_bnd);
+        activities_[el.index()].AddTerm(el.value(), bnd);
     }
+    model_.SetBounds(iv, bnd);
 
     if (model_.GetType(iv) == BndType::kInfeasible) {
         infeasible_ = true;
