@@ -130,18 +130,10 @@ void ModelTracker::CalcActivities() {
     }
 }
 
-Bounds ModelTracker::CalcActivity(Index ic) const {
-    Bounds act = {0, 0};
+Activity ModelTracker::CalcActivity(Index ic) const {
+    Activity act;
     for (SvIterator el(model_.GetRow(ic)); el; ++el) {
-        const Bounds& bnd = model_.GetBounds(el.index());
-        Scalar val = el.value();
-        if (val >= 0) {
-            act.le += val * bnd.le;
-            act.ri += val * bnd.ri;
-        } else {
-            act.le += val * bnd.ri;
-            act.ri += val * bnd.le;
-        }
+        act.AddTerm(el.value(), model_.GetBounds(el.index()));
     }
     return act;
 }
@@ -178,10 +170,8 @@ void ModelTracker::SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b) {
         SparseVector& row = model_.GetRow(el.index());
         row.Erase(iv1);
 
-        Bounds& act = activities_[ic];
-        Bounds act1 = (val_iv1 >= 0)
-                          ? Bounds{act.le - val_iv1 * bnd1.le, act.ri - val_iv1 * bnd1.ri}
-                          : Bounds{act.le - val_iv1 * bnd1.ri, act.ri - val_iv1 * bnd1.le};
+        Activity& act = activities_[ic];
+        act.RmTerm(val_iv1, bnd1);
 
         // Ar & activity
         auto pos = row.FindIndex(iv2);  // Todo double iteration on iv1&iv2?
@@ -194,19 +184,13 @@ void ModelTracker::SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b) {
             if (IsZero(row.values()[pos - row.indices().begin()])) {
                 row.Erase(pos);
             }
-            act1 = (old_val_iv2 >= 0)
-                       ? Bounds{act1.le - old_val_iv2 * bnd2.le, act1.ri - old_val_iv2 * bnd2.ri}
-                       : Bounds{act1.le - old_val_iv2 * bnd2.ri, act1.ri - old_val_iv2 * bnd2.le};
-
-            act = (new_val_iv2 >= 0)
-                      ? Bounds{act1.le + new_val_iv2 * bnd2.le, act1.ri + new_val_iv2 * bnd2.ri}
-                      : Bounds{act1.le + new_val_iv2 * bnd2.ri, act1.ri + new_val_iv2 * bnd2.le};
+            act.RmTerm(old_val_iv2, bnd2);
+            act.AddTerm(new_val_iv2, bnd2);
         } else {  // Insert a new value
             if (!IsZero(val_iv2)) {
                 row.Insert(iv2, val_iv2, pos);
             }
-            act = (val_iv2 >= 0) ? Bounds{act1.le + val_iv2 * bnd2.le, act1.ri + val_iv2 * bnd2.ri}
-                                 : Bounds{act1.le + val_iv2 * bnd2.ri, act1.ri + val_iv2 * bnd2.le};
+            act.AddTerm(val_iv2, bnd2);
         }
 
         // Rhs
@@ -249,15 +233,10 @@ void ModelTracker::UpdCoeff(Index ic, Index iv, Scalar val) {
     Scalar& value_ref = model_.GetRow(ic).AtRef(iv);
     assert((value_ref >= 0 and val >= 0) or (value_ref <= 0 and val <= 0));
     auto d = val - value_ref;
-    const Bounds& bnd = model_.GetBounds(iv);
 
-    if (val >= 0) {
-        activities_[ic].ri += d * bnd.ri;
-        activities_[ic].le += d * bnd.le;
-    } else {
-        activities_[ic].ri += d * bnd.le;
-        activities_[ic].le += d * bnd.ri;
-    }
+    const Bounds& bnd = model_.GetBounds(iv);
+    activities_[ic].RmTerm(value_ref, bnd);
+    activities_[ic].AddTerm(val, bnd);
 
     // Coeffs
     model_.GetCol(iv).AtRef(ic) = val;
@@ -278,8 +257,7 @@ void ModelTracker::ScaleRow(Index ic, Scalar x) {
         if (GetVarMask(iv)) continue;
         model_.GetCol(iv).AtRef(ic) *= x;
     }
-    activities_[ic].le *= x;
-    activities_[ic].ri *= x;
+    activities_[ic].Scale(x);
 
     const auto& rhs = model_.GetRhs(ic);
     UpdRhs(ic, {rhs.le * x, rhs.ri * x});

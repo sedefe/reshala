@@ -1,6 +1,7 @@
 #pragma once
 
 #include "reshala/model/milp_model.h"
+#include "reshala/presolve/activity.h"
 #include "reshala/presolve/transforms.h"
 #include "reshala/presolve/utils.h"
 
@@ -41,9 +42,9 @@ class ModelTracker {
     void CompressVars();
 
     void CalcActivities();
-    Bounds CalcActivity(Index ic) const;
-    inline const Bounds& GetActivity(Index ic) const { return activities_[ic]; }
-    inline Bounds& GetActivity(Index ic) { return activities_[ic]; }
+    Activity CalcActivity(Index ic) const;
+    inline const Activity& GetActivity(Index ic) const { return activities_[ic]; }
+    inline const Bounds GetConRange(Index ic) const { return activities_[ic].GetRange(); }
 
     inline Index GetNDeletedCons() const { return deleted_cons_.size(); }
     inline Index GetNDeletedVars() const { return deleted_vars_.size(); }
@@ -82,7 +83,7 @@ class ModelTracker {
     std::vector<Index> deleted_cons_;
     std::vector<Index> deleted_vars_;
 
-    std::vector<Bounds> activities_;
+    std::vector<Activity> activities_;
 
     std::vector<std::unique_ptr<Transform>> transforms_;
 };

@@ -11,15 +11,15 @@ RuleResult Rule36::Apply(ModelTracker& tracker) {
         auto rhs = model.GetRhs(ic);
         if (!IsZero(rhs.ri - rhs.le)) continue;
         Scalar b = (rhs.ri + rhs.le) / 2;
-        auto act = tracker.GetActivity(ic);
-        if (IsZero(act.le + act.ri - 2 * b)) {
+        auto range = tracker.GetActivity(ic).GetRange();
+        if (IsZero(range.le + range.ri - 2 * b)) {
             const auto& row = model.GetRow(ic);
             Index iv_base = -1;
             Scalar a;
             for (SvIterator el(row); el; ++el) {
                 if (tracker.GetVarMask(el.index())) continue;
                 if (model.IsBinary(el.index())) {
-                    if (IsZero(std::abs(el.value()) - (act.ri - b))) {
+                    if (IsZero(std::abs(el.value()) - (range.ri - b))) {
                         iv_base = el.index();
                         a = el.value();
                         break;

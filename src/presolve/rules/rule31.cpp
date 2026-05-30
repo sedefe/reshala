@@ -9,14 +9,14 @@ RuleResult Rule31::Apply(ModelTracker& tracker) {
     for (Index ic = 0; ic < model.GetNCons(); ic++) {
         if (tracker.GetConMask(ic)) continue;
 
-        const Bounds& act = tracker.GetActivity(ic);
+        const Bounds& lhs = tracker.GetConRange(ic);
         const Bounds& rhs = model.GetRhs(ic);
-        if (WeakGe(act.le, rhs.le) and WeakLe(act.ri, rhs.ri)) {
+        if (WeakGe(lhs.le, rhs.le) and WeakLe(lhs.ri, rhs.ri)) {
             tracker.MaskCon(ic);
             n_reduced++;
         }
 
-        if (StrongGt(act.le, rhs.ri) or StrongLt(act.ri, rhs.le)) {
+        if (StrongGt(lhs.le, rhs.ri) or StrongLt(lhs.ri, rhs.le)) {
             tracker.ClaimInfeasible();
             break;
         }

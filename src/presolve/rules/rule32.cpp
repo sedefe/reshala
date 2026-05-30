@@ -9,23 +9,24 @@ RuleResult Rule32::Apply(ModelTracker& tracker) {
     for (Index ic = 0; ic < model.GetNCons(); ic++) {
         if (tracker.GetConMask(ic)) continue;
 
-        const Bounds& act = tracker.GetActivity(ic);
+        const Activity& act = tracker.GetActivity(ic);
         const Bounds& rhs = model.GetRhs(ic);
         for (SvIterator el(model.GetRow(ic)); el; ++el) {
             if (IsZero(el.value())) continue;
 
             const Bounds& bnd = model.GetBounds(el.index());
             Scalar val = el.value();
-            const Bounds act1 = (val >= 0) ? Bounds{act.le - val * bnd.le, act.ri - val * bnd.ri}
-                                           : Bounds{act.le - val * bnd.ri, act.ri - val * bnd.le};
+            Activity act1 = act;
+            act1.RmTerm(val, bnd);
+            const Bounds& lhs = act1.GetRange();
 
             Scalar le_derived, ri_derived;
             if (el.value() > 0) {
-                le_derived = (rhs.le - act1.ri) / val;
-                ri_derived = (rhs.ri - act1.le) / val;
+                le_derived = (rhs.le - lhs.ri) / val;
+                ri_derived = (rhs.ri - lhs.le) / val;
             } else {
-                le_derived = (rhs.ri - act1.le) / val;
-                ri_derived = (rhs.le - act1.ri) / val;
+                le_derived = (rhs.ri - lhs.le) / val;
+                ri_derived = (rhs.le - lhs.ri) / val;
             }
             if (model.GetIntegrality(el.index())) {
                 le_derived = Ceil(le_derived);
