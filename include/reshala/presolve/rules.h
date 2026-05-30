@@ -81,4 +81,11 @@ class Rule52 : public Rule {
                   Scalar scale2) const;
 };
 
+class Rule72 : public Rule {
+   public:
+    Rule72(RuleType t) : Rule(t) {}
+    RuleResult Apply(ModelTracker& tracker);
+    std::string Name() const { return "7.2 Probing"; }
+};
+
 }  // namespace reshala

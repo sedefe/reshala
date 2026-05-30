@@ -22,8 +22,8 @@ int main(int argc, char** argv) {
     std::cout << model.GetNCons() << " x " << model.GetNVars() << ", " << model.GetNnz() << " nnz\n";
 
     MilpSolver milp(model);
-    auto [sol, duration] = MEASURE_TIME(milp.Solve());
-    std::cout << "Solved in " << duration.count() / 1e3 << " ms\n";
+    auto [sol, t_solve] = MEASURE_TIME(milp.Solve());
+    std::cout << "Solved in " << t_solve << " ms\n";
 
     std::cout << "Status: " << LpStatus2Str(sol.status) << ", objective: " << FMT(-10, 5) << sol.y
               << "\n";

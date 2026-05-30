@@ -19,7 +19,7 @@ struct TestCase {
 
     Solution sol;     // Статус, решение и заявленный обжектив
     Scalar y_actual;  // А ну если подставить решение в копию модели
-    std::chrono::microseconds time;
+    Scalar time;
     FeasibilityReport report;
 };
 
@@ -104,7 +104,7 @@ int main() {
         fflush(stdout);
 
         RunTest(tc);
-        printf("%6.3f sec ", tc.time.count() / 1e6);
+        printf("%6.3f sec ", tc.time / 1e3);
 
         auto status = LpStatus2Str(tc.sol.status);
         printf("%12s ", status.c_str());

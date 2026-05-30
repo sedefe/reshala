@@ -12,6 +12,7 @@ Presolver::Presolver(MilpModel& model) : model_(model), tracker_(model) {
     rules_.push_back(std::make_unique<Rule41>(RuleType::kFast));
     rules_.push_back(std::make_unique<Rule44>(RuleType::kFast));
     rules_.push_back(std::make_unique<Rule52>(RuleType::kMedium));
+    rules_.push_back(std::make_unique<Rule72>(RuleType::kExhaustive));
 
     for (auto& rule : rules_) {
         RuleType type = rule->type;
@@ -31,7 +32,7 @@ LpStatus Presolver::Presolve() {
         PresolveStat round_stat = tracker_.stat;
         for (auto& rule : rule_map_[curr_level]) {
             PresolveStat rule_stat = tracker_.stat;
-            auto res = rule->Apply(tracker_);
+            auto [res, duration] = MEASURE_TIME(rule->Apply(tracker_));
             if (tracker_.ProvenInfeasible()) break;
             if (res == RuleResult::kReduced) {
                 changed = true;

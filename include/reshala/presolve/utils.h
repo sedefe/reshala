@@ -7,8 +7,8 @@ inline RuleType NextLevel(RuleType type) {
     switch (type) {
         case RuleType::kFast:
             return RuleType::kMedium;
-        // case RuleType::kMedium:  // no exhaustive yet
-        //     return RuleType::kExhaustive;
+        case RuleType::kMedium:
+            return RuleType::kExhaustive;
         default:
             return RuleType::kUnknown;
     }
