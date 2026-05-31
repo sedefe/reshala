@@ -22,28 +22,29 @@ Presolver::Presolver(MilpModel& model) : model_(model), tracker_(model) {
 
 LpStatus Presolver::Presolve() {
     RuleType curr_level = RuleType::kFast;
-    Index pass = 0;
+    RuleResult status = RuleResult::kUnknown;
 
     tracker_.CalcActivities();
 
     PrintHeader();
-    while (!tracker_.ProvenInfeasible()) {
+    while (status != RuleResult::kInfeasible) {
         bool changed = false;
-        PresolveStat round_stat = tracker_.stat;
         for (auto& rule : rule_map_[curr_level]) {
             PresolveStat rule_stat = tracker_.stat;
-            auto [res, duration] = MEASURE_TIME(rule->Apply(tracker_));
-            if (tracker_.ProvenInfeasible()) break;
-            if (res == RuleResult::kReduced) {
+            status = rule->Apply(tracker_);
+
+            if (status != RuleResult::kUnchanged) {
                 changed = true;
                 rule_stat = tracker_.stat - rule_stat;
                 PrintStat(*rule, rule_stat);
+            }
+            if (status == RuleResult::kInfeasible) {
+                break;
             }
         }
         if (tracker_.GetNDeletedCons() > 0) tracker_.CompressCons();
         if (tracker_.GetNDeletedVars() > 0) tracker_.CompressVars();
 
-        round_stat = tracker_.stat - round_stat;
         if (!changed) {
             curr_level = NextLevel(curr_level);
             if (curr_level == RuleType::kUnknown) break;
@@ -55,7 +56,7 @@ LpStatus Presolver::Presolve() {
     std::cout << "After presolve: " << model_.GetNCons() << " x " << model_.GetNVars() << ", "
               << model_.GetNnz() << " nnz\n";
 
-    if (tracker_.ProvenInfeasible()) {
+    if (status == RuleResult::kInfeasible) {
         std::cout << "Presolve proved infeasibility\n";
         return LpStatus::kInfeasible;
     }

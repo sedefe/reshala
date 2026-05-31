@@ -218,10 +218,6 @@ void ModelTracker::UpdVarBounds(Index iv, const Bounds& bnd) {
         activities_[el.index()].AddTerm(el.value(), bnd);
     }
     model_.SetBounds(iv, bnd);
-
-    if (model_.GetType(iv) == BndType::kInfeasible) {
-        infeasible_ = true;
-    }
     stat.n_ch_bnd++;
 }
 

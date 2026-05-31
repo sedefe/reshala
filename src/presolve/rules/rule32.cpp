@@ -37,6 +37,8 @@ RuleResult Rule32::Apply(ModelTracker& tracker) {
                 Bounds new_bnd = {std::max(bnd.le, le_derived), std::min(bnd.ri, ri_derived)};
                 tracker.UpdVarBounds(el.index(), new_bnd);
                 n_reduced++;
+
+                if (le_derived > ri_derived) return RuleResult::kInfeasible;
             }
         }
     }

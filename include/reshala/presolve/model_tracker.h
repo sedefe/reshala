@@ -64,9 +64,6 @@ class ModelTracker {
     inline Index GetOrigNVars() const { return orig_n_vars_; }
     inline const std::vector<Index>& GetOrigVarIdx() const { return orig_var_idx_; }
 
-    inline bool ProvenInfeasible() const { return infeasible_; }
-    inline void ClaimInfeasible() { infeasible_ = true; }
-
     inline const std::vector<std::unique_ptr<Transform>>& GetTransforms() const {
         return transforms_;
     }
@@ -74,8 +71,6 @@ class ModelTracker {
     Bounds DeriveBounds(Index ic, Index iv, Scalar val) const;
 
    private:
-    bool infeasible_ = false;
-
     MilpModel& model_;
 
     Index orig_n_vars_;

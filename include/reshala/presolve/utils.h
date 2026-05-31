@@ -14,7 +14,7 @@ inline RuleType NextLevel(RuleType type) {
     }
 }
 
-enum class RuleResult { kSkipped, kUnchanged, kReduced, kUnknown };
+enum class RuleResult { kSkipped, kUnchanged, kReduced, kInfeasible, kUnknown };
 
 struct PresolveStat {
     Index n_rm_con = 0;
