@@ -71,6 +71,8 @@ class ModelTracker {
         return transforms_;
     }
 
+    Bounds DeriveBounds(Index ic, Index iv, Scalar val) const;
+
    private:
     bool infeasible_ = false;
 

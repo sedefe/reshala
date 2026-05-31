@@ -264,4 +264,25 @@ void ModelTracker::ScaleRow(Index ic, Scalar x) {
     stat.n_ch_coeff++;
 }
 
+Bounds ModelTracker::DeriveBounds(Index ic, Index iv, Scalar val) const {
+    Bounds derived;
+    const Bounds& bnd = model_.GetBounds(iv);
+    const Bounds& rhs = model_.GetRhs(ic);
+    Activity act = activities_[ic];
+    act.RmTerm(val, bnd);
+    auto lhs = act.GetRange();
+    if (val > 0) {
+        derived.le = (rhs.le - lhs.ri) / val;
+        derived.ri = (rhs.ri - lhs.le) / val;
+    } else {
+        derived.le = (rhs.ri - lhs.le) / val;
+        derived.ri = (rhs.le - lhs.ri) / val;
+    }
+    if (model_.GetIntegrality(iv)) {
+        derived.le = Ceil(derived.le);
+        derived.ri = Floor(derived.ri);
+    }
+    return derived;
+}
+
 }  // namespace reshala
