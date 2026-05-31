@@ -68,7 +68,7 @@ class ModelTracker {
         return transforms_;
     }
 
-    Bounds DeriveBounds(Index ic, Index iv, Scalar val) const;
+    Bounds DeriveBounds(Index ic, Index iv, Activity act, const Bounds& bnd, Scalar val) const;
 
    private:
     MilpModel& model_;

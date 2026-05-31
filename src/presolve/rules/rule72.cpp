@@ -1,6 +1,7 @@
 #include <utility>
 
 #include "reshala/presolve/rules.h"
+
 namespace reshala {
 
 struct Bounder {
@@ -28,14 +29,13 @@ struct Bounder {
             Activity act = activities[ic];
             Bounds old_range = act.GetRange();
             act.RmTerm(val, old_bnd);
-            Bounds orange = act.GetRange();
             act.AddTerm(val, new_bnd);
             Bounds range = act.GetRange();
             if (StrongGt(range.le, range.ri)) {
                 return false;
             }
 
-            if (range.le != old_range.le or range.ri != old_range.ri) {
+            if (range.le != old_range.le or range.ri != old_range.ri) {  // todo weak comparison
                 activities[ic] = act;
                 changed_cons.push_back(ic);
             }
@@ -48,30 +48,14 @@ struct Bounder {
 
                 Scalar val = el.value();
                 const Bounds& bnd = var_bounds[iv1];
-                Activity act = activities[ic];
-                act.RmTerm(val, bnd);
-                const Bounds& lhs = act.GetRange();
-                const Bounds& rhs = model.GetRhs(ic);
-
-                Bounds derived;
-                if (val > 0) {
-                    derived.le = (rhs.le - lhs.ri) / val;
-                    derived.ri = (rhs.ri - lhs.le) / val;
-                } else {
-                    derived.le = (rhs.ri - lhs.le) / val;
-                    derived.ri = (rhs.le - lhs.ri) / val;
-                }
-                if (model.GetIntegrality(iv1)) {
-                    derived.le = Ceil(derived.le);
-                    derived.ri = Floor(derived.ri);
-                }
+                Bounds derived = tracker.DeriveBounds(ic, iv1, activities[ic], bnd, val);
 
                 if (StrongGt(derived.le, bnd.le) or StrongLt(derived.ri, bnd.ri)) {
                     Bounds new_bnd = {std::max(bnd.le, derived.le), std::min(bnd.ri, derived.ri)};
-                    if (StrongGt(new_bnd.le, new_bnd.ri)) {
+
+                    if (new_bnd.le > new_bnd.ri) {
                         return false;
                     }
-
                     var_bounds[iv1] = new_bnd;
                 }
             }
@@ -95,27 +79,38 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
             results[i] = bounders[i].Propagate(iv, {Scalar(i), Scalar(i)});
         }
 
+        if (!results[0] and !results[1]) {
+            // printf("Infeasible probing by x%d\n", iv);
+            return RuleResult::kInfeasible;
+        }
         if (!results[0]) {
-            if (!results[1]) {
-                // printf("Infeasible probing by x%d\n", iv);
-                return RuleResult::kInfeasible;
-            } else {
-                // printf("x%d -> 1\n", iv);
-                tracker.UpdVarBounds(iv, {Scalar(1), Scalar(1)});
-                n_reduced++;
-                continue;
-            }
-        } else {
-            if (!results[1]) {
-                // printf("x%d -> 0\n", iv);
-                tracker.UpdVarBounds(iv, {Scalar(0), Scalar(0)});
-                n_reduced++;
-                continue;
-            }
+            // printf("x%d -> 0\n", iv);
+            tracker.UpdVarBounds(iv, {Scalar(0), Scalar(0)});
+            n_reduced++;
+            continue;
+        }
+        if (!results[1]) {
+            // printf("x%d -> 1\n", iv);
+            tracker.UpdVarBounds(iv, {Scalar(1), Scalar(1)});
+            n_reduced++;
+            continue;
         }
 
         for (Index iv1 = 0; iv1 < model.GetNVars(); iv1++) {
-            if (iv1 == iv) continue;
+            const Bounds& bnd = model.GetBounds(iv1);
+            Bounds derived = {
+                std::min(bounders[0].var_bounds[iv1].le, bounders[1].var_bounds[iv1].le),
+                std::max(bounders[0].var_bounds[iv1].ri, bounders[1].var_bounds[iv1].ri),
+            };
+
+            if (StrongGt(derived.le, bnd.le) or StrongLt(derived.ri, bnd.ri)) {
+                Bounds new_bnd = {std::max(bnd.le, derived.le), std::min(bnd.ri, derived.ri)};
+                if (StrongGt(new_bnd.le, new_bnd.ri)) {
+                    return RuleResult::kInfeasible;
+                }
+                tracker.UpdVarBounds(iv1, derived);
+                n_reduced++;
+            }
         }
     }
 

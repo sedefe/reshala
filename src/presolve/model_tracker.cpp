@@ -260,11 +260,12 @@ void ModelTracker::ScaleRow(Index ic, Scalar x) {
     stat.n_ch_coeff++;
 }
 
-Bounds ModelTracker::DeriveBounds(Index ic, Index iv, Scalar val) const {
+Bounds ModelTracker::DeriveBounds(Index ic, Index iv, Activity act, const Bounds& bnd,
+                                  Scalar val) const {
+    // Todo: pass non-const bounds and modiry them
+    // We will modify the activity, so it is passed as a value
     Bounds derived;
-    const Bounds& bnd = model_.GetBounds(iv);
     const Bounds& rhs = model_.GetRhs(ic);
-    Activity act = activities_[ic];
     act.RmTerm(val, bnd);
     auto lhs = act.GetRange();
     if (val > 0) {
