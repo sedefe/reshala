@@ -43,6 +43,7 @@ class ModelTracker {
 
     void CalcActivities();
     Activity CalcActivity(Index ic) const;
+    inline const std::vector<Activity>& GetActivities() const { return activities_; }
     inline const Activity& GetActivity(Index ic) const { return activities_[ic]; }
     inline const Bounds GetConRange(Index ic) const { return activities_[ic].GetRange(); }
 

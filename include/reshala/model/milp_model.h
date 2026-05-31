@@ -47,7 +47,8 @@ class MilpModel {
     inline bool GetIntegrality(Index iv) const { return domain_.GetIntegrality(iv); }
     inline void SetIntegrality(Index iv, bool b) { domain_.SetIntegrality(iv, b); }
     inline bool IsBinary(Index iv) const {
-        return GetIntegrality(iv) && (domain_.GetBounds(iv).ri - domain_.GetBounds(iv).le == 1);
+        return GetIntegrality(iv) && (domain_.GetBounds(iv).ri == 1) &&
+               (domain_.GetBounds(iv).le == 0);
     }
 
     bool IsIntegerFeasible(const std::vector<Scalar>& x) const;

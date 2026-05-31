@@ -26,6 +26,7 @@ BndType Bounds2Type(const Bounds &bounds);
 
 class Domain {
    public:
+    inline const std::vector<Bounds> &GetBounds() const { return bounds_; }
     inline const Bounds &GetBounds(Index iv) const { return bounds_[iv]; }
     inline void SetBounds(Index iv, const Bounds &bnds) {
         bounds_[iv] = bnds;
