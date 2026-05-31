@@ -53,21 +53,21 @@ struct Bounder {
                 const Bounds& lhs = act.GetRange();
                 const Bounds& rhs = model.GetRhs(ic);
 
-                Scalar le_derived, ri_derived;  // Todo wrap along with 3.2 code
-                if (el.value() > 0) {
-                    le_derived = (rhs.le - lhs.ri) / val;
-                    ri_derived = (rhs.ri - lhs.le) / val;
+                Bounds derived;
+                if (val > 0) {
+                    derived.le = (rhs.le - lhs.ri) / val;
+                    derived.ri = (rhs.ri - lhs.le) / val;
                 } else {
-                    le_derived = (rhs.ri - lhs.le) / val;
-                    ri_derived = (rhs.le - lhs.ri) / val;
+                    derived.le = (rhs.ri - lhs.le) / val;
+                    derived.ri = (rhs.le - lhs.ri) / val;
                 }
-                if (model.GetIntegrality(el.index())) {
-                    le_derived = Ceil(le_derived);
-                    ri_derived = Floor(ri_derived);
+                if (model.GetIntegrality(iv1)) {
+                    derived.le = Ceil(derived.le);
+                    derived.ri = Floor(derived.ri);
                 }
 
-                if (StrongGt(le_derived, bnd.le) or StrongLt(ri_derived, bnd.ri)) {
-                    Bounds new_bnd = {std::max(bnd.le, le_derived), std::min(bnd.ri, ri_derived)};
+                if (StrongGt(derived.le, bnd.le) or StrongLt(derived.ri, bnd.ri)) {
+                    Bounds new_bnd = {std::max(bnd.le, derived.le), std::min(bnd.ri, derived.ri)};
                     if (StrongGt(new_bnd.le, new_bnd.ri)) {
                         return false;
                     }
