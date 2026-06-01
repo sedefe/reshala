@@ -2,13 +2,17 @@
 
 namespace reshala {
 
+BnbSolver::BnbSolver(MilpModel& model, DualSimplex& ds, MipState& mip_state)
+    : model_(model), ds_(ds), mip_state_(mip_state) {
+    // branching_ = std::make_unique<FullStrong>(model);
+    branching_ = std::make_unique<MostInfeasible>(model);
+}
+
 void BnbSolver::Solve(const Solution& relaxed) {
     Node root(1, relaxed, model_.GetDomain(), ds_.Store());
     nodes.push_back(root);
 
     while (!nodes.empty()) {
-        UpdDual();
-
         curr_node = std::move(nodes.back());
         nodes.pop_back();
         n_nodes_++;
@@ -18,13 +22,14 @@ void BnbSolver::Solve(const Solution& relaxed) {
             break;
         }
 
-        branching.Branch(curr_node, ds_);
-        DebugPrint();
+        auto num_ch = branching_->Branch(curr_node, ds_);
+        if (num_ch == 0) continue;
 
-        Index best = branching.FindBestChild();
-        auto children_ids = {1 - best, best};
+        Index best = branching_->FindBestChild();
+        auto children_ids =
+            (num_ch == 1) ? std::vector<Index>{best} : std::vector<Index>{1 - best, best};
         for (auto i : children_ids) {
-            const Node& child = branching.GetChild(i);
+            const Node& child = branching_->GetChild(i);
             if (child.sol.status != LpStatus::kOptimal) {
                 // Todo: run conflict analysis
                 continue;
@@ -39,6 +44,9 @@ void BnbSolver::Solve(const Solution& relaxed) {
                 }
             }
         }
+
+        UpdDual();
+        DebugPrint();
     }
 
     model_.SetDomain(root.domain);
@@ -64,9 +72,9 @@ void BnbSolver::DebugPrint() {
             << "===========================================================================\n";
     }
     std::cout << FMT(3, 5) << curr_node.level << " | " << FMT(6, 5) << ds_.GetNIter() << " | "
-              << FMT(10, 5) << branching.GetChild(0).sol.y << " | " << FMT(10, 5)
-              << branching.GetChild(1).sol.y << " | " << FMT(10, 5) << mip_state_.GetDual() << " | "
-              << FMT(10, 5) << mip_state_.GetPrimal() << " | " << FMT(7, 4)
+              << FMT(10, 5) << branching_->GetChild(0).sol.y << " | " << FMT(10, 5)
+              << branching_->GetChild(1).sol.y << " | " << FMT(10, 5) << mip_state_.GetDual()
+              << " | " << FMT(10, 5) << mip_state_.GetPrimal() << " | " << FMT(7, 4)
               << mip_state_.GetGap() * 1e2 << "\n"
               << FMT_DEFAULT;
 }

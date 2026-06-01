@@ -18,20 +18,21 @@ Index MostInfeasible::Branch(const Node& parent, DualSimplex& ds) {
     }
 
     Scalar x_floor = Floor(parent.sol.x[candidate]);
-    const Bounds& bnd = model_.GetBounds(candidate);
-    std::array<Bounds, 2> cand_bounds{{{bnd.le, x_floor}, {x_floor + 1, bnd.ri}}};
+    const Bounds orig_bnd = model_.GetBounds(candidate);
+    std::array<Bounds, 2> cand_bounds{{{orig_bnd.le, x_floor}, {x_floor + 1, orig_bnd.ri}}};
 
+    Index num_ch = 0;
     for (Index i = 0; i < 2; i++) {
         ds.Restore(parent.ds_state);
         model_.SetBounds(candidate, cand_bounds[i]);
-
         auto sol = ds.Solve(true);
-
         children_[i] = Node(parent.level + 1, sol, model_.GetDomain(), ds.Store());
-    }
-    model_.SetBounds(candidate, bnd);
 
-    return candidate;
+        num_ch += (sol.status == LpStatus::kOptimal);
+    }
+    model_.SetBounds(candidate, orig_bnd);
+
+    return num_ch;
 }
 
 }  // namespace reshala

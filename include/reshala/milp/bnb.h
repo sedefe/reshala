@@ -10,8 +10,7 @@ namespace reshala {
 
 class BnbSolver {
    public:
-    BnbSolver(MilpModel& model, DualSimplex& ds, MipState& mip_state)
-        : model_(model), ds_(ds), mip_state_(mip_state), branching(model) {}
+    BnbSolver(MilpModel& model, DualSimplex& ds, MipState& mip_state);
 
     void Solve(const Solution& relaxed);
 
@@ -24,7 +23,7 @@ class BnbSolver {
 
     Node curr_node;
 
-    MostInfeasible branching;
+    std::unique_ptr<AbstractBranching> branching_;
 
     void SolveRoot();
     void UpdDual();

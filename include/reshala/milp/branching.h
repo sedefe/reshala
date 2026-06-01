@@ -5,6 +5,8 @@
 
 namespace reshala {
 
+const Scalar kFsbMu = 1. / 6.;
+
 class AbstractBranching {
    public:
     AbstractBranching(MilpModel& model) : model_(model) {}
