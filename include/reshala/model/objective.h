@@ -46,18 +46,23 @@ class Objective {
             sense = -1.;
         }
         for (Index i = 0; i < obj.coefficients.size(); i++) {
-            if (obj.coefficients[i] != 0) {
-                if (!first_coeff) {
-                    os << " + ";
-                }
-                first_coeff = false;
-                os << sense * obj.coefficients[i] << " x" << i;
+            if (obj.coefficients[i] == 0) continue;
+            Scalar v = sense * obj.coefficients[i];
+
+            if (first_coeff) {
+                os << (v > 0 ? "" : "- ");
+            } else {
+                os << (v > 0 ? " + " : " - ");
+            }
+            first_coeff = false;
+
+            v = std::abs(v);
+            if (v == 1) {
+                os << "x" << i;
+            } else {
+                os << v << " x" << i;
             }
         }
-        if (obj.c0 != 0) {
-            os << " + " << obj.c0;
-        }
-
         return os;
     }
 };
