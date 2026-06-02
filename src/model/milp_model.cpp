@@ -60,7 +60,6 @@ void MilpModel::AddSlacks() {
     assert(!has_slacks_);
     has_slacks_ = true;
 
-    // Adding slacks
     auto m = GetNCons();
     auto n = GetNVars();
 
@@ -72,10 +71,10 @@ void MilpModel::AddSlacks() {
 }
 
 void MilpModel::PruneSlacks() {
-    if (has_slacks_) {
-        domain_.Resize(GetNVars());
-    }
+    assert(has_slacks_);
     has_slacks_ = false;
+
+    domain_.Resize(GetNVars());
 }
 
 void MilpModel::FinalizeAc() { Srm2Scm(Ar_, Ac_); }
