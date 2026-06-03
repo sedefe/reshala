@@ -6,8 +6,10 @@ namespace reshala {
 
 void Lina::Init() {
     Binv_.ResizeAsZero(m_, m_);
+    basis.resize(m_);
     for (Index iv = 0; iv < m_; iv++) {
         Binv_.RowView(iv)[iv] = 1;
+        basis[iv] = n_ + iv;
     }
 }
 
@@ -15,10 +17,22 @@ void Lina::Btran(Index iv, DenseVector& res) {
     res.assign(Binv_.RowView(iv), Binv_.RowView(iv) + m_);
 }
 
-void Lina::Ftran(const SparseVector& sv, DenseVector& res) { MulDmSv(Binv_, sv, res); }
+void Lina::Ftran(Index iv, DenseVector& res) {
+    if (iv < n_) {
+        MulDmSv(Binv_, Ac_->GetCol(iv), res);
+    } else {
+        MulDmSv(Binv_, SparseVector(m_, iv - n_, 1.0), res);
+    }
+}
 
-void Lina::Update(Index iv, const SparseVector& delta) {
-    const DenseVector row(Binv_.RowView(iv), Binv_.RowView(iv) + m_);
+void Lina::Update(Index iv_leaving, Index i_nb) {
+    Index i_b = basis[iv_leaving];
+    const SparseVector& leaving_col = i_b < n_ ? Ac_->GetCol(i_b) : SparseVector(m_, i_b - n_, 1.0);
+    const SparseVector& entering_col =
+        i_nb < n_ ? Ac_->GetCol(i_nb) : SparseVector(m_, i_nb - n_, 1.0);
+    const SparseVector delta = entering_col - leaving_col;
+
+    const DenseVector row(Binv_.RowView(iv_leaving), Binv_.RowView(iv_leaving) + m_);
     Scalar multiplier;
     dot(row, delta, multiplier);
     multiplier = 1 / (1 + multiplier);
@@ -33,6 +47,8 @@ void Lina::Update(Index iv, const SparseVector& delta) {
             Binv_.RowView(i)[el.index()] -= d[i] * el.value();
         }
     }
+
+    basis[iv_leaving] = i_nb;
 }
 
 }  // namespace reshala

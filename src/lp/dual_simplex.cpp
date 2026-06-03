@@ -5,7 +5,7 @@
 namespace reshala {
 
 DualSimplex::DualSimplex(MilpModel& model)
-    : model_(model), m(model_.GetNCons()), n(model_.GetNVars()), lina(m, m) {
+    : model_(model), m(model_.GetNCons()), n(model_.GetNVars()), lina(&model.GetAc(), m, n) {
     basis.resize(m);
     non_basis.resize(n);
     index2nb.resize(m + n);
@@ -215,27 +215,11 @@ void DualSimplex::Chuzc() {
     }
 }
 
-void DualSimplex::Ftran() {
-    if (non_basis[iv_entering] < n) {
-        lina.Ftran(model_.GetCol(non_basis[iv_entering]), a_q);
-    } else {
-        lina.Ftran(SparseVector(m, non_basis[iv_entering] - n, 1.0), a_q);
-    }
-}
+void DualSimplex::Ftran() { lina.Ftran(non_basis[iv_entering], a_q); }
 
 void DualSimplex::Update() {
-    DenseVector diff(m, 0.0);
-    DenseVector B_p(m, 0);
-
-    Index ib = basis[iv_leaving];
-    Index inb = non_basis[iv_entering];
-
-    const SparseVector& leaving_col = ib < n ? model_.GetCol(ib) : SparseVector(m, ib - n, 1.0);
-    const SparseVector& entering_col = inb < n ? model_.GetCol(inb) : SparseVector(m, inb - n, 1.0);
-
     {  // Update lina
-        const SparseVector delta = entering_col - leaving_col;
-        lina.Update(iv_leaving, delta);
+        lina.Update(iv_leaving, non_basis[iv_entering]);
     }
 
     auto x_q_old = GetXnValue(iv_entering);
