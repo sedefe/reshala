@@ -1,4 +1,4 @@
-#include "reshala/lina/dense_vector.h"
+#include "reshala/lina/core/dense_vector.h"
 
 #include "reshala/utils.h"
 

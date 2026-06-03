@@ -1,4 +1,4 @@
-#include "reshala/lina/sparse_matrix.h"
+#include "reshala/lina/core/sparse_matrix.h"
 
 namespace reshala {
 

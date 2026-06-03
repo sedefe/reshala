@@ -1,18 +1,19 @@
 #pragma once
 
-#include "reshala/lina/dense_matrix.h"
-#include "reshala/lina/sparse_matrix.h"
+#include "reshala/lina/basis.h"
+#include "reshala/lina/core/dense_matrix.h"
+#include "reshala/lina/core/sparse_matrix.h"
 
 namespace reshala {
 
 class Lina {
    public:
-    Lina(const SparseColMatrix* Ac = nullptr, Index m = 0, Index n = 0)
-        : Ac_(Ac), m_(m), n_(n), Binv_(m, m) {}
+    Lina() {}
+    Lina(const SparseColMatrix* Ac, Index m, Index n, const LpBasis* basis)
+        : Ac_(Ac), m_(m), n_(n), basis_(basis), Binv_(m, m) {
+        InitBinv();
+    }
     Lina& operator=(const Lina&) = default;
-
-    void Init();
-    void SetBasis(const std::vector<Index>&);
 
     void Btran(Index iv, DenseVector& res);
     void Ftran(Index iv, DenseVector& res);
@@ -22,8 +23,11 @@ class Lina {
     const SparseColMatrix* Ac_;
     Index m_;
     Index n_;
-    std::vector<Index> basis;
+
+    const LpBasis* basis_;
     DenseMatrix Binv_;
+
+    void InitBinv();
 };
 
 }  // namespace reshala

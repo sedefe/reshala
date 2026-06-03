@@ -7,14 +7,11 @@
 namespace reshala {
 
 struct DsState {
-    std::vector<Index> basis;
-    std::vector<Index> non_basis;
-    std::vector<Index> index2nb;
-
     DenseVector c_n;
     DenseVector x_b;
     std::vector<int8_t> d_n;
 
+    LpBasis basis;
     Lina lina;
 };
 
@@ -36,9 +33,7 @@ class DualSimplex {
     Index m, n;
     Index n_iter = 0;
 
-    std::vector<Index> basis;
-    std::vector<Index> non_basis;
-    std::vector<Index> index2nb;
+    LpBasis basis;
 
     DenseVector c_n;
     DenseVector x_b;

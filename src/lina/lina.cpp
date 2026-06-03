@@ -1,15 +1,13 @@
 #include "reshala/lina/lina.h"
 
-#include "reshala/lina/operators.h"
+#include "reshala/lina/core/operators.h"
 
 namespace reshala {
 
-void Lina::Init() {
+void Lina::InitBinv() {
     Binv_.ResizeAsZero(m_, m_);
-    basis.resize(m_);
     for (Index iv = 0; iv < m_; iv++) {
         Binv_.RowView(iv)[iv] = 1;
-        basis[iv] = n_ + iv;
     }
 }
 
@@ -25,8 +23,9 @@ void Lina::Ftran(Index iv, DenseVector& res) {
     }
 }
 
-void Lina::Update(Index iv_leaving, Index i_nb) {
-    Index i_b = basis[iv_leaving];
+void Lina::Update(Index iv_leaving, Index iv_entering) {
+    Index i_b = basis_->Basis()[iv_leaving];
+    Index i_nb = basis_->NonBasis()[iv_entering];
     const SparseVector& leaving_col = i_b < n_ ? Ac_->GetCol(i_b) : SparseVector(m_, i_b - n_, 1.0);
     const SparseVector& entering_col =
         i_nb < n_ ? Ac_->GetCol(i_nb) : SparseVector(m_, i_nb - n_, 1.0);
@@ -47,8 +46,6 @@ void Lina::Update(Index iv_leaving, Index i_nb) {
             Binv_.RowView(i)[el.index()] -= d[i] * el.value();
         }
     }
-
-    basis[iv_leaving] = i_nb;
 }
 
 }  // namespace reshala

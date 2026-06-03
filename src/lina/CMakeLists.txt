@@ -1,7 +1,7 @@
 target_sources(${PROJECT_NAME}-lib PRIVATE
-    dense_vector.cpp
+    core/dense_vector.cpp
+    core/operators.cpp
+    core/sparse_vector.cpp
+    core/sparse_matrix.cpp
     lina.cpp
-    operators.cpp
-    sparse_vector.cpp
-    sparse_matrix.cpp
 )
