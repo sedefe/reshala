@@ -55,20 +55,6 @@ void dot(const DenseVector& dv1, const DenseVector& dv2, Scalar& res) {
     }
 }
 
-void MulScmSv(const SparseColMatrix& scm, const SparseVector& sv, DenseVector& res) {
-    auto m = scm.GetNRows();
-    [[maybe_unused]] auto n = scm.GetNCols();
-    assert(n == sv.dim() && "Scm x Sv: incompatible sizes");
-
-    res.assign(m, Scalar(0));
-    for (SvIterator el_i(sv); el_i; ++el_i) {
-        const auto& col = scm.GetCol(el_i.index());
-        for (SvIterator el_j(col); el_j; ++el_j) {
-            res[el_j.index()] += el_i.value() * el_j.value();
-        }
-    }
-}
-
 void MulScmDv(const SparseColMatrix& scm, const DenseVector& dv, DenseVector& res) {
     auto m = scm.GetNRows();
     auto n = scm.GetNCols();
@@ -81,36 +67,6 @@ void MulScmDv(const SparseColMatrix& scm, const DenseVector& dv, DenseVector& re
         for (SvIterator el(col); el; ++el) {
             res[el.index()] += dv[i] * el.value();
         }
-    }
-}
-
-void MulDvDm(const DenseVector& dv, const DenseMatrix& dm, DenseVector& res) {
-    auto m = dm.GetNRows();
-    auto n = dm.GetNCols();
-    assert(m == dv.size() && "Dv x Dm: incompatible sizes");
-
-    res.assign(n, 0.0);
-    for (Index i = 0; i < m; i++) {
-        const Scalar* row = dm.RowView(i);
-        for (Index j = 0; j < n; j++) {
-            res[j] += row[j] * dv[i];
-        }
-    }
-}
-
-void MulDmDv(const DenseMatrix& dm, const DenseVector& dv, DenseVector& res) {
-    auto m = dm.GetNRows();
-    auto n = dm.GetNCols();
-    assert(n == dv.size() && "Dm x Dv: incompatible sizes");
-
-    res.assign(m, 0.0);
-    for (Index i = 0; i < m; i++) {
-        const Scalar* row = dm.RowView(i);
-        Scalar sum = 0.0;
-        for (Index j = 0; j < n; j++) {
-            sum += row[j] * dv[j];
-        }
-        res[i] = sum;
     }
 }
 
