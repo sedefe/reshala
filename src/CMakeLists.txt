@@ -1,6 +1,6 @@
 add_subdirectory(io)
 add_subdirectory(heuristics)
-add_subdirectory(linalg)
+add_subdirectory(lina)
 add_subdirectory(model)
 add_subdirectory(lp)
 add_subdirectory(milp)

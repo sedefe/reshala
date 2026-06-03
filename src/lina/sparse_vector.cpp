@@ -1,4 +1,4 @@
-#include "reshala/linalg/sparse_vector.h"
+#include "reshala/lina/sparse_vector.h"
 
 namespace reshala {
 

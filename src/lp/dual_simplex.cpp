@@ -1,11 +1,11 @@
 #include "reshala/lp/dual_simplex.h"
 
-#include "reshala/linalg/operators.h"
+#include "reshala/lina/operators.h"
 
 namespace reshala {
 
 DualSimplex::DualSimplex(MilpModel& model)
-    : model_(model), m(model_.GetNCons()), n(model_.GetNVars()), Binv(m, m) {
+    : model_(model), m(model_.GetNCons()), n(model_.GetNVars()), lina(m, m) {
     basis.resize(m);
     non_basis.resize(n);
     index2nb.resize(m + n);
@@ -18,7 +18,7 @@ DualSimplex::DualSimplex(MilpModel& model)
     n_iter = 0;
 }
 
-DsState DualSimplex::Store() const { return {basis, non_basis, index2nb, c_n, x_b, d_n, Binv}; }
+DsState DualSimplex::Store() const { return {basis, non_basis, index2nb, c_n, x_b, d_n, lina}; }
 
 void DualSimplex::Restore(const DsState& state) {
     basis = state.basis;
@@ -27,7 +27,7 @@ void DualSimplex::Restore(const DsState& state) {
     c_n = state.c_n;
     x_b = state.x_b;
     d_n = state.d_n;
-    Binv = state.Binv;
+    lina = state.lina;
 }
 
 void DualSimplex::Init() {
@@ -44,10 +44,7 @@ void DualSimplex::Init() {
         index2nb[iv] = iv;
     }
 
-    Binv.ResizeAsZero(m, m);
-    for (Index iv = 0; iv < m; iv++) {
-        Binv.RowView(iv)[iv] = 1;
-    }
+    lina.Init();
 
     c_n = model_.GetObj().coefficients;
 
@@ -172,7 +169,7 @@ void DualSimplex::Chuzr() {
     }
 }
 
-void DualSimplex::Btran() { e_p.assign(Binv.RowView(iv_leaving), Binv.RowView(iv_leaving) + m); }
+void DualSimplex::Btran() { lina.Btran(iv_leaving, e_p); }
 
 void DualSimplex::Price() {
     a_p.assign(n, 0.0);
@@ -220,9 +217,9 @@ void DualSimplex::Chuzc() {
 
 void DualSimplex::Ftran() {
     if (non_basis[iv_entering] < n) {
-        MulDmSv(Binv, model_.GetCol(non_basis[iv_entering]), a_q);
+        lina.Ftran(model_.GetCol(non_basis[iv_entering]), a_q);
     } else {
-        MulDmSv(Binv, SparseVector(m, non_basis[iv_entering] - n, 1.0), a_q);
+        lina.Ftran(SparseVector(m, non_basis[iv_entering] - n, 1.0), a_q);
     }
 }
 
@@ -236,23 +233,9 @@ void DualSimplex::Update() {
     const SparseVector& leaving_col = ib < n ? model_.GetCol(ib) : SparseVector(m, ib - n, 1.0);
     const SparseVector& entering_col = inb < n ? model_.GetCol(inb) : SparseVector(m, inb - n, 1.0);
 
-    {  // Update Binv
+    {  // Update lina
         const SparseVector delta = entering_col - leaving_col;
-        const DenseVector row(Binv.RowView(iv_leaving), Binv.RowView(iv_leaving) + m);
-        Scalar multiplier;
-        dot(row, delta, multiplier);
-        multiplier = 1 / (1 + multiplier);
-        SparseVector row_sv(row);
-        row_sv *= multiplier;
-
-        DenseVector d(m, 0);
-        MulDmSv(Binv, delta, d);
-
-        for (Index i = 0; i < m; i++) {
-            for (SvIterator el(row_sv); el; ++el) {
-                Binv.RowView(i)[el.index()] -= d[i] * el.value();
-            }
-        }
+        lina.Update(iv_leaving, delta);
     }
 
     auto x_q_old = GetXnValue(iv_entering);

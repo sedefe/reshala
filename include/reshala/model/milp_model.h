@@ -1,6 +1,6 @@
 #pragma once
 
-#include "reshala/linalg/sparse_matrix.h"
+#include "reshala/lina/sparse_matrix.h"
 #include "reshala/model/domain.h"
 #include "reshala/model/objective.h"
 #include "reshala/model/solution.h"

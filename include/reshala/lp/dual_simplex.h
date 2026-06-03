@@ -1,6 +1,6 @@
 #pragma once
 
-#include "reshala/linalg/dense_matrix.h"
+#include "reshala/lina/lina.h"
 #include "reshala/model/milp_model.h"
 #include "reshala/model/solution.h"
 
@@ -15,7 +15,7 @@ struct DsState {
     DenseVector x_b;
     std::vector<int8_t> d_n;
 
-    DenseMatrix Binv;
+    Lina lina;
 };
 
 class DualSimplex {
@@ -55,7 +55,7 @@ class DualSimplex {
 
     Index iv_leaving, iv_entering;
 
-    DenseMatrix Binv;
+    Lina lina;
 
     void Init();
     void Chuzr();

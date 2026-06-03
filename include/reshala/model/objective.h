@@ -1,8 +1,8 @@
 #pragma once
 
-#include "reshala/linalg/dense_vector.h"
-#include "reshala/linalg/operators.h"
-#include "reshala/linalg/sparse_vector.h"
+#include "reshala/lina/dense_vector.h"
+#include "reshala/lina/operators.h"
+#include "reshala/lina/sparse_vector.h"
 
 namespace reshala {
 

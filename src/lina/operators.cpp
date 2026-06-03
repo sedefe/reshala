@@ -1,4 +1,4 @@
-#include "reshala/linalg/operators.h"
+#include "reshala/lina/operators.h"
 
 #include <assert.h>
 
