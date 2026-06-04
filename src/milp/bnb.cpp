@@ -15,7 +15,12 @@ void BnbSolver::Solve(const Solution& relaxed) {
     while (!nodes.empty()) {
         curr_node = std::move(nodes.back());
         nodes.pop_back();
-        n_nodes_++;
+        stat.n_nodes++;
+        if (curr_node.sol.y >= mip_state_.GetCutoff()) {
+            stat.n_dropped++;
+            continue;
+        }
+
         model_.SetDomain(curr_node.domain);
 
         if (mip_state_.Converged()) {
@@ -63,7 +68,7 @@ void BnbSolver::UpdDual() {
 }
 
 void BnbSolver::DebugPrint() {
-    if (n_nodes_ % 50 == 1) {
+    if (stat.n_nodes % 50 == 1) {
         std::cout
             << "===========================================================================\n";
         std::cout

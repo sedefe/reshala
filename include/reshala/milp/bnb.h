@@ -8,6 +8,11 @@
 
 namespace reshala {
 
+struct BnbStat {
+    Index n_nodes = 0;
+    Index n_dropped = 0;
+};
+
 class BnbSolver {
    public:
     BnbSolver(MilpModel& model, DualSimplex& ds, MipState& mip_state);
@@ -18,8 +23,10 @@ class BnbSolver {
     MilpModel& model_;
     DualSimplex& ds_;
     MipState& mip_state_;
+
+    BnbStat stat;
+
     std::vector<Node> nodes;
-    Index n_nodes_ = 0;
 
     Node curr_node;
 
