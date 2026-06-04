@@ -13,21 +13,21 @@ class DenseMatrix {
     DenseMatrix() {}
     DenseMatrix(Index m, Index n) : m_(m), n_(n) { data_.resize(m * n); };
 
-    Index GetNRows() const { return m_; }
-    Index GetNCols() const { return n_; }
+    inline Index GetNRows() const { return m_; }
+    inline Index GetNCols() const { return n_; }
 
-    void ResizeAsZero(Index m, Index n) {
+    inline void ResizeAsZero(Index m, Index n) {
         m_ = m;
         n_ = n;
         data_.assign(m_ * n_, 0.0);
     }
 
-    Scalar* RowView(Index i) {
+    inline Scalar* RowView(Index i) {
         assert(i < m_);
         return data_.data() + i * n_;
     }
 
-    const Scalar* RowView(Index i) const {
+    inline const Scalar* RowView(Index i) const {
         assert(i < m_);
         return data_.data() + i * n_;
     }

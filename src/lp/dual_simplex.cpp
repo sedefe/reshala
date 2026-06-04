@@ -7,7 +7,7 @@ DualSimplex::DualSimplex(MilpModel& model)
       m(model_.GetNCons()),
       n(model_.GetNVars()),
       basis(m, n),
-      lina(&model.GetAc(), m, n, &basis) {
+      lina(&model.GetAc(), &model.GetAr(), &basis) {
     c_n.resize(n);
     x_b.resize(m);
     e_p.resize(m);
@@ -208,8 +208,8 @@ void DualSimplex::Update() {
     auto x_q_old = GetXnValue(iv_entering);
 
     {  // Update lina
-        lina.Update(iv_leaving, iv_entering);
         basis.Swap(iv_leaving, iv_entering);
+        lina.Update(iv_leaving, iv_entering);
     }
 
     {  // Update c_n

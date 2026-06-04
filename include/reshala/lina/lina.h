@@ -9,8 +9,8 @@ namespace reshala {
 class Lina {
    public:
     Lina() {}
-    Lina(const SparseColMatrix* Ac, Index m, Index n, const LpBasis* basis)
-        : Ac_(Ac), m_(m), n_(n), basis_(basis), Binv_(m, m) {
+    Lina(const SparseColMatrix* Ac, const SparseRowMatrix* Ar, const LpBasis* basis)
+        : Ac_(Ac), Ar_(Ar), m(Ac->GetNRows()), n(Ac->GetNCols()), basis_(basis), Binv_(m, m) {
         InitBinv();
     }
     Lina& operator=(const Lina&) = default;
@@ -21,13 +21,17 @@ class Lina {
 
    private:
     const SparseColMatrix* Ac_;
-    Index m_;
-    Index n_;
+    const SparseRowMatrix* Ar_;
+    Index m;
+    Index n;
 
     const LpBasis* basis_;
     DenseMatrix Binv_;
 
+    Index n_updates_;
+
     void InitBinv();
+    bool Reinvert();
 };
 
 }  // namespace reshala
