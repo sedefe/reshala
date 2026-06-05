@@ -21,10 +21,9 @@ RuleResult Rule32::Apply(ModelTracker& tracker) {
 
             if (StrongGt(derived.le, bnd.le) or StrongLt(derived.ri, bnd.ri)) {
                 Bounds new_bnd = {std::max(bnd.le, derived.le), std::min(bnd.ri, derived.ri)};
+                if (new_bnd.le > new_bnd.ri) return RuleResult::kInfeasible;
                 tracker.UpdVarBounds(el.index(), new_bnd);
                 n_reduced++;
-
-                if (derived.le > derived.ri) return RuleResult::kInfeasible;
             }
         }
     }
