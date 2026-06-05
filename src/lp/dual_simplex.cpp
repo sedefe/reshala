@@ -2,6 +2,11 @@
 
 namespace reshala {
 
+std::ostream& operator<<(std::ostream& os, const DsStats& stats) {
+    os << "Lp iters: " << stats.n_iter << "\n";
+    return os;
+}
+
 DualSimplex::DualSimplex(MilpModel& model)
     : model_(model),
       m(model_.GetNCons()),
@@ -14,7 +19,6 @@ DualSimplex::DualSimplex(MilpModel& model)
     a_p.resize(n);
     a_q.resize(m);
     d_n.resize(n);
-    n_iter = 0;
 }
 
 DsState DualSimplex::Store() const { return {c_n, x_b, d_n, basis, lina}; }
@@ -80,7 +84,7 @@ Solution DualSimplex::Solve(bool warm) {
     }
 
     while (true) {
-        n_iter += 1;
+        stats.n_iter += 1;
         // DebugPrint();
 
         Chuzr();
@@ -272,7 +276,7 @@ void DualSimplex::DebugPrint() {
     }
     auto res = model_.PrepareSolution(LpStatus::kOptimal, x);
 
-    std::cout << "===== " << n_iter << " y=" << res.y << " =====\n";
+    std::cout << "===== " << stats.n_iter << " y=" << res.y << " =====\n";
     std::cout << "Basis   : ";
     for (auto ic : basis.Basis()) std::cout << ic << " ";
     std::cout << "\n";

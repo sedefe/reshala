@@ -15,6 +15,11 @@ struct DsState {
     Lina lina;
 };
 
+struct DsStats {
+    Index n_iter = 0;
+};
+std::ostream& operator<<(std::ostream& os, const DsStats& stats);
+
 class DualSimplex {
     Scalar kPivotTolerance = 1e-6;
 
@@ -22,7 +27,7 @@ class DualSimplex {
     DualSimplex(MilpModel& model);
     Solution Solve(bool warm);
 
-    Index GetNIter() const { return n_iter; }
+    inline const DsStats& GetStats() const { return stats; }
 
     DsState Store() const;
     void Restore(const DsState& state);
@@ -30,8 +35,9 @@ class DualSimplex {
    private:
     MilpModel& model_;
 
+    DsStats stats;
+
     Index m, n;
-    Index n_iter = 0;
 
     LpBasis basis;
 

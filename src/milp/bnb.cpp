@@ -2,6 +2,11 @@
 
 namespace reshala {
 
+std::ostream& operator<<(std::ostream& os, const BnbStats& stats) {
+    os << "B&B: " << stats.n_nodes << " nodes visited, " << stats.n_dropped << " dropped\n";
+    return os;
+}
+
 BnbSolver::BnbSolver(MilpModel& model, DualSimplex& ds, MipState& mip_state)
     : model_(model), ds_(ds), mip_state_(mip_state) {
     // branching_ = std::make_unique<FullStrong>(model);
@@ -15,9 +20,9 @@ void BnbSolver::Solve(const Solution& relaxed) {
     while (!nodes.empty()) {
         curr_node = std::move(nodes.back());
         nodes.pop_back();
-        stat.n_nodes++;
+        stats.n_nodes++;
         if (curr_node.sol.y >= mip_state_.GetCutoff()) {
-            stat.n_dropped++;
+            stats.n_dropped++;
             continue;
         }
 
@@ -68,7 +73,7 @@ void BnbSolver::UpdDual() {
 }
 
 void BnbSolver::DebugPrint() {
-    if (stat.n_nodes % 50 == 1) {
+    if (stats.n_nodes % 50 == 1) {
         std::cout
             << "===========================================================================\n";
         std::cout
@@ -76,8 +81,8 @@ void BnbSolver::DebugPrint() {
         std::cout
             << "===========================================================================\n";
     }
-    std::cout << FMT(3, 5) << curr_node.level << " | " << FMT(6, 5) << ds_.GetNIter() << " | "
-              << FMT(10, 5) << branching_->GetChild(0).sol.y << " | " << FMT(10, 5)
+    std::cout << FMT(3, 5) << curr_node.level << " | " << FMT(6, 5) << ds_.GetStats().n_iter
+              << " | " << FMT(10, 5) << branching_->GetChild(0).sol.y << " | " << FMT(10, 5)
               << branching_->GetChild(1).sol.y << " | " << FMT(10, 5) << mip_state_.GetDual()
               << " | " << FMT(10, 5) << mip_state_.GetPrimal() << " | " << FMT(7, 4)
               << mip_state_.GetGap() * 1e2 << "\n"

@@ -18,7 +18,7 @@ Solution MilpSolver::Solve() {
 
     ds.emplace(model);
     auto [sol, t_root] = MEASURE_TIME(ds->Solve(false));
-    std::cout << "Root LP: " << sol.y << ", " << t_root << " ms, " << ds->GetNIter()
+    std::cout << "Root LP: " << sol.y << ", " << t_root << " ms, " << ds->GetStats().n_iter
               << " iterations\n";
 
     mip_state.TestPrimal(sol);

@@ -8,10 +8,11 @@
 
 namespace reshala {
 
-struct BnbStat {
+struct BnbStats {
     Index n_nodes = 0;
     Index n_dropped = 0;
 };
+std::ostream& operator<<(std::ostream& os, const BnbStats& stats);
 
 class BnbSolver {
    public:
@@ -19,12 +20,14 @@ class BnbSolver {
 
     void Solve(const Solution& relaxed);
 
+    inline const BnbStats& GetStats() const { return stats; }
+
    private:
     MilpModel& model_;
     DualSimplex& ds_;
     MipState& mip_state_;
 
-    BnbStat stat;
+    BnbStats stats;
 
     std::vector<Node> nodes;
 
