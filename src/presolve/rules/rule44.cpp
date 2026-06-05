@@ -24,7 +24,7 @@ RuleResult Rule44::Apply(ModelTracker& tracker) {
                 eligible_down &= el.value() <= 0;
                 eligible_up &= el.value() >= 0;
             }
-            if (rhs.le != -kInf or rhs.ri != kInf) {
+            if (rhs.le != -kInf and rhs.ri != kInf) {
                 eligible_down = eligible_up = false;
             }
         }
