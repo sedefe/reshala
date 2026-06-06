@@ -14,7 +14,7 @@ RuleResult Rule31::Apply(ModelTracker& tracker) {
         bool is_int = model.RowIsInteger(ic);  // Todo: store this
 
         if (is_int) {  // Сначала это, т.к. потом сразу сможем вывести противоречие, если будет
-            Bounds rounded = {Ceil(rhs.le), Floor(rhs.ri)};
+            Bounds rounded = {WeakCeil(rhs.le), WeakFloor(rhs.ri)};
             if (rhs.le != rounded.le or rhs.ri != rounded.ri) {
                 tracker.UpdRhs(ic, rounded);
                 n_reduced++;

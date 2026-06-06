@@ -276,8 +276,8 @@ Bounds ModelTracker::DeriveBounds(Index ic, Index iv, Activity act, const Bounds
         derived.ri = (rhs.le - lhs.ri) / val;
     }
     if (model_.GetIntegrality(iv)) {
-        derived.le = Ceil(derived.le);
-        derived.ri = Floor(derived.ri);
+        derived.le = WeakCeil(derived.le);
+        derived.ri = WeakFloor(derived.ri);
     }
     return derived;
 }
