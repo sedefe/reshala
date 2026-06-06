@@ -7,13 +7,13 @@ namespace reshala {
 void Lina::InitBinv() {
     Binv_.ResizeAsZero(m, m);
     for (Index iv = 0; iv < m; iv++) {
-        Binv_.RowView(iv)[iv] = 1;
+        Binv_[iv][iv] = 1;
     }
     n_updates_ = 0;
 }
 
 void Lina::Btran(Index iv, DenseVector& res) {
-    res.assign(Binv_.RowView(iv), Binv_.RowView(iv) + m);
+    res.assign(Binv_[iv], Binv_[iv] + m);
 }
 
 void Lina::Ftran(Index iv, DenseVector& res) {
@@ -34,7 +34,7 @@ void Lina::Update(Index iv_leaving, Index iv_entering) {
     const SparseVector& leaving_col = i_nb < n ? Ac_->GetCol(i_nb) : SparseVector(m, i_nb - n, 1.0);
     const SparseVector delta = entering_col - leaving_col;
 
-    const DenseVector row(Binv_.RowView(iv_leaving), Binv_.RowView(iv_leaving) + m);
+    const DenseVector row(Binv_[iv_leaving], Binv_[iv_leaving] + m);
     Scalar multiplier;
     dot(row, delta, multiplier);
     multiplier = 1 / (1 + multiplier);
@@ -46,7 +46,7 @@ void Lina::Update(Index iv_leaving, Index iv_entering) {
 
     for (Index i = 0; i < m; i++) {
         for (SvIterator el(row_sv); el; ++el) {
-            Binv_.RowView(i)[el.index()] -= d[i] * el.value();
+            Binv_[i][el.index()] -= d[i] * el.value();
         }
     }
 }
@@ -58,10 +58,10 @@ bool Lina::Reinvert() {
         if (i_b < n) {
             const auto& col = Ac_->GetCol(i_b);
             for (SvIterator el(col); el; ++el) {
-                Binv_.RowView(el.index())[iv] = el.value();
+                Binv_[el.index()][iv] = el.value();
             }
         } else {
-            Binv_.RowView(i_b - n)[iv] = 1.0;
+            Binv_[i_b - n][iv] = 1.0;
         }
     }
 

@@ -22,12 +22,12 @@ class DenseMatrix {
         data_.assign(m_ * n_, 0.0);
     }
 
-    inline Scalar* RowView(Index i) {
+    inline Scalar* operator[](Index i) {
         assert(i < m_);
         return data_.data() + i * n_;
     }
 
-    inline const Scalar* RowView(Index i) const {
+    inline const Scalar* operator[](Index i) const {
         assert(i < m_);
         return data_.data() + i * n_;
     }

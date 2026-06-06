@@ -78,7 +78,7 @@ void MulDmSv(const DenseMatrix& dm, const SparseVector& sv, DenseVector& res) {
     assert(n == sv.dim() && "Dm x Sv: incompatible sizes");
 
     for (Index i = 0; i < m; i++) {
-        const Scalar* row = dm.RowView(i);
+        const Scalar* row = dm[i];
         dot(row, sv, res[i]);
     }
 }
@@ -96,7 +96,7 @@ bool Invert(DenseMatrix& dm) {
         Scalar max_val = 0.0;
         Index pivot = k;
         for (Index i = k; i < m; ++i) {
-            Scalar val = std::abs(dm.RowView(i)[k]);
+            Scalar val = std::abs(dm[i][k]);
             if (val > max_val) {
                 max_val = val;
                 pivot = i;
@@ -105,16 +105,16 @@ bool Invert(DenseMatrix& dm) {
         if (max_val < kPivotEps) return false;  // singular matrix
 
         if (pivot != k) {
-            Scalar* row_k = dm.RowView(k);
-            Scalar* row_p = dm.RowView(pivot);
+            Scalar* row_k = dm[k];
+            Scalar* row_p = dm[pivot];
             for (Index j = 0; j < m; ++j) std::swap(row_k[j], row_p[j]);
             std::swap(perm[k], perm[pivot]);
         }
 
-        Scalar* row_k = dm.RowView(k);
+        Scalar* row_k = dm[k];
         const Scalar diag = row_k[k];
         for (Index i = k + 1; i < m; ++i) {
-            Scalar* row_i = dm.RowView(i);
+            Scalar* row_i = dm[i];
             const Scalar mult = row_i[k] / diag;
             row_i[k] = mult;
             for (Index j = k + 1; j < m; ++j) {
@@ -137,7 +137,7 @@ bool Invert(DenseMatrix& dm) {
         for (Index i = 0; i < m; ++i) {
             Scalar sum = 0.0;
             for (Index k = 0; k < i; ++k) {
-                sum += dm.RowView(i)[k] * y[k];
+                sum += dm[i][k] * y[k];
             }
             y[i] = rhs[i] - sum;
         }
@@ -146,9 +146,9 @@ bool Invert(DenseMatrix& dm) {
         for (Index i = m - 1; i >= 0; --i) {
             Scalar sum = 0.0;
             for (Index k = i + 1; k < m; ++k) {
-                sum += dm.RowView(i)[k] * x[k];
+                sum += dm[i][k] * x[k];
             }
-            const Scalar diag = dm.RowView(i)[i];
+            const Scalar diag = dm[i][i];
             if (std::abs(diag) <= kPivotEps) return false;
             x[i] = (y[i] - sum) / diag;
         }
@@ -160,7 +160,7 @@ bool Invert(DenseMatrix& dm) {
     }
 
     // ---------- 3. Copy temporary buffer back into the original matrix ----------
-    std::memcpy(dm.RowView(0), inv.data(), m * m * sizeof(Scalar));
+    std::memcpy(dm[0], inv.data(), m * m * sizeof(Scalar));
 
     return true;
 }
