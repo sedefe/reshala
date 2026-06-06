@@ -12,6 +12,14 @@ Index MilpModel::GetNnz() const {
     return res;
 }
 
+bool MilpModel::RowIsInteger(Index ic) const {
+    for (SvIterator el(Ar_.GetRow(ic)); el; ++el) {
+        if (!GetIntegrality(el.index())) return false;
+        if (GetFraction(el.value()) > 0.0) return false;
+    }
+    return true;
+}
+
 bool MilpModel::IsIntegerFeasible(const std::vector<Scalar>& x) const {
     assert(x.size() == GetNVars());
     for (Index iv = 0; iv < GetNVars(); iv++) {

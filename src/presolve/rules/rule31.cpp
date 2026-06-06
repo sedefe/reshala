@@ -11,6 +11,15 @@ RuleResult Rule31::Apply(ModelTracker& tracker) {
 
         const Bounds& lhs = tracker.GetConRange(ic);
         const Bounds& rhs = model.GetRhs(ic);
+        bool is_int = model.RowIsInteger(ic);  // Todo: store this
+
+        if (is_int) {  // Сначала это, т.к. потом сразу сможем вывести противоречие, если будет
+            Bounds rounded = {Ceil(rhs.le), Floor(rhs.ri)};
+            if (rhs.le != rounded.le or rhs.ri != rounded.ri) {
+                tracker.UpdRhs(ic, rounded);
+                n_reduced++;
+            }
+        }
 
         if (StrongGt(lhs.le, rhs.ri) or StrongLt(lhs.ri, rhs.le)) {
             return RuleResult::kInfeasible;

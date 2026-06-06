@@ -51,6 +51,7 @@ class MilpModel {
                (domain_.GetBounds(iv).le == 0);
     }
 
+    bool RowIsInteger(Index ic) const;
     bool IsIntegerFeasible(const std::vector<Scalar>& x) const;
     FeasibilityReport GetFeasReport(const std::vector<Scalar>& x) const;
 
