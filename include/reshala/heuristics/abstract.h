@@ -15,12 +15,12 @@ class AbstractHeuristic {
         std::cout << "Running " << name_ << "\n";
 
         auto [sol, t_heur] = MEASURE_TIME(InternalRun(model, relaxed, mip_state));
-        std::cout << "Finished in " << t_heur << " ms\n";
+        std::cout << "Finished in " << t_heur << " ms: ";
 
         if (sol.status == LpStatus::kOptimal) {
-            std::cout << "Found solution " << FMT(-10, 5) << sol.y << "\n";
+            std::cout << "found solution " << FMT(-10, 5) << sol.y << "\n";
         } else {
-            std::cout << "Did not find any solution\n";
+            std::cout << "did not find any solution\n";
         }
         return sol;
     }
