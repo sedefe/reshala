@@ -7,9 +7,7 @@
 
 namespace reshala {
 
-Index FullStrong::Branch(const Node& parent, DualSimplex& ds) {
-    const Scalar mu = 0.5;
-
+Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
     Index candidate = -1;
     bool have_1ch_cand = false;
     Scalar best_score = -kInf;
@@ -40,8 +38,7 @@ Index FullStrong::Branch(const Node& parent, DualSimplex& ds) {
 
         // Если у кандидата нет детей, дропаем всю ноду.
         if (statuses[0] != LpStatus::kOptimal and statuses[1] != LpStatus::kOptimal) {
-            candidate = iv;
-            break;
+            return 0;
         }
 
         Scalar score;

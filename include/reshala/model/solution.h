@@ -16,4 +16,6 @@ struct Solution {
     std::vector<Scalar> x;
 };
 
+inline Solution InfeasibleSolution() { return {LpStatus::kInfeasible, kInf, {}}; }
+
 }  // namespace reshala

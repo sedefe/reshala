@@ -10,7 +10,7 @@ const Scalar kFsbMu = 1. / 6.;
 class AbstractBranching {
    public:
     AbstractBranching(MilpModel& model) : model_(model) {}
-    virtual Index Branch(const Node& parent, DualSimplex& ds) = 0;
+    virtual Index Branch(Node& parent, DualSimplex& ds) = 0;
 
     inline const Node& GetChild(Index i) const { return children_[i]; }
 
@@ -31,13 +31,19 @@ class AbstractBranching {
 class MostInfeasible : public AbstractBranching {
    public:
     MostInfeasible(MilpModel& model) : AbstractBranching(model) {}
-    Index Branch(const Node& parent, DualSimplex& ds) override;
+    Index Branch(Node& parent, DualSimplex& ds) override;
 };
 
 class FullStrong : public AbstractBranching {
    public:
     FullStrong(MilpModel& model) : AbstractBranching(model) {}
-    Index Branch(const Node& parent, DualSimplex& ds) override;
+    Index Branch(Node& parent, DualSimplex& ds) override;
+};
+
+class FullStrongDomProp : public AbstractBranching {
+   public:
+    FullStrongDomProp(MilpModel& model) : AbstractBranching(model) {}
+    Index Branch(Node& parent, DualSimplex& ds) override;
 };
 
 }  // namespace reshala

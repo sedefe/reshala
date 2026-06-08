@@ -13,8 +13,14 @@ BnbSolver::BnbSolver(MilpModel& model, DualSimplex& ds, MipState& mip_state)
     branching_ = std::make_unique<MostInfeasible>(model);
 }
 
+void BnbSolver::SolveRoot(Node& root) {
+    FullStrongDomProp branching(model_);
+    branching.Branch(root, ds_);
+}
+
 void BnbSolver::Solve(const Solution& relaxed) {
     Node root(1, relaxed, model_.GetDomain(), ds_.Store());
+    SolveRoot(root);
     nodes.push_back(root);
 
     while (!nodes.empty()) {

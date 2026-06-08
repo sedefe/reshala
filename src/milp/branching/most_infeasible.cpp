@@ -4,7 +4,7 @@
 
 namespace reshala {
 
-Index MostInfeasible::Branch(const Node& parent, DualSimplex& ds) {
+Index MostInfeasible::Branch(Node& parent, DualSimplex& ds) {
     Index candidate = -1;
     Scalar max_fraction = -kInf;
 

@@ -19,7 +19,7 @@ struct Node {
 
 class MipState {
    public:
-    MipState(const MilpModel& model, const Solution best_sol = {LpStatus::kInfeasible, kInf, {}},
+    MipState(const MilpModel& model, const Solution best_sol = InfeasibleSolution(),
              Scalar dual = -kInf)
         : model_(model), best_sol_(best_sol), dual_(dual) {
         int_obj_ = ObjIsInteger();

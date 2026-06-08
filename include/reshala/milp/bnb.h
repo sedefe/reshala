@@ -2,7 +2,6 @@
 
 #include "reshala/logging.h"
 #include "reshala/lp/dual_simplex.h"
-#include "reshala/milp/bnb.h"
 #include "reshala/milp/branching.h"
 #include "reshala/milp/utils.h"
 
@@ -35,7 +34,7 @@ class BnbSolver {
 
     std::unique_ptr<AbstractBranching> branching_;
 
-    void SolveRoot();
+    void SolveRoot(Node& root);
     void UpdDual();
 
     void DebugPrint();

@@ -70,7 +70,7 @@ LpStatus Presolver::Presolve() {
 
 Solution Presolver::Postsolve(const Solution& sol) {
     if (sol.status != LpStatus::kOptimal) {
-        return {sol.status, kInf, {}};
+        return InfeasibleSolution();
     }
 
     Solution res = sol;
