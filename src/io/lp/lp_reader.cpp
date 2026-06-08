@@ -155,6 +155,11 @@ void LpReader::ParseConstraint(const std::vector<std::string>& tokens) {
 
 void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
     size_t n = tokens.size();
+    if (n == 2 and tokens[1] == "Free") {
+        Index index = names_.vars.get_index(tokens[0]);
+        model_.SetBounds(index, {-kInf, kInf});
+        return;
+    }
     if (n != 3 and n != 5) ThrowParseError("Can't parse bounds");
 
     Index i_var = n - 3;  // 0 for "x <= 1", 2 for "0 <= x <= 1"
@@ -225,29 +230,78 @@ void sort_monoms(std::vector<Monom>& monoms) {
               [](const Monom& a, const Monom& b) { return a.index < b.index; });
 }
 
+// <expression> ::= [sign] <monom> { ('+' | '-') <monom> }
+// <monom>      ::= [number] <variable>
 void LpReader::ParseLincomb(const std::vector<std::string>& tokens, std::vector<Monom>& lhs,
                             Index begin, Index end) {
-    Scalar sign = 1.0;
-    Scalar coeff = 1.0;
+    enum State { kExpectOperand, kExpectVariable, kExpectOperator };
+    State state = kExpectOperand;
+    Scalar sign = 1.0;        // sign of the current monom
+    Scalar coeff = 1.0;       // coefficient (if a number was seen)
+    bool have_sign = false;   // whether we already set a sign for this monom
+    bool has_number = false;  // whether we already parsed a number
 
-    Index i;
-    for (i = begin; i < end; ++i) {
+    if (begin == end) return;  // Empty one
+    for (Index i = begin; i < end; ++i) {
         const std::string& token = tokens[i];
 
-        if (token == "+") {
-            sign = 1.0;
-        } else if (token == "-") {
-            sign = -1.0;
+        if (token == "+" || token == "-") {
+            if (state == kExpectOperator) {
+                // Valid operator between monoms – start a new monom
+                sign = (token == "+") ? 1.0 : -1.0;
+                have_sign = true;
+                coeff = 1.0;
+                has_number = false;
+                state = kExpectOperand;
+            } else if (state == kExpectOperand) {
+                // Sign at the beginning of a monom (allowed only once)
+                if (have_sign) ThrowParseError("Double operator at token " + std::to_string(i));
+                sign = (token == "+") ? 1.0 : -1.0;
+                have_sign = true;
+                // remain in kExpectOperand, still need a variable or number
+            } else {
+                ThrowParseError("Token " + std::to_string(i) + ": expected variable name, got \"" +
+                                token + "\"");
+            }
         } else if (isdigit(token[0]) || token[0] == '-' || token[0] == '.') {
+            // Number token
+            // Allow implicit '+' when a number follows a variable
+            if (state == kExpectOperator) {
+                // Implicit plus: start a new monom
+                sign = 1.0;
+                have_sign = false;
+                coeff = 1.0;
+                has_number = false;
+                state = kExpectOperand;
+            }
+            if (state != kExpectOperand) {
+                ThrowParseError("Token " + std::to_string(i) + ": expected operand, got \"" +
+                                token + "\"");
+            }
             coeff = std::stod(token);
+            has_number = true;
+            state = kExpectVariable;
         } else {
+            // Variable token
+            if (state == kExpectOperator)
+                ThrowParseError("Token " + std::to_string(i) + ": expected operator, got \"" +
+                                token + "\"");
+
             size_t idx = names_.vars.get_index(token);
             lhs.push_back({sign * coeff, idx});
 
+            // Reset
             sign = 1.0;
             coeff = 1.0;
+            have_sign = false;
+            has_number = false;
+            state = kExpectOperator;
         }
     }
+
+    // Valid expression must end right after a variable
+    if (state != kExpectOperator) ThrowParseError("Unexpected end of a linear combination");
+
     sort_monoms(lhs);
 }
 
