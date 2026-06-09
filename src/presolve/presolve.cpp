@@ -53,8 +53,7 @@ LpStatus Presolver::Presolve() {
         }
     }
 
-    std::cout << "After presolve: " << model_.GetNCons() << " x " << model_.GetNVars() << ", "
-              << model_.GetNnz() << " nnz\n";
+    std::cout << "After presolve: " << model_.StatString() << "\n";
 
     if (status == RuleResult::kInfeasible) {
         std::cout << "Presolve proved infeasibility\n";

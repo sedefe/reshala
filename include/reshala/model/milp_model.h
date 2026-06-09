@@ -12,12 +12,17 @@ class MilpModel {
    public:
     MilpModel() {}
 
-    Index GetNCons() const { return Ac_.GetNRows(); }
-    Index GetNVars() const { return Ac_.GetNCols(); }
+    inline Index GetNCons() const { return Ac_.GetNRows(); }
+    inline Index GetNVars() const { return Ac_.GetNCols(); }
     Index GetNnz() const;
+    Index GetNInts() const {
+        Index res = 0;
+        for (Index iv = 0; iv < GetNVars(); iv++) res += domain_.GetIntegrality(iv);
+        return res;
+    }
 
-    const Objective& GetObj() const { return obj_; }
-    Objective& GetObj() { return obj_; }
+    inline const Objective& GetObj() const { return obj_; }
+    inline Objective& GetObj() { return obj_; }
 
     inline const SparseColMatrix& GetAc() const { return Ac_; }
     inline SparseColMatrix& GetAc() { return Ac_; }
@@ -29,13 +34,13 @@ class MilpModel {
     inline const SparseVector& GetRow(Index i) const { return Ar_.GetRow(i); }
     inline SparseVector& GetRow(Index i) { return Ar_.GetRow(i); }
 
-    const std::vector<Bounds>& GetRhs() const { return rhs_; }
-    std::vector<Bounds>& GetRhs() { return rhs_; }
-    const Bounds& GetRhs(Index ic) const { return rhs_[ic]; }
-    Bounds& GetRhs(Index ic) { return rhs_[ic]; }
+    inline const std::vector<Bounds>& GetRhs() const { return rhs_; }
+    inline std::vector<Bounds>& GetRhs() { return rhs_; }
+    inline const Bounds& GetRhs(Index ic) const { return rhs_[ic]; }
+    inline Bounds& GetRhs(Index ic) { return rhs_[ic]; }
 
-    const Domain& GetVars() const { return domain_; }
-    Domain& GetVars() { return domain_; }
+    inline const Domain& GetVars() const { return domain_; }
+    inline Domain& GetVars() { return domain_; }
 
     inline const Domain& GetDomain() const { return domain_; }
     inline Domain& GetDomain() { return domain_; }
@@ -76,6 +81,10 @@ class MilpModel {
     Solution PrepareSolution(const LpStatus status, const std::vector<Scalar>& x) const;
 
     friend std::ostream& operator<<(std::ostream& os, const MilpModel& model);
+    const std::string StatString() const {
+        return std::to_string(GetNCons()) + " x " + std::to_string(GetNVars()) + ", " +
+               std::to_string(GetNInts()) + " ints, " + std::to_string(GetNnz()) + " nnz";
+    }
 
    private:
     Objective obj_;
