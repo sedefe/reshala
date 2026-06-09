@@ -12,9 +12,7 @@ void Lina::InitBinv() {
     n_updates_ = 0;
 }
 
-void Lina::Btran(Index iv, DenseVector& res) {
-    res.assign(Binv_[iv], Binv_[iv] + m);
-}
+void Lina::Btran(Index iv, DenseVector& res) { res.assign(Binv_[iv], Binv_[iv] + m); }
 
 void Lina::Ftran(Index iv, DenseVector& res) {
     if (iv < n) {
@@ -44,8 +42,8 @@ void Lina::Update(Index iv_leaving, Index iv_entering) {
     DenseVector d(m, 0);
     MulDmSv(Binv_, delta, d);
 
-    for (Index i = 0; i < m; i++) {
-        for (SvIterator el(row_sv); el; ++el) {
+    for (SvIterator el(row_sv); el; ++el) {
+        for (Index i = 0; i < m; i++) {
             Binv_[i][el.index()] -= d[i] * el.value();
         }
     }

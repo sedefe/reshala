@@ -187,9 +187,8 @@ void DualSimplex::Chuzc() {
             continue;
         }
         a_pj = a_p[iv] * (s_p * d_n[iv]);
-        c_j = c_n[iv] * d_n[iv];
-
         if (a_pj > kPivotTolerance) {
+            c_j = c_n[iv] * d_n[iv];
             auto ratio = c_j / a_pj;
             if (ratio < min_ratio) {
                 min_ratio = ratio;
