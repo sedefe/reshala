@@ -16,7 +16,7 @@ RuleResult Rule31::Apply(ModelTracker& tracker) {
         if (is_int) {  // Сначала это, т.к. потом сразу сможем вывести противоречие, если будет
             Bounds rounded = {WeakCeil(rhs.le), WeakFloor(rhs.ri)};
             if (rhs.le != rounded.le or rhs.ri != rounded.ri) {
-                tracker.UpdRhs(ic, rounded);
+                tracker.UpdRhs(ic, std::move(rounded));
                 n_reduced++;
             }
         }

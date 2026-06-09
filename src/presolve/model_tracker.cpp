@@ -205,13 +205,16 @@ void ModelTracker::SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b) {
     MaskVar(iv1);
 }
 
-void ModelTracker::UpdRhs(Index ic, const Bounds& bnd) {
-    model_.GetRhs(ic) = bnd;
+void ModelTracker::UpdRhs(Index ic, Bounds rhs) {
+    if (IsZero(rhs.le - rhs.ri)) rhs.le = rhs.ri = (rhs.le + rhs.ri) / 2;
+
+    model_.GetRhs(ic) = rhs;
     stat.n_ch_rhs++;
 }
 
-void ModelTracker::UpdVarBounds(Index iv, const Bounds& bnd) {
+void ModelTracker::UpdVarBounds(Index iv, Bounds bnd) {
     const Bounds& old_bnd = model_.GetBounds(iv);
+    if (IsZero(bnd.le - bnd.ri)) bnd.le = bnd.ri = (bnd.le + bnd.ri) / 2;
 
     for (SvIterator el(model_.GetCol(iv)); el; ++el) {
         activities_[el.index()].RmTerm(el.value(), old_bnd);

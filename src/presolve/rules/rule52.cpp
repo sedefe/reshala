@@ -74,7 +74,7 @@ RuleResult Rule52::Apply(ModelTracker& tracker) {
                 rhs = BoundsIntersection(rhs, rhs1);
                 n_reduced++;
             }
-            tracker.UpdRhs(bin[i_max_abs], rhs);
+            tracker.UpdRhs(bin[i_max_abs], std::move(rhs));
         }
     }
 

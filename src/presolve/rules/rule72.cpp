@@ -42,9 +42,6 @@ struct Bounder {
                     act.RmTerm(val, old_bounds[iv]);
                     act.AddTerm(val, var_bounds[iv]);
                     Bounds new_range = act.GetRange();
-                    if (StrongGt(new_range.le, new_range.ri)) {
-                        return false;
-                    }
 
                     if (new_range.le != old_range.le or
                         new_range.ri != old_range.ri) {  // todo weak comparison
@@ -70,7 +67,7 @@ struct Bounder {
                     if (StrongGt(derived.le, curr_bnd.le) or StrongLt(derived.ri, curr_bnd.ri)) {
                         curr_bnd = {std::max(curr_bnd.le, derived.le),
                                     std::min(curr_bnd.ri, derived.ri)};
-                        if (curr_bnd.le > curr_bnd.ri + kEpsZero) {
+                        if (StrongGt(curr_bnd.le, curr_bnd.ri)) {
                             return false;
                         }
                         changed_vars.emplace(iv);
@@ -126,7 +123,7 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
                 if (StrongGt(new_bnd.le, new_bnd.ri)) {
                     return RuleResult::kInfeasible;
                 }
-                tracker.UpdVarBounds(iv1, new_bnd);
+                tracker.UpdVarBounds(iv1, std::move(new_bnd));
                 n_reduced++;
             }
         }
