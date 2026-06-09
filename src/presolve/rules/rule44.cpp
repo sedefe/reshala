@@ -10,8 +10,9 @@ RuleResult Rule44::Apply(ModelTracker& tracker) {
     for (Index iv = 0; iv < model.GetNVars(); iv++) {
         if (tracker.GetVarMask(iv)) continue;
 
-        bool eligible_up = model.GetObj().coefficients[iv] <= 0;
-        bool eligible_down = model.GetObj().coefficients[iv] >= 0;
+        const Bounds& bnd = model.GetBounds(iv);
+        bool eligible_up = model.GetObj().coefficients[iv] <= 0 and bnd.ri != kInf;
+        bool eligible_down = model.GetObj().coefficients[iv] >= 0 and bnd.le != -kInf;
 
         for (SvIterator el(model.GetCol(iv)); el & (eligible_up || eligible_down); ++el) {
             if (tracker.GetConMask(el.index())) continue;
@@ -30,11 +31,11 @@ RuleResult Rule44::Apply(ModelTracker& tracker) {
         }
 
         if (eligible_down) {
-            Scalar value = model.GetBounds(iv).le;
+            Scalar value = bnd.le;
             tracker.FixVar(iv, value);
             n_reduced++;
         } else if (eligible_up) {
-            Scalar value = model.GetBounds(iv).ri;
+            Scalar value = bnd.ri;
             tracker.FixVar(iv, value);
             n_reduced++;
         }
