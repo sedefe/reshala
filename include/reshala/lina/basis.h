@@ -13,9 +13,15 @@ class LpBasis {
         basis.resize(m);
         non_basis.resize(n);
         index2nb.resize(m + n, -1);
+        Reset();
+    }
+    void Reset() {
+        Index m = basis.size();
+        Index n = non_basis.size();
         for (Index ic = 0; ic < m; ic++) {
             basis[ic] = n + ic;
         }
+        index2nb.assign(n + m, -1);
         for (Index iv = 0; iv < n; iv++) {
             non_basis[iv] = iv;
             index2nb[iv] = iv;

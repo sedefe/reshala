@@ -11,9 +11,10 @@ class Lina {
     Lina() {}
     Lina(const SparseColMatrix* Ac, const SparseRowMatrix* Ar, const LpBasis* basis)
         : Ac_(Ac), Ar_(Ar), m(Ac->GetNRows()), n(Ac->GetNCols()), basis_(basis), Binv_(m, m) {
-        InitBinv();
+        Init();
     }
     Lina& operator=(const Lina&) = default;
+    void Init();
 
     void Btran(Index iv, DenseVector& res);
     void Ftran(Index iv, DenseVector& res);
@@ -30,7 +31,6 @@ class Lina {
 
     Index n_updates_;
 
-    void InitBinv();
     bool Reinvert();
 };
 

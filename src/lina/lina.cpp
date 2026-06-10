@@ -4,7 +4,7 @@
 
 namespace reshala {
 
-void Lina::InitBinv() {
+void Lina::Init() {
     Binv_.ResizeAsZero(m, m);
     for (Index iv = 0; iv < m; iv++) {
         Binv_[iv][iv] = 1;
