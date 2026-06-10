@@ -7,7 +7,7 @@ namespace reshala {
 Index GetGcd(const std::vector<Scalar>& vec) {
     Index gcd = 0;
     for (auto x : vec) {
-        if (GetFraction(x) == 0.0) {
+        if ((std::abs(x) <= kMaxInt) and GetFraction(x) == 0.0) {
             gcd = std::gcd(gcd, Index(x));
         } else {
             return 0;
