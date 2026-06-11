@@ -30,7 +30,6 @@ Index MostInfeasible::Branch(Node& parent, DualSimplex& ds) {
 
         num_ch += (sol.status == LpStatus::kOptimal);
     }
-    model_.SetBounds(candidate, orig_bnd);
 
     return num_ch;
 }

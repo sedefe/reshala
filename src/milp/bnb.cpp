@@ -32,12 +32,11 @@ void BnbSolver::Solve(const Solution& relaxed) {
             continue;
         }
 
-        model_.SetDomain(curr_node.domain);
-
         if (mip_state_.Converged()) {
             break;
         }
 
+        model_.SetDomain(curr_node.domain);
         auto num_ch = branching_->Branch(curr_node, ds_);
         if (num_ch == 0) continue;
 
