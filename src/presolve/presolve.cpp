@@ -11,6 +11,7 @@ Presolver::Presolver(MilpModel& model) : model_(model), tracker_(model) {
     rules_.push_back(std::make_unique<Rule36>(RuleType::kFast));
     rules_.push_back(std::make_unique<Rule41>(RuleType::kFast));
     rules_.push_back(std::make_unique<Rule44>(RuleType::kFast));
+    rules_.push_back(std::make_unique<Rule46>(RuleType::kFast));
     rules_.push_back(std::make_unique<Rule52>(RuleType::kMedium));
     rules_.push_back(std::make_unique<Rule72>(RuleType::kExhaustive));
 
