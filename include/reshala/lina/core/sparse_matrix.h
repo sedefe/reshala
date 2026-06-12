@@ -31,6 +31,9 @@ class SparseRowMatrix {
         n_ = n;
         rows_.resize(m, n);
     }
+    inline void Clear() {
+        for (auto& row : rows_) row.Clear();
+    }
 
     std::vector<SparseVector>& GetRows() { return rows_; }
     const std::vector<SparseVector>& GetRows() const { return rows_; }
@@ -65,6 +68,9 @@ class SparseColMatrix {
         m_ = m;
         n_ = n;
         cols_.resize(n, m);
+    }
+    inline void Clear() {
+        for (auto& col : cols_) col.Clear();
     }
 
     std::vector<SparseVector>& GetCols() { return cols_; }

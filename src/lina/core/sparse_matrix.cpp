@@ -4,6 +4,7 @@ namespace reshala {
 
 void Srm2Scm(const SparseRowMatrix& srm, SparseColMatrix& scm) {
     // Assuming scm is already resized
+    scm.Clear();
     auto m = srm.GetNRows();
     for (Index i = 0; i < m; ++i) {
         const auto& row = srm.GetRows()[i];

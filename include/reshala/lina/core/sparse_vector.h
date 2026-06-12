@@ -32,10 +32,10 @@ class SparseVector {
     }
     SparseVector(const DenseVector &vec) : SparseVector(vec.size(), vec.data()) {}
 
-    // Scalar At(Index i) const {
-    //     auto pos = FindIndex(i);
-    //     return (pos != indices_.end()) ? values_[pos - indices_.begin()] : Scalar(0);
-    // }
+    Scalar At(Index i) const {
+        auto pos = FindIndex(i);
+        return (pos != indices_.end() && *pos == i) ? values_[pos - indices_.begin()] : Scalar(0);
+    }
     Scalar &AtRef(Index i) {
         auto pos = FindIndex(i);
         assert(pos != indices_.end());
@@ -80,6 +80,9 @@ class SparseVector {
         Erase(it);  // Reuse the iterator version
     }
 
+    typename std::vector<Index>::const_iterator FindIndex(Index i) const {
+        return std::lower_bound(indices_.begin(), indices_.end(), i);
+    }
     typename std::vector<Index>::iterator FindIndex(Index i) {
         return std::lower_bound(indices_.begin(), indices_.end(), i);
     }
