@@ -6,12 +6,6 @@
 
 namespace reshala {
 
-Index MilpModel::GetNnz() const {
-    Index res = 0;
-    for (const auto& row : Ar_.GetRows()) res += row.Size();
-    return res;
-}
-
 bool MilpModel::RowIsInteger(Index ic) const {
     for (SvIterator el(Ar_.GetRow(ic)); el; ++el) {
         if (!GetIntegrality(el.index())) return false;

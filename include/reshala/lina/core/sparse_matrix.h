@@ -15,7 +15,7 @@ class SparseRowMatrix {
 
     Index GetNRows() const { return m_; }
     Index GetNCols() const { return n_; }
-    Index GetNnz() {
+    Index GetNnz() const {
         Index nnz = 0;
         for (const auto& row : GetRows()) {
             nnz += row.Size();
@@ -53,7 +53,7 @@ class SparseColMatrix {
 
     Index GetNRows() const { return m_; }
     Index GetNCols() const { return n_; }
-    Index GetNnz() {
+    Index GetNnz() const {
         Index nnz = 0;
         for (const auto& col : GetCols()) {
             nnz += col.Size();
@@ -84,6 +84,8 @@ class SparseColMatrix {
     Index n_;
     std::vector<SparseVector> cols_;
 };
+
+std::ostream& operator<<(std::ostream& os, const SparseRowMatrix& svm);
 
 void Srm2Scm(const SparseRowMatrix& srm, SparseColMatrix& scm);
 
