@@ -71,7 +71,8 @@ class MipState {
         cutoff_ = best_sol_.status == LpStatus::kInfeasible
                       ? kInf
                       : primal - std::max(std::abs(primal) * kMipGap, int_obj_ ? 1.0 : 0.0);
-        gap_ = primal == 0 ? (dual_ == 0 ? 0 : kInf) : std::abs(1 - dual_ / primal);
+        gap_ = IsZero(primal) ? (IsZero(dual_) ? 0 : 1)
+                              : (primal == kInf ? kInf : (primal - dual_) / std::abs(primal));
     }
 };
 
