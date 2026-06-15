@@ -80,10 +80,10 @@ class SparseVector {
         Erase(it);  // Reuse the iterator version
     }
 
-    typename std::vector<Index>::const_iterator FindIndex(Index i) const {
+    inline std::vector<Index>::const_iterator FindIndex(Index i) const {
         return std::lower_bound(indices_.begin(), indices_.end(), i);
     }
-    typename std::vector<Index>::iterator FindIndex(Index i) {
+    inline std::vector<Index>::iterator FindIndex(Index i) {
         return std::lower_bound(indices_.begin(), indices_.end(), i);
     }
 
