@@ -9,8 +9,8 @@ std::ostream& operator<<(std::ostream& os, const BnbStats& stats) {
 
 BnbSolver::BnbSolver(MilpModel& model, DualSimplex& ds, MipState& mip_state)
     : model_(model), ds_(ds), mip_state_(mip_state) {
-    // branching_ = std::make_unique<FullStrong>(model);
-    branching_ = std::make_unique<MostInfeasible>(model);
+    branching_ = std::make_unique<FullStrong>(model);
+    // branching_ = std::make_unique<MostInfeasible>(model);
 }
 
 void BnbSolver::SolveRoot(Node& root) {
@@ -51,7 +51,7 @@ void BnbSolver::Solve(const Solution& relaxed) {
             }
             if (model_.IsIntegerFeasible(child.sol.x)) {
                 if (mip_state_.TestPrimal(child.sol)) {
-                    std::cout << "New integer solution: " << child.sol.y << "\n";
+                    std::cout << "New integer solution: " << FMT(10, 5) << child.sol.y << "\n";
                 }
             } else {
                 if (child.sol.y < mip_state_.GetCutoff()) {
@@ -68,7 +68,8 @@ void BnbSolver::Solve(const Solution& relaxed) {
 }
 
 void BnbSolver::UpdDual() {
-    Scalar min_dual = kInf;
+    // В стеке могут оказаться только плохие ноды, поэтому праймал тоже считаем оценкой
+    Scalar min_dual = mip_state_.GetPrimal();
     for (const auto& node : nodes) {
         if (node.sol.y < min_dual) {
             min_dual = node.sol.y;
