@@ -34,6 +34,7 @@ RuleResult Rule36::Apply(ModelTracker& tracker) {
 
                     const auto& bnd = model.GetBounds(el.index());
                     Scalar range = bnd.ri - bnd.le;
+                    if (IsZero(range)) continue; // handled by 4.1
                     if (a >= 0) {
                         if (el.value() >= 0) {  // x + y = 1 => y = -x + 1
                             if (!tracker.SimpleSub(el.index(), -range, iv_base, bnd.ri))
