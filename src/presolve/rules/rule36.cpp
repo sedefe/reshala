@@ -36,15 +36,19 @@ RuleResult Rule36::Apply(ModelTracker& tracker) {
                     Scalar range = bnd.ri - bnd.le;
                     if (a >= 0) {
                         if (el.value() >= 0) {  // x + y = 1 => y = -x + 1
-                            tracker.SimpleSub(el.index(), -range, iv_base, bnd.ri);
+                            if (!tracker.SimpleSub(el.index(), -range, iv_base, bnd.ri))
+                                return RuleResult::kInfeasible;
                         } else {  // x - y = 0 => y = x + 0
-                            tracker.SimpleSub(el.index(), range, iv_base, bnd.le);
+                            if (!tracker.SimpleSub(el.index(), range, iv_base, bnd.le))
+                                return RuleResult::kInfeasible;
                         }
                     } else {
                         if (el.value() >= 0) {  // -x + y = 0 => y = x
-                            tracker.SimpleSub(el.index(), range, iv_base, bnd.le);
+                            if (!tracker.SimpleSub(el.index(), range, iv_base, bnd.le))
+                                return RuleResult::kInfeasible;
                         } else {  // -x - y = -1 => y = 1-x
-                            tracker.SimpleSub(el.index(), -range, iv_base, bnd.ri);
+                            if (!tracker.SimpleSub(el.index(), -range, iv_base, bnd.ri))
+                                return RuleResult::kInfeasible;
                         }
                     }
                 }

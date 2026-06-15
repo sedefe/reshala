@@ -25,8 +25,8 @@ RuleResult Rule46::Apply(ModelTracker& tracker) {
 
         Index i1 = compressed_row.indices()[0];
         Index i2 = compressed_row.indices()[1];
-        Index v1 = compressed_row.values()[0];
-        Index v2 = compressed_row.values()[1];
+        Scalar v1 = compressed_row.values()[0];
+        Scalar v2 = compressed_row.values()[1];
 
         if (std::abs(v1) < std::abs(v2)) {
             std::swap(i1, i2);
@@ -34,14 +34,15 @@ RuleResult Rule46::Apply(ModelTracker& tracker) {
         }
         // Now we have v1 x1 + v2 x2 = b, v1 >= v2
         if (!model.GetIntegrality(i1)) {
-            tracker.SimpleSub(i1, -v2 / v1, i2, b / v1);
+            if (!tracker.SimpleSub(i1, -v2 / v1, i2, b / v1)) return RuleResult::kInfeasible;
             tracker.MaskCon(ic);
             n_reduced++;
             continue;
         } else {
             if (!model.GetIntegrality(i2)) {
                 if (!IsZero(v2 / v1)) {
-                    tracker.SimpleSub(i2, -v1 / v2, i1, b / v2);
+                    if (!tracker.SimpleSub(i2, -v1 / v2, i1, b / v2))
+                        return RuleResult::kInfeasible;
                     tracker.MaskCon(ic);
                     n_reduced++;
                     continue;
@@ -51,7 +52,7 @@ RuleResult Rule46::Apply(ModelTracker& tracker) {
                 b /= v2;
                 if (IsZero(GetFraction(v1))) {
                     if (!IsZero(GetFraction(b))) return RuleResult::kInfeasible;
-                    tracker.SimpleSub(i2, -v1, i1, b);
+                    if (!tracker.SimpleSub(i2, -v1, i1, b)) return RuleResult::kInfeasible;
                     tracker.MaskCon(ic);
                     n_reduced++;
                     continue;

@@ -153,13 +153,24 @@ void ModelTracker::FixVar(Index iv, Scalar val) {
     MaskVar(iv);
 }
 
-void ModelTracker::SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b) {
+bool ModelTracker::SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b) {
     // iv1 <- a*iv2 + b
-    model_.GetObj().c0 += model_.GetObj().mult * (model_.GetObj().coefficients[iv1] * b);
-    model_.GetObj().coefficients[iv2] += a * model_.GetObj().coefficients[iv1];
-
     const Bounds& bnd1 = model_.GetBounds(iv1);
     const Bounds& bnd2 = model_.GetBounds(iv2);
+
+    // Границы iv1 могут повлиять на границы iv2
+    Bounds derived_bnd2 = (a >= 0) ? Bounds((bnd1.le - b) / a, (bnd1.ri - b) / a)
+                                   : Bounds((bnd1.ri - b) / a, (bnd1.le - b) / a);
+    if (model_.GetIntegrality(iv2)) {
+        derived_bnd2.le = WeakCeil(derived_bnd2.le);
+        derived_bnd2.ri = WeakFloor(derived_bnd2.ri);
+    }
+
+    const Bounds new_bnd2 = BoundsIntersection(bnd2, derived_bnd2);
+    if (StrongGt(new_bnd2.le, new_bnd2.ri)) return false;
+
+    model_.GetObj().c0 += model_.GetObj().mult * (model_.GetObj().coefficients[iv1] * b);
+    model_.GetObj().coefficients[iv2] += a * model_.GetObj().coefficients[iv1];
 
     for (SvIterator el(model_.GetCol(iv1)); el; ++el) {
         Index ic = el.index();
@@ -200,9 +211,15 @@ void ModelTracker::SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b) {
     // Ac
     model_.GetCol(iv2) = model_.GetCol(iv2) + a * model_.GetCol(iv1);
 
+    if (StrongGt(new_bnd2.le, bnd2.le) or StrongLt(new_bnd2.ri, bnd2.ri)) {
+        UpdVarBounds(iv2, new_bnd2);
+    }
+
     transforms_.push_back(std::make_unique<SimpleSubTransform>(
         SimpleSubTransform(orig_var_idx_[iv1], a, orig_var_idx_[iv2], b)));
     MaskVar(iv1);
+
+    return true;
 }
 
 void ModelTracker::UpdRhs(Index ic, Bounds rhs) {
@@ -265,7 +282,7 @@ void ModelTracker::ScaleRow(Index ic, Scalar x) {
 
 Bounds ModelTracker::DeriveBounds(Index ic, Index iv, Activity act, const Bounds& bnd,
                                   Scalar val) const {
-    // Todo: pass non-const bounds and modiry them
+    // Todo: pass non-const bounds and modify them
     // We will modify the activity, so it is passed as a value
     Bounds derived;
     const Bounds& rhs = model_.GetRhs(ic);
