@@ -6,48 +6,52 @@ template <typename Operation>
 SparseVector combine(const SparseVector& sv1, const SparseVector& sv2, Operation op) {
     assert(sv1.dim() == sv2.dim() && "SparseVector combine: vectors are of different dimensions");
 
-    std::vector<Index> result_indices;
-    std::vector<Scalar> result_values;
+    SparseVector res(sv1.dim());
 
-    const auto& x_indices = sv1.indices();
-    const auto& x_values = sv1.values();
-    const auto& y_indices = sv2.indices();
-    const auto& y_values = sv2.values();
+    const auto& ind1 = sv1.indices();
+    const auto& val1 = sv1.values();
+    const auto& ind2 = sv2.indices();
+    const auto& val2 = sv2.values();
 
-    size_t i = 0, j = 0;
-    size_t x_size = x_indices.size();
-    size_t y_size = y_indices.size();
+    Index i1 = 0, i2 = 0;
+    auto n1 = sv1.Size();
+    auto n2 = sv2.Size();
+    res.Reserve(n1+n2);
 
-    while (i < x_size || j < y_size) {
-        Index idx;
-        Scalar x_val = Scalar(0);
-        Scalar y_val = Scalar(0);
+    while (i1 < n1 && i2 < n2) {
+        Index ind;
+        Scalar v1 = Scalar(0);
+        Scalar v2 = Scalar(0);
 
-        if (i < x_size && (j >= y_size || x_indices[i] < y_indices[j])) {
-            idx = x_indices[i];
-            x_val = x_values[i];
-            i++;
-        } else if (j < y_size && (i >= x_size || y_indices[j] < x_indices[i])) {
-            idx = y_indices[j];
-            y_val = y_values[j];
-            j++;
+        if (ind1[i1] < ind2[i2]) {
+            ind = ind1[i1];
+            v1 = val1[i1];
+            i1++;
+        } else if (ind2[i2] < ind1[i1]) {
+            ind = ind2[i2];
+            v2 = val2[i2];
+            i2++;
         } else {
-            idx = x_indices[i];
-            x_val = x_values[i];
-            y_val = y_values[j];
-            i++;
-            j++;
+            ind = ind1[i1];
+            v1 = val1[i1];
+            v2 = val2[i2];
+            i1++;
+            i2++;
         }
 
-        Scalar result_val = op(x_val, y_val);
-
-        if (!IsZero(result_val)) {
-            result_indices.push_back(idx);
-            result_values.push_back(result_val);
+        Scalar val = op(v1, v2);
+        if (!IsZero(val)) {
+            res.Push(ind, val);
         }
     }
+    for (; i1 < n1; i1++) {
+        res.Push(ind1[i1], val1[i1]);
+    }
+    for (; i2 < n2; i2++) {
+        res.Push(ind2[i2], op(0, val2[i2]));
+    }
 
-    return SparseVector(sv1.dim(), result_indices, result_values);
+    return res;
 }
 
 SparseVector operator+(const SparseVector& sv1, const SparseVector& sv2) {
