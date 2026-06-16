@@ -30,13 +30,10 @@ void Lina::Btran(Index iv, DenseVector& res) {
 void Lina::BtranD(Index iv, DenseVector& res) { res.assign(Binv_[iv], Binv_[iv] + m); }
 
 void Lina::BtranS(Index iv, DenseVector& res) {
-    // x^T P^T L U = b^T => b = U^T L^T P x
-
-    DenseVector b(m);
-    b[iv] = 1;
+    // x^T P^T L U = e^T => e = U^T L^T P x
 
     DenseVector y(m);
-    SolveUt(b, y);  // b = U^T y
+    SolveUt(iv, y);  // e = U^T y
 
     DenseVector x;
     SolveLt(y, x);  // y = L^T x
@@ -46,18 +43,45 @@ void Lina::BtranS(Index iv, DenseVector& res) {
     }
 }
 
-void Lina::SolveUt(const DenseVector& b, DenseVector& y) {
-    for (Index ir = 0; ir < m; ir++) {
-        y[ir] = b[ir];
-        for (SvIterator el(Uc.GetCol(ir)); el; ++el) {
-            if (el.index() != ir)
-                y[ir] -= el.value() * y[el.index()];
-            else {
-                assert(!IsZero(el.value()) && "Degenerate U");
-                y[ir] /= el.value();
-            }
-        }
+void Lina::SolveUt(Index iv, DenseVector& y) {
+    // Мы знаем, что правая часть системы - просто орт. Поэтому сразу используем соответствующую
+    // строку, а потом убираем из неё всё, кроме первой единицы, с помощью следующих строк
+
+    Scalar u_ii = Ur.GetRow(iv).At(iv);
+    y[iv] = 1 / u_ii;
+
+    const auto& row = Ur.GetRow(iv);
+    for (Index i = 1; i < row.Size(); i++) {
+        y[row.indices()[i]] = row.values()[i] * y[iv];
     }
+
+    for (Index k = iv + 1; k < m; k++) {
+        if (IsZero(y[k])) continue;
+        Scalar u_ik = y[k];
+        Scalar u_kk = Ur.GetRow(k).At(k);
+        Scalar factor = u_ik / u_kk;
+
+        for (SvIterator el(Ur.GetRow(k)); el; ++el) {
+            y[el.index()] -= factor * el.value();
+        }
+        y[k] = -factor;
+    }
+
+    // То же, только работаем с помощью разреженной строки
+    // SparseVector r(m);
+    // const auto& row = Ur.GetRow(iv);
+    // for (Index i = 1; i < row.Size(); i++) {
+    //     r.Push(row.indices()[i], row.values()[i] * y[iv]);
+    // }
+
+    // while (r.Size()) {
+    //     Index k = r.indices()[0];
+    //     Scalar u_ik = r.values()[0];
+    //     Scalar u_kk = Ur.GetRow(k).At(k);
+
+    //     y[k] = -u_ik / u_kk;
+    //     r = r - (u_ik / u_kk) * Ur.GetRow(k);
+    // }
 }
 
 void Lina::SolveLt(const DenseVector& y, DenseVector& x) {
