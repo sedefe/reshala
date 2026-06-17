@@ -37,4 +37,25 @@ inline Scalar GetFraction(Scalar x) {
         return std::pair{result, duration.count() / 1e3};                                   \
     }()
 
+static std::string FormatInteger(Index num) {
+    if (num == 0) return "0";
+
+    std::string prefix = num < 0 ? "-" : "";
+    num = std::abs(num);
+
+    Index scale;
+    std::string suffix;
+    if (num < 1'000'000) {
+        return prefix + std::to_string(num);
+    } else if (num < 1'000'000'000) {
+        scale = 1000;
+        suffix = "k";
+    } else {
+        scale = 1'000'000;
+        suffix = "m";
+    }
+
+    return prefix + std::to_string(num / scale) + suffix;
+}
+
 }  // namespace reshala

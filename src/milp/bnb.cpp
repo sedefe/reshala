@@ -87,8 +87,9 @@ void BnbSolver::DebugPrint() {
         std::cout
             << "===========================================================================\n";
     }
-    std::cout << FMT(3, 5) << curr_node.level << " | " << FMT(6, 5) << ds_.GetStats().n_iter
-              << " | " << FMT(10, 5) << branching_->GetChild(0).sol.y << " | " << FMT(10, 5)
+    std::cout << FMT(3, 5) << curr_node.level << " | " << FMT(6, 5)
+              << FormatInteger(ds_.GetStats().n_iter) << " | " << FMT(10, 5)
+              << branching_->GetChild(0).sol.y << " | " << FMT(10, 5)
               << branching_->GetChild(1).sol.y << " | " << FMT(10, 5) << mip_state_.GetDual()
               << " | " << FMT(10, 5) << mip_state_.GetPrimal() << " | " << FMT(7, 4)
               << mip_state_.GetGap() * 1e2 << "\n"
