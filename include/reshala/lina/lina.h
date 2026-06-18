@@ -48,7 +48,8 @@ class Lina {
     // Sparse
     SparseRowMatrix Lr, Ur;
     SparseColMatrix Lc, Uc;
-    std::vector<Index> perm;
+    std::vector<Index> row_perm;
+    std::vector<Index> row_perm_inv;
     bool SparseLU(const SparseRowMatrix& A);
     bool InvertS();
 

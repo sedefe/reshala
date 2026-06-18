@@ -11,13 +11,14 @@ void Lina::Init() {
     }
     n_updates_ = 0;
 
-    perm.resize(m);
+    row_perm.resize(m);
+    row_perm_inv.resize(m);
     Lr.Clear();
     Ur.Clear();
     Lc.Clear();
     Uc.Clear();
     for (Index i = 0; i < m; ++i) {
-        perm[i] = i;
+        row_perm[i] = row_perm_inv[i] = i;
         Ur.GetRow(i).Push(i, 1.0);
         Uc.GetCol(i).Push(i, 1.0);
     };

@@ -49,10 +49,8 @@ bool Lina::SparseLU(const SparseRowMatrix& A) {
     assert(A.GetNRows() == m);
     assert(A.GetNCols() == m);
 
-    Lr.Clear();
+    Init();
     Ur = A;
-    perm.resize(m);
-    std::iota(perm.begin(), perm.end(), 0);
 
     for (Index k = 0; k < m; ++k) {
         // Partial pivoting
@@ -76,7 +74,11 @@ bool Lina::SparseLU(const SparseRowMatrix& A) {
         if (pivot_row != k) {
             std::swap(Ur.GetRow(k), Ur.GetRow(pivot_row));
             std::swap(Lr.GetRow(k), Lr.GetRow(pivot_row));
-            std::swap(perm[k], perm[pivot_row]);
+
+            Index row_k = row_perm[k];
+            Index row_pivot = row_perm[pivot_row];
+            std::swap(row_perm[k], row_perm[pivot_row]);
+            std::swap(row_perm_inv[row_k], row_perm_inv[row_pivot]);
         }
 
         // --- Eliminate rows below k ---

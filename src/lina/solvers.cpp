@@ -38,8 +38,9 @@ void Lina::BtranS(Index iv, DenseVector& res) {
     DenseVector x(m);
     SolveLt(y, x);  // y = L^T x
 
+    Index i = 0;
     for (Index i = 0; i < m; ++i) {  // permute x
-        res[perm[i]] = x[i];
+        res[i] = x[row_perm_inv[i]];
     }
 }
 
@@ -66,7 +67,6 @@ void Lina::SolveUt(Index iv, DenseVector& y) {
         }
         y[k] = -factor;
     }
-
 
     // // То же, только работаем с помощью разреженной строки
     // SparseVector residual(m);
