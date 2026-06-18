@@ -6,7 +6,7 @@ namespace reshala {
 void Lina::Update(Index iv_leaving, Index iv_entering) {
     // Тут мы считаем, что базис уже обновлён
     n_updates_++;
-    Index kMaxUpdates = 10;
+    Index kMaxUpdates = 1;
     bool sparse_lu = true;
 
     if (n_updates_ % kMaxUpdates == 0) {

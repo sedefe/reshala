@@ -54,7 +54,7 @@ class Lina {
 
     void BtranS(Index iv, DenseVector& res);
     void SolveUt(Index iv, DenseVector& y);
-    void SolveLt(const DenseVector& y, DenseVector& x);
+    void SolveLt(DenseVector& y, DenseVector& x);
 };
 
 }  // namespace reshala
