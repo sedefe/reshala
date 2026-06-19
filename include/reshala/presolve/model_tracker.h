@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "reshala/model/milp_model.h"
 #include "reshala/presolve/activity.h"
 #include "reshala/presolve/transforms.h"

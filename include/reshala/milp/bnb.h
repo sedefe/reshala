@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "reshala/logging.h"
 #include "reshala/lp/dual_simplex.h"
 #include "reshala/milp/branching.h"

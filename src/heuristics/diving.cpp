@@ -1,5 +1,7 @@
 #include "reshala/heuristics/diving.h"
 
+#include <array>
+
 #include "reshala/lp/dual_simplex.h"
 
 namespace reshala {

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 #include "reshala/milp/utils.h"
 #include "reshala/model/milp_model.h"
 
