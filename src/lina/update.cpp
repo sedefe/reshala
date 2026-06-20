@@ -6,17 +6,27 @@ namespace reshala {
 void Lina::Update(Index iv_leaving, Index iv_entering) {
     // Тут мы считаем, что базис уже обновлён
     n_updates_++;
-    Index kMaxUpdates = 1;
-    bool sparse_lu = true;
 
-    if (n_updates_ % kMaxUpdates == 0) {
-        if (sparse_lu) {
-            InvertS();  // SparseLU + Dense inversion
-        } else {
-            InvertD();  // Dense inversion
-        }
-    } else {  // SM update
-        SherMor(iv_leaving, iv_entering);
+    switch (ut) {
+        case UpdType::kDluSm:
+            if (n_updates_ % kMaxUpdates == 0) {
+                InvertD();
+            } else {
+                SherMor(iv_leaving, iv_entering);
+            }
+            break;
+        case UpdType::kSluSm:
+            if (n_updates_ % kMaxUpdates == 0) {
+                InvertS();
+            } else {
+                SherMor(iv_leaving, iv_entering);
+            }
+            break;
+        case UpdType::kSlu:
+            InvertS();
+            break;
+        default:
+            break;
     }
 }
 

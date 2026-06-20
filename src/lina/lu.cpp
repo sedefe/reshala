@@ -65,7 +65,6 @@ bool Lina::SparseLU(const SparseRowMatrix& A) {
         }
         if (IsZero(pivot_val)) {
             std::cerr << "Small max_abs @col" << k << ": " << pivot_val << "\n";
-            std::cerr << A;
             exit(0);
             return false;
         }

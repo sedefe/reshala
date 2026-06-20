@@ -6,24 +6,16 @@
 namespace reshala {
 
 void Lina::Btran(Index iv, DenseVector& res) {
-    DenseVector res_d(m), res_s(m);
-
-    BtranD(iv, res_d);
-    BtranS(iv, res_s);
-
-    res = res_s;
-
-    if (0) {  // Compare
-        Scalar d = 0;
-        printf("After %d updates:\n", n_updates_);
-        for (Index i = 0; i < m; i++) {
-            if (!IsZero(res_d[i]) or !IsZero(res_s[i])) {
-                printf("[%2d] d %6.2f s %6.2f | d=%5.2f\n", i, res_d[i], res_s[i],
-                       res_d[i] - res_s[i]);
-            }
-            d += std::abs(res_d[i] - res_s[i]);
-        }
-        printf("Sum d: %.5g\n", d);
+    switch (ut) {
+        case UpdType::kDluSm:
+        case UpdType::kSluSm:
+            BtranD(iv, res);
+            break;
+        case UpdType::kSlu:
+            BtranS(iv, res);
+            break;
+        default:
+            break;
     }
 }
 

@@ -6,6 +6,12 @@
 
 namespace reshala {
 
+struct Eta {
+    SparseVector eta;
+    Index ir;
+    explicit Eta(SparseVector sv, Index i) : eta{std::move(sv)}, ir{i} {}
+};
+
 class Lina {
    public:
     Lina() {}
@@ -30,6 +36,10 @@ class Lina {
     void Update(Index iv_leaving, Index iv_entering);
 
    private:
+    enum class UpdType { kDluSm, kSluSm, kSlu };
+    static const UpdType ut = UpdType::kSluSm;
+    static const Index kMaxUpdates = 10;
+
     const SparseColMatrix* Ac_;
     const SparseRowMatrix* Ar_;
     Index m;
@@ -50,6 +60,8 @@ class Lina {
     SparseColMatrix Lc, Uc;
     std::vector<Index> row_perm;
     std::vector<Index> row_perm_inv;
+    std::vector<Eta> etas;
+
     bool SparseLU(const SparseRowMatrix& A);
     bool InvertS();
 
