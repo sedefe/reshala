@@ -37,7 +37,7 @@ class Lina {
 
    private:
     enum class UpdType { kDluSm, kSluSm, kSlu };
-    static const UpdType ut = UpdType::kSluSm;
+    static const UpdType ut = UpdType::kSlu;
     static const Index kMaxUpdates = 10;
 
     const SparseColMatrix* Ac_;
@@ -52,8 +52,10 @@ class Lina {
 
     // Dense
     bool InvertD();
+    bool BuildBinv();
     void SherMor(Index iv_leaving, Index iv_entering);
     void BtranD(Index iv, DenseVector& res);
+    void FtranD(Index iv, DenseVector& res);
 
     // Sparse
     SparseRowMatrix Lr, Ur;
@@ -68,6 +70,9 @@ class Lina {
     void BtranS(Index iv, DenseVector& res);
     void SolveUt(Index iv, DenseVector& y);
     void SolveLt(DenseVector& y, DenseVector& x);
+    void FtranS(Index iv, DenseVector& res);
+    void SolveL(DenseVector& b, DenseVector& y);
+    void SolveU(DenseVector& y, DenseVector& x);
 };
 
 }  // namespace reshala

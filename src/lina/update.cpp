@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "reshala/lina/core/operators.h"
 #include "reshala/lina/lina.h"
 
@@ -18,6 +20,7 @@ void Lina::Update(Index iv_leaving, Index iv_entering) {
         case UpdType::kSluSm:
             if (n_updates_ % kMaxUpdates == 0) {
                 InvertS();
+                BuildBinv();
             } else {
                 SherMor(iv_leaving, iv_entering);
             }
@@ -28,6 +31,15 @@ void Lina::Update(Index iv_leaving, Index iv_entering) {
         default:
             break;
     }
+}
+
+bool Lina::BuildBinv() {
+    DenseVector e(m), res(m);
+    for (Index ir = 0; ir < m; ir++) {
+        BtranS(ir, res);
+        std::memcpy(Binv_[ir], res.data(), m * sizeof(Scalar));
+    }
+    return true;
 }
 
 void Lina::SherMor(Index iv_leaving, Index iv_entering) {

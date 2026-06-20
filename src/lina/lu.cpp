@@ -1,4 +1,3 @@
-#include <cstring>
 #include <numeric>
 
 #include "reshala/lina/core/operators.h"
@@ -35,14 +34,7 @@ bool Lina::InvertS() {
             B.GetRow(ib - n).Push(ic, 1);
     }
     bool lu_res = SparseLU(B);
-    if (!lu_res) return lu_res;
-
-    DenseVector e(m), res(m);
-    for (Index ir = 0; ir < m; ir++) {
-        BtranS(ir, res);
-        std::memcpy(Binv_[ir], res.data(), m * sizeof(Scalar));
-    }
-    return true;
+    return lu_res;
 }
 
 bool Lina::SparseLU(const SparseRowMatrix& A) {

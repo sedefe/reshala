@@ -19,6 +19,20 @@ void Lina::Btran(Index iv, DenseVector& res) {
     }
 }
 
+void Lina::Ftran(Index iv, DenseVector& res) {
+    switch (ut) {
+        case UpdType::kDluSm:
+        case UpdType::kSluSm: {
+            FtranD(iv, res);
+        } break;
+        case UpdType::kSlu:
+            FtranS(iv, res);
+            break;
+        default:
+            break;
+    }
+}
+
 void Lina::BtranD(Index iv, DenseVector& res) { res.assign(Binv_[iv], Binv_[iv] + m); }
 
 void Lina::BtranS(Index iv, DenseVector& res) {
@@ -59,22 +73,6 @@ void Lina::SolveUt(Index iv, DenseVector& y) {
         }
         y[k] = -factor;
     }
-
-    // // То же, только работаем с помощью разреженной строки
-    // SparseVector residual(m);
-    // const auto& row = Ur.GetRow(iv);
-    // for (Index i = 1; i < row.Size(); i++) {
-    //     residual.Push(row.indices()[i], row.values()[i] * y[iv]);
-    // }
-
-    // while (residual.Size()) {
-    //     Index k = residual.indices()[0];
-    //     Scalar u_ik = residual.values()[0];
-    //     Scalar u_kk = Ur.GetRow(k).At(k);
-
-    //     y[k] = -u_ik / u_kk;
-    //     residual = residual - (u_ik / u_kk) * Ur.GetRow(k);
-    // }
 }
 
 void Lina::SolveLt(DenseVector& y, DenseVector& x) {
@@ -87,11 +85,54 @@ void Lina::SolveLt(DenseVector& y, DenseVector& x) {
     }
 }
 
-void Lina::Ftran(Index iv, DenseVector& res) {
+void Lina::FtranD(Index iv, DenseVector& res) {
     if (iv < n) {
         MulDmSv(Binv_, Ac_->GetCol(iv), res);
     } else {
         MulDmSv(Binv_, SparseVector(m, iv - n, 1.0), res);
+    }
+}
+
+void Lina::FtranS(Index iv, DenseVector& res) {
+    // P^T L U x = b => L U x = P b
+
+    DenseVector b(m);
+    if (iv < n) {
+        for (SvIterator el(Ac_->GetCol(iv)); el; ++el) {
+            b[row_perm_inv[el.index()]] = el.value();
+        }
+    } else {
+        b[row_perm_inv[iv - n]] = 1.0;
+    }
+
+    DenseVector y(m);
+    SolveL(b, y);  // b = L y
+
+    res.assign(m, 0);
+    SolveU(y, res);  // y = U x
+}
+
+void Lina::SolveL(DenseVector& b, DenseVector& y) {
+    for (Index k = 0; k < m; k++) {
+        if (IsZero(b[k])) continue;
+        y[k] = b[k];
+        for (SvIterator el(Lc.GetCol(k)); el; ++el) {
+            b[el.index()] -= el.value() * y[k];
+        }
+    }
+}
+
+void Lina::SolveU(DenseVector& y, DenseVector& x) {
+    for (Index k = m - 1; k >= 0; k--) {
+        if (IsZero(y[k])) continue;
+        Scalar u_ik = y[k];
+        Scalar u_kk = Ur.GetRow(k).At(k);
+        Scalar factor = u_ik / u_kk;
+
+        for (SvIterator el(Uc.GetCol(k)); el; ++el) {
+            y[el.index()] -= factor * el.value();
+        }
+        x[k] = factor;
     }
 }
 
