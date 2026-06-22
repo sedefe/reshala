@@ -24,7 +24,8 @@ class DualSimplex {
     Scalar kPivotTolerance = 1e-6;
 
    public:
-    DualSimplex(MilpModel& model);
+    DualSimplex() {}
+    void SetModel(MilpModel& model);
     Solution Solve(bool warm);
 
     inline const DsStats& GetStats() const { return stats; }
@@ -33,7 +34,7 @@ class DualSimplex {
     void Restore(const DsState& state);
 
    private:
-    MilpModel& model_;
+    MilpModel* model_;
 
     DsStats stats;
 

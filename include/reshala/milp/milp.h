@@ -1,7 +1,5 @@
 #pragma once
 
-#include <optional>
-
 #include "reshala/heuristics/heuristics.h"
 #include "reshala/milp/bnb.h"
 #include "reshala/presolve/presolve.h"
@@ -15,7 +13,7 @@ class MilpSolver {
     Solution Solve();
 
     MilpModel& model;
-    std::optional<DualSimplex> ds;  // Will be constructed after presolving
+    DualSimplex ds;
     MipState mip_state;
 
     Presolver presolver;

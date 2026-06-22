@@ -7,12 +7,12 @@ std::ostream& operator<<(std::ostream& os, const DsStats& stats) {
     return os;
 }
 
-DualSimplex::DualSimplex(MilpModel& model)
-    : model_(model),
-      m(model_.GetNCons()),
-      n(model_.GetNVars()),
-      basis(m, n),
-      lina(&model.GetAc(), &model.GetAr(), &basis) {
+void DualSimplex::SetModel(MilpModel& model) {
+    model_ = &model;
+    m = model_->GetNCons();
+    n = model_->GetNVars();
+    basis = LpBasis(m, n);
+    lina = Lina(&model.GetAc(), &model.GetAr(), &basis);
     c_n.resize(n);
     x_b.resize(m);
     e_p.resize(m);
@@ -36,13 +36,13 @@ void DualSimplex::Init() {
     basis.Reset();
     lina.Init();
 
-    c_n = model_.GetObj().coefficients;
+    c_n = model_->GetObj().coefficients;
 
     DenseVector x_n(n, 0);
     for (Index iv = 0; iv < n; iv++) {
         Index i_nb = basis.NonBasis()[iv];
-        const Bounds& bnd = model_.GetBounds(i_nb);
-        switch (model_.GetType(i_nb)) {
+        const Bounds& bnd = model_->GetBounds(i_nb);
+        switch (model_->GetType(i_nb)) {
             case BndType::kBoxed:
                 if (c_n[iv] >= 0.0) {
                     d_n[iv] = 1;
@@ -73,12 +73,12 @@ void DualSimplex::Init() {
         }
     }
 
-    MulScmDv(model_.GetAc(), x_n, x_b);
+    MulScmDv(model_->GetAc(), x_n, x_b);
     for (Scalar& x : x_b) x = -x;
 }
 
 Solution DualSimplex::Solve(bool warm) {
-    model_.AddSlacks();
+    model_->AddSlacks();
     ForceBounds();
     LpStatus status;
 
@@ -113,7 +113,7 @@ Solution DualSimplex::Solve(bool warm) {
         Update();
     }
 
-    model_.PruneSlacks();
+    model_->PruneSlacks();
     UnforceBounds();
 
     DenseVector x;
@@ -133,7 +133,7 @@ Solution DualSimplex::Solve(bool warm) {
         }
     }
 
-    return model_.PrepareSolution(status, x);
+    return model_->PrepareSolution(status, x);
 }
 
 void DualSimplex::Chuzr() {
@@ -143,7 +143,7 @@ void DualSimplex::Chuzr() {
     Scalar infeasibility;
 
     for (Index ic = 0; ic < m; ic++) {
-        const Bounds& bnd = model_.GetBounds(basis.Basis()[ic]);
+        const Bounds& bnd = model_->GetBounds(basis.Basis()[ic]);
         infeasibility = std::max(x_b[ic] - bnd.ri, bnd.le - x_b[ic]);
         if (infeasibility > max_infeasibility) {
             max_infeasibility = infeasibility;
@@ -152,7 +152,7 @@ void DualSimplex::Chuzr() {
     }
 
     if (iv_leaving >= 0) {
-        auto& bounds = model_.GetBounds(basis.Basis()[iv_leaving]);
+        auto& bounds = model_->GetBounds(basis.Basis()[iv_leaving]);
         if ((x_b[iv_leaving] - bounds.ri) > (bounds.le - x_b[iv_leaving])) {
             s_p = +1;
             primal_infeasibility = x_b[iv_leaving] - bounds.ri;
@@ -169,7 +169,7 @@ void DualSimplex::Price() {
     a_p.assign(n, 0.0);
     for (Index ic = 0; ic < m; ic++) {
         if (IsZero(e_p[ic])) continue;
-        for (SvIterator el(model_.GetRow(ic)); el; ++el) {
+        for (SvIterator el(model_->GetRow(ic)); el; ++el) {
             if (basis.Index2Nb()[el.index()] >= 0) {
                 a_p[basis.Index2Nb()[el.index()]] += e_p[ic] * el.value();
             }
@@ -186,7 +186,7 @@ void DualSimplex::Chuzc() {
     iv_entering = -1;
 
     for (Index iv = 0; iv < n; iv++) {
-        if (model_.GetType(basis.NonBasis()[iv]) == BndType::kFixed) {
+        if (model_->GetType(basis.NonBasis()[iv]) == BndType::kFixed) {
             continue;
         }
         a_pj = a_p[iv] * (s_p * d_n[iv]);
@@ -223,7 +223,7 @@ void DualSimplex::Update() {
             Scalar old = c_n[iv];
             c_n[iv] -= theta_d * a_p[iv];
             if (old * c_n[iv] < -0.1 and iv != iv_entering and
-                model_.GetType(basis.NonBasis()[iv]) != BndType::kFixed) {
+                model_->GetType(basis.NonBasis()[iv]) != BndType::kFixed) {
                 // Might make us dual infeasible
                 std::cerr << "Abnormal c_n update: " << old << " -> " << c_n[iv] << "\n";
             }
@@ -232,8 +232,8 @@ void DualSimplex::Update() {
     }
 
     {  // Update d_n
-        const Bounds& bnd = model_.GetBounds(basis.NonBasis()[iv_entering]);
-        BndType type = model_.GetType(basis.NonBasis()[iv_entering]);
+        const Bounds& bnd = model_->GetBounds(basis.NonBasis()[iv_entering]);
+        BndType type = model_->GetType(basis.NonBasis()[iv_entering]);
         if (type == BndType::kFixed) {
             d_n[iv_entering] = 0;  // A fixed can't enter the basis
         } else {
@@ -255,18 +255,18 @@ void DualSimplex::Update() {
 
 inline Scalar DualSimplex::GetXnValue(Index iv) {
     // Todo обрабатывать свободные переменные, глядя на a_p
-    const Bounds& bnd = model_.GetBounds(basis.NonBasis()[iv]);
+    const Bounds& bnd = model_->GetBounds(basis.NonBasis()[iv]);
     return (d_n[iv] >= 0) ? bnd.le : bnd.ri;
 }
 
 void DualSimplex::ForceBounds() {
-    initial_domain = model_.GetDomain();
+    initial_domain = model_->GetDomain();
     for (Index iv = 0; iv < m + n; iv++) {
-        model_.SetBounds(iv, BoundsIntersection(model_.GetBounds(iv), {-kMaxAbs, kMaxAbs}));
+        model_->SetBounds(iv, BoundsIntersection(model_->GetBounds(iv), {-kMaxAbs, kMaxAbs}));
     }
 }
 
-void DualSimplex::UnforceBounds() { model_.SetDomain(initial_domain); }
+void DualSimplex::UnforceBounds() { model_->SetDomain(initial_domain); }
 
 void DualSimplex::DebugPrint() {
     DenseVector x(n);
@@ -276,7 +276,7 @@ void DualSimplex::DebugPrint() {
     for (Index iv = 0; iv < n; iv++) {
         if (basis.NonBasis()[iv] < n) x[basis.NonBasis()[iv]] = GetXnValue(iv);
     }
-    auto res = model_.PrepareSolution(LpStatus::kOptimal, x);
+    auto res = model_->PrepareSolution(LpStatus::kOptimal, x);
 
     std::cout << "===== " << stats.n_iter << " y=" << res.y << " =====\n";
     std::cout << "Basis   : ";

@@ -17,7 +17,8 @@ Solution Diving::InternalRun(MilpModel& model, const Solution& relaxed, const Mi
         return presolver.Postsolve({presolve_status, model.GetObj().c0, {}});
     }
 
-    DualSimplex ds(model);
+    DualSimplex ds;
+    ds.SetModel(model);
     sol = ds.Solve(false);
 
     while (true) {
