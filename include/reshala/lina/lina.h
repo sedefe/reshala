@@ -68,7 +68,7 @@ class Lina {
     bool InvertS();
 
     void BtranS(Index iv, DenseVector& res);
-    void SolveUt(Index iv, DenseVector& y);
+    void SolveUt(const DenseVector& b, DenseVector& y);
     void SolveLt(const DenseVector& y, DenseVector& x);
     void FtranS(Index iv, DenseVector& res);
     void SolveL(const DenseVector& b, DenseVector& y);

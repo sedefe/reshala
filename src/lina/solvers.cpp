@@ -38,8 +38,11 @@ void Lina::BtranD(Index iv, DenseVector& res) { res.assign(Binv_[iv], Binv_[iv] 
 void Lina::BtranS(Index iv, DenseVector& res) {
     // x^T P^T L U = e^T => e = U^T L^T P x
 
+    DenseVector b(m);
+    b[iv] = 1.0;
+
     DenseVector y(m);
-    SolveUt(iv, y);  // e = U^T y
+    SolveUt(b, y);  // e = U^T y
 
     DenseVector x(m);
     SolveLt(y, x);  // y = L^T x
@@ -50,19 +53,9 @@ void Lina::BtranS(Index iv, DenseVector& res) {
     }
 }
 
-void Lina::SolveUt(Index iv, DenseVector& y) {
-    // Мы знаем, что правая часть системы - просто орт. Поэтому сразу используем соответствующую
-    // строку, а потом убираем из неё всё, кроме первой единицы, с помощью следующих строк
-
-    Scalar u_ii = Ur.GetRow(iv).At(iv);
-    y[iv] = 1 / u_ii;
-
-    const auto& row = Ur.GetRow(iv);
-    for (Index i = 1; i < row.Size(); i++) {
-        y[row.indices()[i]] = row.values()[i] * y[iv];
-    }
-
-    for (Index k = iv + 1; k < m; k++) {
+void Lina::SolveUt(const DenseVector& b, DenseVector& y) {
+    y = b;
+    for (Index k = 0; k < m; k++) {
         if (IsZero(y[k])) continue;
         Scalar u_ik = y[k];
         Scalar u_kk = Ur.GetRow(k).At(k);
@@ -71,7 +64,7 @@ void Lina::SolveUt(Index iv, DenseVector& y) {
         for (SvIterator el(Ur.GetRow(k)); el; ++el) {
             y[el.index()] -= factor * el.value();
         }
-        y[k] = -factor;
+        y[k] = factor;
     }
 }
 
