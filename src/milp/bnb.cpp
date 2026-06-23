@@ -81,17 +81,17 @@ void BnbSolver::UpdDual() {
 void BnbSolver::DebugPrint() {
     if (stats.n_nodes % 50 == 1) {
         std::cout
-            << "===========================================================================\n";
+            << "===================================================================================\n";
         std::cout
-            << "lev | LPiter | left       | right      | dual       | primal     | gap,%   \n";
+            << "lev | LPiter | left         | right        | dual         | primal       |  gap,%  \n";
         std::cout
-            << "===========================================================================\n";
+            << "===================================================================================\n";
     }
     std::cout << FMT(3, 5) << curr_node.level << " | " << FMT(6, 5)
-              << FormatInteger(ds_.GetStats().n_iter) << " | " << FMT(10, 5)
-              << branching_->GetChild(0).sol.y << " | " << FMT(10, 5)
-              << branching_->GetChild(1).sol.y << " | " << FMT(10, 5) << mip_state_.GetDual()
-              << " | " << FMT(10, 5) << mip_state_.GetPrimal() << " | " << FMT(7, 4)
+              << FormatInteger(ds_.GetStats().n_iter) << " | " << FMT(12, 5)
+              << branching_->GetChild(0).sol.y << " | " << FMT(12, 5)
+              << branching_->GetChild(1).sol.y << " | " << FMT(12, 5) << mip_state_.GetDual()
+              << " | " << FMT(12, 5) << mip_state_.GetPrimal() << " | " << FMT(7, 4)
               << mip_state_.GetGap() * 1e2 << "\n"
               << FMT_DEFAULT;
 }
