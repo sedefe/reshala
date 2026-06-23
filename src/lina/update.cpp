@@ -28,6 +28,13 @@ void Lina::Update(Index iv_leaving, Index iv_entering) {
         case UpdType::kSlu:
             InvertS();
             break;
+        case UpdType::kSluPf:
+            if (n_updates_ % kMaxUpdates == 0) {
+                InvertS();
+                etas.clear();
+            } else {
+                ProdForm(iv_leaving, iv_entering);
+            }
         default:
             break;
     }
@@ -64,6 +71,10 @@ void Lina::SherMor(Index iv_leaving, Index iv_entering) {
             Binv_[i][el.index()] -= d[i] * el.value();
         }
     }
+}
+
+void Lina::ProdForm(Index iv_leaving, Index iv_entering) {
+    etas.push_back(Eta(ftran_res, iv_leaving));
 }
 
 }  // namespace reshala

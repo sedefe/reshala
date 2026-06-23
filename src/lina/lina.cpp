@@ -9,7 +9,6 @@ void Lina::Init() {
     for (Index iv = 0; iv < m; iv++) {
         Binv_[iv][iv] = 1;
     }
-    n_updates_ = 0;
 
     row_perm.resize(m);
     row_perm_inv.resize(m);

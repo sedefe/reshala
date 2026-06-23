@@ -12,6 +12,7 @@ void Lina::Btran(Index iv, DenseVector& res) {
             BtranD(iv, res);
             break;
         case UpdType::kSlu:
+        case UpdType::kSluPf:
             BtranS(iv, res);
             break;
         default:
@@ -26,6 +27,7 @@ void Lina::Ftran(Index iv, DenseVector& res) {
             FtranD(iv, res);
         } break;
         case UpdType::kSlu:
+        case UpdType::kSluPf:
             FtranS(iv, res);
             break;
         default:
@@ -36,15 +38,19 @@ void Lina::Ftran(Index iv, DenseVector& res) {
 void Lina::BtranD(Index iv, DenseVector& res) { res.assign(Binv_[iv], Binv_[iv] + m); }
 
 void Lina::BtranS(Index iv, DenseVector& res) {
-    // x^T P^T L U = e^T => e = U^T L^T P x
+    // x^T P^T L U E1 ... Ek = e^T =>
+    // e = Ek^T .. E1^T U^T L^T P x =>
+    // x = P^T L^-T U^-T E1^-T ... Ek^-T e
 
     DenseVector x(m);
     x[iv] = 1.0;
+    for (Index i = etas.size() - 1; i >= 0; i--) {
+        EtaBtran(etas[i], x);
+    }
 
     SolveUt(x);  // e = U^T y
     SolveLt(x);  // y = L^T x
 
-    Index i = 0;
     for (Index i = 0; i < m; ++i) {  // permute x
         res[i] = x[row_perm_inv[i]];
     }
@@ -73,6 +79,14 @@ void Lina::SolveLt(DenseVector& x) {
     }
 }
 
+void Lina::EtaBtran(const Eta& eta, DenseVector& x) {
+    Index p = eta.ir;
+    Scalar e = eta.eta.At(p);  // Todo store separately
+    Scalar d;
+    dot(x, eta.eta, d);
+    x[p] += (x[p] - d) / e;
+}
+
 void Lina::FtranD(Index iv, DenseVector& res) {
     if (iv < n) {
         MulDmSv(Binv_, Ac_->GetCol(iv), res);
@@ -82,7 +96,8 @@ void Lina::FtranD(Index iv, DenseVector& res) {
 }
 
 void Lina::FtranS(Index iv, DenseVector& res) {
-    // P^T L U x = b => L U x = P b
+    // P^T L U E1 .. Ek x = b =>
+    // x = Ek^-1 .. E1^-1 U^-1 L^-1 P b
 
     res.assign(m, 0.0);
     if (iv < n) {
@@ -95,6 +110,12 @@ void Lina::FtranS(Index iv, DenseVector& res) {
 
     SolveL(res);  // b = L y
     SolveU(res);  // y = U x
+
+    for (Index i = 0; i < etas.size(); i++) {
+        EtaFtran(etas[i], res);
+    }
+
+    ftran_res = res;  // For update
 }
 
 void Lina::SolveL(DenseVector& x) {
@@ -118,6 +139,17 @@ void Lina::SolveU(DenseVector& x) {
         }
         x[k] = factor;
     }
+}
+
+void Lina::EtaFtran(const Eta& eta, DenseVector& x) {
+    Index p = eta.ir;
+    Scalar e = eta.eta.At(p);
+
+    Scalar xp = x[p] / e;
+    for (SvIterator el(eta.eta); el; ++el) {
+        x[el.index()] -= xp * el.value();
+    }
+    x[p] = xp;
 }
 
 }  // namespace reshala
