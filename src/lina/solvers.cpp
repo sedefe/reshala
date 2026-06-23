@@ -75,12 +75,12 @@ void Lina::SolveUt(Index iv, DenseVector& y) {
     }
 }
 
-void Lina::SolveLt(DenseVector& y, DenseVector& x) {
+void Lina::SolveLt(const DenseVector& y, DenseVector& x) {
+    x = y;
     for (Index k = m - 1; k >= 0; k--) {
-        if (IsZero(y[k])) continue;
-        x[k] = y[k];
+        if (IsZero(x[k])) continue;
         for (SvIterator el(Lr.GetRow(k)); el; ++el) {
-            y[el.index()] -= el.value() * x[k];
+            x[el.index()] -= el.value() * x[k];
         }
     }
 }
@@ -112,25 +112,26 @@ void Lina::FtranS(Index iv, DenseVector& res) {
     SolveU(y, res);  // y = U x
 }
 
-void Lina::SolveL(DenseVector& b, DenseVector& y) {
+void Lina::SolveL(const DenseVector& b, DenseVector& y) {
+    y = b;
     for (Index k = 0; k < m; k++) {
-        if (IsZero(b[k])) continue;
-        y[k] = b[k];
+        if (IsZero(y[k])) continue;
         for (SvIterator el(Lc.GetCol(k)); el; ++el) {
-            b[el.index()] -= el.value() * y[k];
+            y[el.index()] -= el.value() * y[k];
         }
     }
 }
 
-void Lina::SolveU(DenseVector& y, DenseVector& x) {
+void Lina::SolveU(const DenseVector& y, DenseVector& x) {
+    x = y;
     for (Index k = m - 1; k >= 0; k--) {
-        if (IsZero(y[k])) continue;
-        Scalar u_ik = y[k];
+        if (IsZero(x[k])) continue;
+        Scalar u_ik = x[k];
         Scalar u_kk = Ur.GetRow(k).At(k);
         Scalar factor = u_ik / u_kk;
 
         for (SvIterator el(Uc.GetCol(k)); el; ++el) {
-            y[el.index()] -= factor * el.value();
+            x[el.index()] -= factor * el.value();
         }
         x[k] = factor;
     }

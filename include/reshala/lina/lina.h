@@ -52,7 +52,7 @@ class Lina {
 
     // Dense
     bool InvertD();
-    bool BuildBinv();
+    bool BuildBinv();  // From sparse LU
     void SherMor(Index iv_leaving, Index iv_entering);
     void BtranD(Index iv, DenseVector& res);
     void FtranD(Index iv, DenseVector& res);
@@ -69,10 +69,10 @@ class Lina {
 
     void BtranS(Index iv, DenseVector& res);
     void SolveUt(Index iv, DenseVector& y);
-    void SolveLt(DenseVector& y, DenseVector& x);
+    void SolveLt(const DenseVector& y, DenseVector& x);
     void FtranS(Index iv, DenseVector& res);
-    void SolveL(DenseVector& b, DenseVector& y);
-    void SolveU(DenseVector& y, DenseVector& x);
+    void SolveL(const DenseVector& b, DenseVector& y);
+    void SolveU(const DenseVector& y, DenseVector& x);
 };
 
 }  // namespace reshala
