@@ -68,11 +68,11 @@ class Lina {
     bool InvertS();
 
     void BtranS(Index iv, DenseVector& res);
-    void SolveUt(const DenseVector& b, DenseVector& y);
-    void SolveLt(const DenseVector& y, DenseVector& x);
+    void SolveUt(DenseVector& x);
+    void SolveLt(DenseVector& x);
     void FtranS(Index iv, DenseVector& res);
-    void SolveL(const DenseVector& b, DenseVector& y);
-    void SolveU(const DenseVector& y, DenseVector& x);
+    void SolveL(DenseVector& x);
+    void SolveU(DenseVector& x);
 };
 
 }  // namespace reshala
