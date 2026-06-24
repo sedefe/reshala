@@ -8,6 +8,7 @@ int main(int argc, char** argv) {
         std::cerr << "Usage: " << argv[0] << " FILE\n";
         exit(0);
     }
+    std::cout << "Build: " << kBuildType.c_str() << "\n";
 
     Io io;
     std::cout << "Reading " << argv[1] << "\n";

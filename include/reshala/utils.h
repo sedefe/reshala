@@ -1,32 +1,11 @@
 #pragma once
 
 #include <chrono>
-#include <cmath>
 
 #include "reshala/constants.h"
 #include "reshala/logging.h"
 
 namespace reshala {
-
-inline bool IsZero(Scalar x) { return x < kEpsZero and x > -kEpsZero; }
-
-inline bool WeakGe(Scalar x, Scalar y) { return x - y > -kEpsZero; }
-inline bool StrongGt(Scalar x, Scalar y) { return x - y > kEpsZero; }
-inline bool WeakLe(Scalar x, Scalar y) { return x - y < kEpsZero; }
-inline bool StrongLt(Scalar x, Scalar y) { return x - y < -kEpsZero; }
-inline bool WeakEq(Scalar x, Scalar y) { return IsZero(x - y); }
-
-// Todo test soft floring/ceiling in 3.2/7.2 etc.
-inline Scalar Floor(Scalar x) { return std::floor(x); }
-inline Scalar WeakFloor(Scalar x) { return std::floor(x + kEpsZero); }
-inline Scalar Round(Scalar x) { return std::round(x); }
-inline Scalar Ceil(Scalar x) { return std::ceil(x); }
-inline Scalar WeakCeil(Scalar x) { return std::ceil(x - kEpsZero); }
-
-inline Scalar GetFraction(Scalar x) {
-    Scalar nearest = std::round(x);
-    return std::abs(x - nearest);
-}
 
 #define MEASURE_TIME(expr)                                                                  \
     [&]() {                                                                                 \
@@ -57,5 +36,13 @@ static std::string FormatInteger(Index num) {
 
     return prefix + std::to_string(num / scale) + suffix;
 }
+
+#if defined(NDEBUG)
+    const std::string kBuildType = "release";
+#elif defined(DEBUG)
+    const std::string kBuildType = "debug";
+#else
+    const std::string kBuildType = "X3";
+#endif
 
 }  // namespace reshala

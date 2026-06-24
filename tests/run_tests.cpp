@@ -85,13 +85,7 @@ void RunTest(TestCase& tc) {
 }
 
 int main() {
-#if defined(NDEBUG)
-    printf("Build: release\n");
-#elif defined(DEBUG)
-    printf("Build: debug\n");
-#else
-    printf("Build: X3\n");
-#endif
+    printf("Build: %s\n", kBuildType.c_str());
 
     std::vector<TestCase> test_cases = ReadTestCases("tests/models/results.csv");
 
