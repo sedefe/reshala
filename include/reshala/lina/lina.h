@@ -8,8 +8,9 @@ namespace reshala {
 
 struct Eta {
     SparseVector eta;
-    Index ir;
-    Eta(SparseVector sv, Index i) : eta{std::move(sv)}, ir{i} {}
+    Index i_col;
+    Scalar diag;
+    Eta(SparseVector sv, Index i) : eta{std::move(sv)}, i_col{i} { diag = eta.At(i_col); }
 };
 
 class Lina {

@@ -80,11 +80,10 @@ void Lina::SolveLt(DenseVector& x) {
 }
 
 void Lina::EtaBtran(const Eta& eta, DenseVector& x) {
-    Index p = eta.ir;
-    Scalar e = eta.eta.At(p);  // Todo store separately
+    Index p = eta.i_col;
     Scalar d;
     dot(x, eta.eta, d);
-    x[p] += (x[p] - d) / e;
+    x[p] += (x[p] - d) / eta.diag;
 }
 
 void Lina::FtranD(Index iv, DenseVector& res) {
@@ -142,10 +141,8 @@ void Lina::SolveU(DenseVector& x) {
 }
 
 void Lina::EtaFtran(const Eta& eta, DenseVector& x) {
-    Index p = eta.ir;
-    Scalar e = eta.eta.At(p);
-
-    Scalar xp = x[p] / e;
+    Index p = eta.i_col;
+    Scalar xp = x[p] / eta.diag;
     for (SvIterator el(eta.eta); el; ++el) {
         x[el.index()] -= xp * el.value();
     }
