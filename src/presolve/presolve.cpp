@@ -75,6 +75,8 @@ Solution Presolver::Postsolve(const Solution& sol) {
     }
 
     Solution res = sol;
+    res.y = model_.GetObj().evaluate(sol.x);
+
     res.x.assign(tracker_.GetOrigNVars(), kNan);
     for (Index iv = 0; iv < sol.x.size(); iv++) {
         res.x[tracker_.GetOrigVarIdx()[iv]] = sol.x[iv];

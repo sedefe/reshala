@@ -13,7 +13,7 @@ Solution MilpSolver::Solve() {
     auto [presolve_status, t_presolve] = MEASURE_TIME(presolver.Presolve());
     std::cout << "Presolve finished in " << t_presolve << " ms\n";
     if (presolve_status != LpStatus::kUnknown) {
-        return presolver.Postsolve({presolve_status, model.GetObj().c0, {}});
+        return presolver.Postsolve({presolve_status, {}, {}});
     }
 
     ds.SetModel(model);

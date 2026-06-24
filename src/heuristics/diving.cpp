@@ -14,7 +14,7 @@ Solution Diving::InternalRun(MilpModel& model, const Solution& relaxed, const Mi
     Presolver presolver(model);
     LpStatus presolve_status = presolver.Presolve();
     if (presolve_status != LpStatus::kUnknown) {
-        return presolver.Postsolve({presolve_status, model.GetObj().c0, {}});
+        return presolver.Postsolve({presolve_status, {}, {}});
     }
 
     DualSimplex ds;
