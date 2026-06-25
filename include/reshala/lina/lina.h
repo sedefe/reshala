@@ -54,7 +54,7 @@ class Lina {
 
     // Dense
     bool InvertD();
-    bool BuildBinv();  // From sparse LU
+    bool SparseLu2Binv();  // From sparse LU
     void SherMor(Index iv_leaving, Index iv_entering);
     void BtranD(Index iv, DenseVector& res);
     void FtranD(Index iv, DenseVector& res);

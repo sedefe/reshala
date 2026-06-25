@@ -5,23 +5,6 @@
 
 namespace reshala {
 
-bool Lina::InvertD() {
-    Binv_.ResizeAsZero(m, m);
-    for (Index iv = 0; iv < m; iv++) {
-        Index i_b = basis_->Basis()[iv];
-        if (i_b < n) {
-            const auto& col = Ac_->GetCol(i_b);
-            for (SvIterator el(col); el; ++el) {
-                Binv_[el.index()][iv] = el.value();
-            }
-        } else {
-            Binv_[i_b - n][iv] = 1.0;
-        }
-    }
-
-    return Invert(Binv_);
-}
-
 bool Lina::InvertS() {
     SparseRowMatrix B(m, m);
     for (Index ic = 0; ic < m; ic++) {

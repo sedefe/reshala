@@ -35,11 +35,8 @@ void Lina::Ftran(Index iv, DenseVector& res) {
     }
 }
 
-void Lina::BtranD(Index iv, DenseVector& res) { res.assign(Binv_[iv], Binv_[iv] + m); }
-
 void Lina::BtranS(Index iv, DenseVector& res) {
     // x^T P^T L U E1 ... Ek = e^T =>
-    // e = Ek^T .. E1^T U^T L^T P x =>
     // x = P^T L^-T U^-T E1^-T ... Ek^-T e
 
     DenseVector x(m);
@@ -84,14 +81,6 @@ void Lina::EtaBtran(const Eta& eta, DenseVector& x) {
     Scalar d;
     dot(x, eta.eta, d);
     x[p] += (x[p] - d) / eta.diag;
-}
-
-void Lina::FtranD(Index iv, DenseVector& res) {
-    if (iv < n) {
-        MulDmSv(Binv_, Ac_->GetCol(iv), res);
-    } else {
-        MulDmSv(Binv_, SparseVector(m, iv - n, 1.0), res);
-    }
 }
 
 void Lina::FtranS(Index iv, DenseVector& res) {
