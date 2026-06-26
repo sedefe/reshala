@@ -5,27 +5,24 @@
 
 namespace reshala {
 
-bool Lina::InvertS() {
-    SparseRowMatrix B(m, m);
+bool Lina::SparseLU() {
+    row_perm.resize(m);
+    row_perm_inv.resize(m);
+    for (Index i = 0; i < m; ++i) {
+        row_perm[i] = row_perm_inv[i] = i;
+    }
+    Lr.Clear();
+    Ur.Clear();
+
     for (Index ic = 0; ic < m; ic++) {
         Index ib = basis_->Basis()[ic];
         if (ib < n) {
             for (SvIterator el(Ac_->GetCol(ib)); el; ++el) {
-                B.GetRow(el.index()).Push(ic, el.value());
+                Ur.GetRow(el.index()).Push(ic, el.value());
             }
         } else
-            B.GetRow(ib - n).Push(ic, 1);
+            Ur.GetRow(ib - n).Push(ic, 1);
     }
-    bool lu_res = SparseLU(B);
-    return lu_res;
-}
-
-bool Lina::SparseLU(const SparseRowMatrix& A) {
-    assert(A.GetNRows() == m);
-    assert(A.GetNCols() == m);
-
-    Init();
-    Ur = A;
 
     for (Index k = 0; k < m; ++k) {
         // Partial pivoting

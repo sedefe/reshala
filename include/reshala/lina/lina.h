@@ -22,16 +22,15 @@ class Lina {
           m(Ac->GetNRows()),
           n(Ac->GetNCols()),
           basis_(basis),
-          Binv_(m, m),
           Lr(m, m),
           Ur(m, m),
           Lc(m, m),
           Uc(m, m),
           ftran_res(m) {
-        Init();
+        Reset();
     }
     Lina& operator=(const Lina&) = default;
-    void Init();
+    void Reset();
 
     void Btran(Index iv, DenseVector& res);
     void Ftran(Index iv, DenseVector& res);
@@ -69,8 +68,7 @@ class Lina {
 
     SparseVector ftran_res;
 
-    bool SparseLU(const SparseRowMatrix& A);
-    bool InvertS();
+    bool SparseLU();
     void ProdForm(Index iv_leaving, Index iv_entering);
 
     void BtranS(Index iv, DenseVector& res);

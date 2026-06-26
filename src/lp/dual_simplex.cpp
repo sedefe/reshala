@@ -34,7 +34,7 @@ void DualSimplex::Restore(const DsState& state) {
 void DualSimplex::Init() {
     // basic -> non_basis -> c_n -> d_n -> x_b
     basis.Reset();
-    lina.Init();
+    lina.Reset();
 
     c_n = model_->GetObj().coefficients;
 

@@ -16,18 +16,18 @@ void Lina::Update(Index iv_leaving, Index iv_entering) {
             break;
         case UpdType::kSluSm:
             if (n_updates_ % kMaxUpdates == 0) {
-                InvertS();
+                SparseLU();
                 SparseLu2Binv();
             } else {
                 SherMor(iv_leaving, iv_entering);
             }
             break;
         case UpdType::kSlu:
-            InvertS();
+            SparseLU();
             break;
         case UpdType::kSluPf:
             if (n_updates_ % kMaxUpdates == 0) {
-                InvertS();
+                SparseLU();
                 etas.clear();
             } else {
                 ProdForm(iv_leaving, iv_entering);
