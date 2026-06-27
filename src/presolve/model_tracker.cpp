@@ -75,29 +75,22 @@ void ModelTracker::CompressVars() {
     auto& domain = model_.GetDomain();
 
     Index i_write = 0;
+    std::vector<Index> new_index_map(n, -1);
     // Todo: use (sorted) deleted_vars_
     for (Index i_read = 0; i_read < n; ++i_read) {
-        if (!var_mask_.Get(i_read)) {
+        if (!GetVarMask(i_read)) {
             if (i_write != i_read) {
                 orig_var_idx_[i_write] = std::move(orig_var_idx_[i_read]);
                 coeffs[i_write] = std::move(coeffs[i_read]);
                 model_.GetCol(i_write) = std::move(model_.GetCol(i_read));
                 domain.Move(i_read, i_write);
             }
+            new_index_map[i_read] = i_write;
             ++i_write;
         }
     }
 
     // Ar
-    std::vector<Index> new_index_map(n, -1);
-    Index next_new_index = 0;
-    // Todo: use (sorted) deleted_vars_
-    for (Index iv = 0; iv < n; ++iv) {
-        if (!var_mask_.Get(iv)) {
-            new_index_map[iv] = next_new_index++;
-        }
-    }
-
     for (SparseVector& row : model_.GetAr().GetRows()) {
         Index i_write = 0;
         for (Index i_read = 0; i_read < row.indices().size(); ++i_read) {
@@ -115,6 +108,19 @@ void ModelTracker::CompressVars() {
 
         row.Resize(i_write);
     }
+
+    // Implications
+    Index new_n_impl = 0;
+    for (Index i = 0; i < implications_.size(); i++) {
+        Index iv1 = implications_[i].x_ind;
+        Index iv2 = implications_[i].y_ind;
+        if (GetVarMask(iv1) or GetVarMask(iv2)) continue;
+        implications_[i].x_ind = new_index_map[iv1];
+        implications_[i].y_ind = new_index_map[iv2];
+        if (new_n_impl != i) std::swap(implications_[i], implications_[new_n_impl]);
+        new_n_impl++;
+    }
+    implications_.resize(new_n_impl);
 
     model_.Resize(m, n - deleted_vars_.size());
 

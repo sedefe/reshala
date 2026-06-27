@@ -83,6 +83,7 @@ struct Bounder {
 RuleResult Rule72::Apply(ModelTracker& tracker) {
     const MilpModel& model = tracker.GetModel();
     Index n_reduced = 0;
+    tracker.GetImplications().clear();
 
     for (Index iv = 0; iv < model.GetNVars(); iv++) {
         if (tracker.GetVarMask(iv)) continue;
@@ -113,6 +114,7 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
         }
 
         for (Index iv1 = 0; iv1 < model.GetNVars(); iv1++) {
+            if (iv == iv1) continue;
             const Bounds& bnd = model.GetBounds(iv1);
             Bounds derived = {
                 std::min(bounders[0].var_bounds[iv1].le, bounders[1].var_bounds[iv1].le),
@@ -126,6 +128,24 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
                 }
                 tracker.UpdVarBounds(iv1, std::move(new_bnd));
                 n_reduced++;
+                continue;
+            }
+
+            if (StrongGt(bounders[0].var_bounds[iv1].le, bnd.le)) {  // x = 0 => y >= b
+                tracker.GetImplications().push_back(
+                    {iv, false, iv1, true, bounders[0].var_bounds[iv1].le});
+            }
+            if (StrongLt(bounders[0].var_bounds[iv1].ri, bnd.ri)) {  // x = 0 => y <= b
+                tracker.GetImplications().push_back(
+                    {iv, false, iv1, false, bounders[0].var_bounds[iv1].ri});
+            }
+            if (StrongGt(bounders[1].var_bounds[iv1].le, bnd.le)) {  // x = 1 => y >= b
+                tracker.GetImplications().push_back(
+                    {iv, true, iv1, true, bounders[1].var_bounds[iv1].le});
+            }
+            if (StrongLt(bounders[1].var_bounds[iv1].ri, bnd.ri)) {  // x = 1 => y <= b
+                tracker.GetImplications().push_back(
+                    {iv, true, iv1, false, bounders[1].var_bounds[iv1].ri});
             }
         }
     }

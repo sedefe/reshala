@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "reshala/model/implication.h"
 #include "reshala/model/milp_model.h"
 #include "reshala/presolve/activity.h"
 #include "reshala/presolve/transforms.h"
@@ -49,6 +50,9 @@ class ModelTracker {
     inline const Activity& GetActivity(Index ic) const { return activities_[ic]; }
     inline const Bounds GetConRange(Index ic) const { return activities_[ic].GetRange(); }
 
+    inline std::vector<Implication>& GetImplications() { return implications_; }
+    inline const std::vector<Implication>& GetImplications() const { return implications_; }
+
     inline Index GetNDeletedCons() const { return deleted_cons_.size(); }
     inline Index GetNDeletedVars() const { return deleted_vars_.size(); }
     inline const std::vector<Index>& GetDeletedCons() const { return deleted_cons_; }
@@ -84,6 +88,8 @@ class ModelTracker {
     std::vector<Index> deleted_vars_;
 
     std::vector<Activity> activities_;
+
+    std::vector<Implication> implications_;
 
     std::vector<std::unique_ptr<Transform>> transforms_;
 };
