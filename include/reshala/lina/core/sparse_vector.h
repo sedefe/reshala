@@ -18,10 +18,14 @@ class SparseVector {
 
     SparseVector(Index dim) : dim_(dim) {}
     SparseVector(Index dim, Index i, Scalar v) : dim_(dim) { Push(i, v); }
-    SparseVector(Index dim, const std::vector<Index> &indices, const std::vector<Scalar> &values) {
+    SparseVector(Index dim, const std::vector<Index> &indices, const std::vector<Scalar> &values,
+                 bool sorted) {
         dim_ = dim;
         indices_ = std::move(indices);
         values_ = std::move(values);
+        if (!sorted) {
+            Sort();
+        }
     }
     SparseVector(Index dim, const Scalar *array) : dim_(dim) {
         for (Index i = 0; i < dim; i++) {
@@ -92,6 +96,8 @@ class SparseVector {
         indices_.insert(pos, i);
         values_.insert(values_.begin() + d, v);
     }
+
+    void Sort();
 
     const std::vector<Index> &indices() const { return indices_; }
     std::vector<Index> &indices() { return indices_; }

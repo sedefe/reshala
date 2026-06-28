@@ -97,17 +97,14 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
         }
 
         if (!results[0] and !results[1]) {
-            // printf("Infeasible probing by x%d\n", iv);
             return RuleResult::kInfeasible;
         }
         if (!results[0]) {
-            // printf("x%d -> 1\n", iv);
             tracker.UpdVarBounds(iv, {Scalar(1), Scalar(1)});
             n_reduced++;
             continue;
         }
         if (!results[1]) {
-            // printf("x%d -> 0\n", iv);
             tracker.UpdVarBounds(iv, {Scalar(0), Scalar(0)});
             n_reduced++;
             continue;

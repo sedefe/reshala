@@ -1,6 +1,33 @@
 #include "reshala/lina/core/sparse_vector.h"
 
+#include <numeric>
+
 namespace reshala {
+
+void SparseVector::Sort() {
+    Index n = indices_.size();
+    if (n <= 1) return;
+
+    // Create permutation indices
+    std::vector<size_t> perm(n);
+    std::iota(perm.begin(), perm.end(), 0);
+
+    // Sort permutation based on indices
+    std::sort(perm.begin(), perm.end(),
+              [this](Index i, Index j) { return indices_[i] < indices_[j]; });
+
+    // Apply permutation to both vectors
+    std::vector<Index> sorted_indices(n);
+    std::vector<Scalar> sorted_values(n);
+
+    for (Index i = 0; i < n; ++i) {
+        sorted_indices[i] = indices_[perm[i]];
+        sorted_values[i] = values_[perm[i]];
+    }
+
+    indices_.swap(sorted_indices);
+    values_.swap(sorted_values);
+}
 
 template <typename Operation>
 SparseVector combine(const SparseVector& sv1, const SparseVector& sv2, Operation op) {
@@ -16,7 +43,7 @@ SparseVector combine(const SparseVector& sv1, const SparseVector& sv2, Operation
     Index i1 = 0, i2 = 0;
     auto n1 = sv1.Size();
     auto n2 = sv2.Size();
-    res.Reserve(n1+n2);
+    res.Reserve(n1 + n2);
 
     while (i1 < n1 && i2 < n2) {
         Index ind;

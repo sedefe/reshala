@@ -48,6 +48,10 @@ void dot(const DenseVector& dv1, const SparseVector& sv2, Scalar& res) {
     dot(dv1.data(), sv2, res);
 }
 
+void dot(const SparseVector& sv1, const DenseVector& dv2, Scalar& res) {
+    dot(dv2.data(), sv1, res);
+}
+
 void dot(const DenseVector& dv1, const DenseVector& dv2, Scalar& res) {
     assert(dv1.size() == dv2.size() && "Dv x Dv: incompatible sizes");
 
