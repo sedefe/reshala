@@ -11,7 +11,7 @@ class Heuristics {
     void Run(const Solution& relaxed);
 
    private:
-    std::vector<std::unique_ptr<AbstractHeuristic>> heuristics;
+    std::vector<std::unique_ptr<AbstractHeuristic>> heuristics_;
     MilpModel& model_;
     MipState& mip_state_;
 

@@ -44,7 +44,7 @@ void Fixing(RoundingType type, MilpModel &model, const std::vector<Scalar> &rela
             }
         }
     }
-    
+
     std::cout << "Fixed " << n_fixed_integers << " integers and " << n_fixed_continuous
               << " continuous\n";
 }
