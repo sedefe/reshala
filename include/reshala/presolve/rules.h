@@ -75,6 +75,13 @@ class Rule46 : public Rule {
     std::string Name() const { return "4.6 SimSub"; }
 };
 
+class Rule47 : public Rule {
+   public:
+    Rule47(RuleType t) : Rule(t) {}
+    RuleResult Apply(ModelTracker& tracker);
+    std::string Name() const { return "4.7 RmSlack"; }
+};
+
 class Rule52 : public Rule {
    public:
     Rule52(RuleType t) : Rule(t) {}

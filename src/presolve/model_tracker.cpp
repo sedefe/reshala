@@ -228,6 +228,37 @@ bool ModelTracker::SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b) {
     return true;
 }
 
+void ModelTracker::SlackSub(Index iv, Index ic, Scalar a) {
+    // Sum(a_k*iv_k) + a * iv = b
+    const Bounds bnd = model_.GetBounds(iv);
+    Bounds& rhs = model_.GetRhs(ic);
+    Scalar b = (rhs.le + rhs.ri) / 2;
+
+    if (a >= 0) {
+        rhs.le = b - a * bnd.ri;
+        rhs.ri = b - a * bnd.le;
+    } else {
+        rhs.le = b - a * bnd.le;
+        rhs.ri = b - a * bnd.ri;
+    }
+
+    Scalar c = model_.GetObj().coefficients[iv];
+    SparseVector sv(model_.GetNVars());
+    model_.GetObj().c0 += model_.GetObj().mult * (model_.GetObj().coefficients[iv] * b / a);
+    for (SvIterator el(model_.GetRow(ic)); el; ++el) {
+        if (el.index() == iv) continue;
+        if (GetVarMask(el.index())) continue;
+        model_.GetObj().coefficients[el.index()] -= c * el.value() / a;
+        sv.Push(orig_var_idx_[el.index()], -el.value() / a);
+    }
+
+    UpdVarBounds(iv, {0., 0.});
+
+    transforms_.push_back(
+        std::make_unique<LinCombTransform>(LinCombTransform(orig_var_idx_[iv], sv, b / a)));
+    MaskVar(iv);
+}
+
 void ModelTracker::UpdRhs(Index ic, Bounds rhs) {
     if (IsZero(rhs.le - rhs.ri)) rhs.le = rhs.ri = (rhs.le + rhs.ri) / 2;
 

@@ -61,6 +61,8 @@ class ModelTracker {
     // Model transformations
     void FixVar(Index iv, Scalar val);
     bool SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b);  // iv1 <- a*iv2 + b
+    void SlackSub(Index iv, Index ic, Scalar a);
+
     void UpdRhs(Index ic, Bounds rhs);
     void UpdVarBounds(Index iv, Bounds bnd);
     void UpdCoeff(Index ic, Index iv, Scalar val);

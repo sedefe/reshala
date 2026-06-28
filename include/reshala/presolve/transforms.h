@@ -1,5 +1,6 @@
 #pragma once
 
+#include "reshala/lina/core/sparse_vector.h"
 #include "reshala/model/solution.h"
 
 namespace reshala {
@@ -33,6 +34,18 @@ class SimpleSubTransform : public Transform {  // iv1 <- a * iv2 + b
     Index iv1_;
     Scalar a_;
     Index iv2_;
+    Scalar b_;
+};
+
+class LinCombTransform : public Transform {  // iv <- Sum(a_k * x_k) + b
+   public:
+    LinCombTransform(Index iv, const SparseVector& sv, Scalar b) : iv_(iv), sv_(sv), b_(b) {}
+
+    void Undo(Solution& sol) override;
+
+   private:
+    Index iv_;
+    SparseVector sv_;
     Scalar b_;
 };
 
