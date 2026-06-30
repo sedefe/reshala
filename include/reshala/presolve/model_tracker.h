@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
 
 #include "reshala/model/implication.h"
 #include "reshala/model/milp_model.h"
@@ -61,7 +62,7 @@ class ModelTracker {
     // Model transformations
     void FixVar(Index iv, Scalar val);
     bool SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b);  // iv1 <- a*iv2 + b
-    void SlackSub(Index iv, Index ic, Scalar a);
+    void SlackSub(Index ic, Index iv, Scalar a);
 
     void UpdRhs(Index ic, Bounds rhs);
     void UpdVarBounds(Index iv, Bounds bnd);

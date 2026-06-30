@@ -228,7 +228,7 @@ bool ModelTracker::SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b) {
     return true;
 }
 
-void ModelTracker::SlackSub(Index iv, Index ic, Scalar a) {
+void ModelTracker::SlackSub(Index ic, Index iv, Scalar a) {
     // Sum(a_k*iv_k) + a * iv = b
     const Bounds bnd = model_.GetBounds(iv);
     Bounds& rhs = model_.GetRhs(ic);
