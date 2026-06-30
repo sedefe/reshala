@@ -145,7 +145,7 @@ Activity ModelTracker::CalcActivity(Index ic) const {
 }
 
 void ModelTracker::FixVar(Index iv, Scalar val) {
-    model_.GetObj().c0 += model_.GetObj().mult * (model_.GetObj().coefficients[iv] * val);
+    model_.GetObj().c0 += model_.GetObj().coefficients[iv] * val;
 
     UpdVarBounds(iv, {0, 0});  // Убираем эту переменную из активити
 
@@ -175,7 +175,7 @@ bool ModelTracker::SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b) {
     const Bounds new_bnd2 = BoundsIntersection(bnd2, derived_bnd2);
     if (StrongGt(new_bnd2.le, new_bnd2.ri)) return false;
 
-    model_.GetObj().c0 += model_.GetObj().mult * (model_.GetObj().coefficients[iv1] * b);
+    model_.GetObj().c0 += model_.GetObj().coefficients[iv1] * b;
     model_.GetObj().coefficients[iv2] += a * model_.GetObj().coefficients[iv1];
 
     for (SvIterator el(model_.GetCol(iv1)); el; ++el) {
@@ -244,7 +244,7 @@ void ModelTracker::SlackSub(Index iv, Index ic, Scalar a) {
 
     Scalar c = model_.GetObj().coefficients[iv];
     SparseVector sv(model_.GetNVars());
-    model_.GetObj().c0 += model_.GetObj().mult * (model_.GetObj().coefficients[iv] * b / a);
+    model_.GetObj().c0 += model_.GetObj().coefficients[iv] * b / a;
     for (SvIterator el(model_.GetRow(ic)); el; ++el) {
         if (el.index() == iv) continue;
         if (GetVarMask(el.index())) continue;
@@ -298,6 +298,7 @@ void ModelTracker::UpdCoeff(Index ic, Index iv, Scalar val) {
 
 void ModelTracker::ScaleObj(Scalar x) {
     for (auto& val : model_.GetObj().coefficients) val *= x;
+    model_.GetObj().c0 *= x;
     model_.GetObj().mult /= x;
 }
 

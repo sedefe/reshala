@@ -24,13 +24,13 @@ class Objective {
     Scalar evaluate(const DenseVector& x) const {
         Scalar res = 0;
         dot(coefficients, x, res);
-        return res * mult + c0;
+        return (res + c0) * mult;
     }
 
     Scalar evaluate(const SparseVector& x) const {
         Scalar res = 0;
         dot(coefficients, x, res);
-        return res * mult + c0;
+        return (res + c0) * mult;
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Objective& obj) {
