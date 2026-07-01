@@ -53,7 +53,7 @@ class DualSimplex {
     Scalar primal_infeasibility;
     Scalar theta_p, theta_d;
     Scalar a_pq;
-    Scalar c_j_entering;
+    Scalar c_q;
 
     Index iv_leaving, iv_entering;
 
