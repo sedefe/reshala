@@ -70,10 +70,11 @@ void BnbSolver::UpdDual() {
 }
 
 void BnbSolver::DebugPrint(std::unique_ptr<AbstractBranching>& branching) {
-    if (stats.n_nodes % 50 == 1) {
+    static Index n = 0;
+    if (n % 50 == 0) {
         std::cout << "============================================================================="
                      "======\n";
-        std::cout << "lev | LPiter | left         | right        | dual         | primal       |  "
+        std::cout << "lev | LPiter |     left     |    right     |     dual     |    primal    |  "
                      "gap,%  \n";
         std::cout << "============================================================================="
                      "======\n";
@@ -84,6 +85,7 @@ void BnbSolver::DebugPrint(std::unique_ptr<AbstractBranching>& branching) {
               << " | " << FMT(12, 5) << mip_state_.GetDual() << " | " << FMT(12, 5)
               << mip_state_.GetPrimal() << " | " << FMT(7, 4) << mip_state_.GetGap() * 1e2 << "\n"
               << FMT_DEFAULT;
+    n++;
 }
 
 }  // namespace reshala
