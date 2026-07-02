@@ -68,9 +68,8 @@ class MipState {
 
     void Recalc() {
         Scalar primal = best_sol_.y;
-        cutoff_ = best_sol_.status == LpStatus::kInfeasible
-                      ? kInf
-                      : primal - std::max(std::abs(primal) * kMipGap, int_obj_ ? 1.0 : 0.0);
+        Scalar min_diff = std::max(std::abs(primal) * kMipGap, int_obj_ ? 1.0 - kEpsZero : 0.0);
+        cutoff_ = best_sol_.status == LpStatus::kInfeasible ? kInf : primal - min_diff;
         gap_ = IsZero(primal) ? (IsZero(dual_) ? 0 : 1)
                               : (primal == kInf ? kInf : (primal - dual_) / std::abs(primal));
     }

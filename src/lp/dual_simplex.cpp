@@ -106,8 +106,8 @@ Solution DualSimplex::Solve(bool warm) {
             status = LpStatus::kInfeasible;
             break;
         }
-        // std::cout << "Entering: " << iv_entering << " (" << basis.NonBasis()[iv_entering] <<
-        // ")\n";
+        // std::cout << "Entering: " << iv_entering << " (" << basis.NonBasis()[iv_entering]
+        //           << "), a_pq: " << a_pq << "\n";
 
         Ftran();
         Update();
