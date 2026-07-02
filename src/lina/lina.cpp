@@ -4,6 +4,11 @@
 
 namespace reshala {
 
+std::ostream& operator<<(std::ostream& os, const LinaStats& stats) {
+    os << "Lina: " << stats.n_lus << " LUs, " << stats.n_updates << " updates\n";
+    return os;
+}
+
 void Lina::Reset() {
     Binv_.ResizeAsZero(m, m);
     for (Index iv = 0; iv < m; iv++) {

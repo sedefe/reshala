@@ -33,6 +33,8 @@ class DualSimplex {
     DsState Store() const;
     void Restore(const DsState& state);
 
+    inline const Lina& GetLina() { return lina; }
+
    private:
     MilpModel* model_;
 

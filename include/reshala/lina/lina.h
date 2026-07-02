@@ -13,6 +13,12 @@ struct Eta {
     Eta(SparseVector sv, Index i) : eta{std::move(sv)}, i_col{i} { diag = eta.At(i_col); }
 };
 
+struct LinaStats {
+    Index n_lus = 0;
+    Index n_updates = 0;
+};
+std::ostream& operator<<(std::ostream& os, const LinaStats& stats);
+
 class Lina {
    public:
     Lina() : ftran_res(0) {}
@@ -36,10 +42,14 @@ class Lina {
     void Ftran(Index iv, DenseVector& res);
     void Update(Index iv_leaving, Index iv_entering);
 
+    inline const LinaStats& GetStats() const { return stats; }
+
    private:
     enum class UpdType { kDluSm, kSluSm, kSlu, kSluPf };
     static const UpdType ut = UpdType::kSluPf;
     static const Index kMaxUpdates = 50;
+
+    LinaStats stats;
 
     const SparseColMatrix* Ac_;
     const SparseRowMatrix* Ar_;
