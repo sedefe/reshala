@@ -34,12 +34,12 @@ class BnbSolver {
 
     Node curr_node;
 
-    std::unique_ptr<AbstractBranching> branching_;
+    std::unique_ptr<AbstractBranching> root_branching_;
+    std::unique_ptr<AbstractBranching> node_branching_;
 
-    void SolveRoot(Node& root);
     void UpdDual();
 
-    void DebugPrint();
+    void DebugPrint(std::unique_ptr<AbstractBranching>& branching);
 };
 
 }  // namespace reshala

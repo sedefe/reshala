@@ -8,65 +8,88 @@
 namespace reshala {
 
 Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
-    Index candidate = -1;
-    bool have_1ch_cand = false;
-    Scalar best_score = -kInf;
+    Index candidate;
+    Scalar best_score;
+    Index n_implied_bounds;
 
-    for (Index iv = 0; iv < model_.GetNVars(); ++iv) {
-        if (!model_.GetIntegrality(iv)) continue;
+    while (true) {
+        candidate = -1;
+        best_score = -kInf;
+        n_implied_bounds = 0;
 
-        const Scalar x_val = parent.sol.x[iv];
-        const Scalar floor_x = Floor(x_val);
-        const Scalar ceil_x = floor_x + 1;
+        for (Index iv = 0; iv < model_.GetNVars(); ++iv) {
+            if (!model_.GetIntegrality(iv)) continue;
+            const Scalar x_val = parent.sol.x[iv];
+            if (GetFraction(x_val) <= kEpsZero) continue;
 
-        if (GetFraction(x_val) < kEpsZero) continue;
+            const Scalar floor_x = Floor(x_val);
+            const Scalar ceil_x = floor_x + 1;
 
-        Bounds bnd = model_.GetBounds(iv);
-        std::array<Bounds, 2> cand_bounds{{{bnd.le, floor_x}, {ceil_x, bnd.ri}}};
+            Bounds orig_bnd = model_.GetBounds(iv);
+            std::array<Bounds, 2> cand_bounds{{{orig_bnd.le, floor_x}, {ceil_x, orig_bnd.ri}}};
 
-        Scalar gains[2];
-        LpStatus statuses[2];
-        for (Index i = 0; i < 2; ++i) {
-            ds.Restore(parent.ds_state);
-            model_.SetBounds(iv, cand_bounds[i]);
-            auto sol = ds.Solve(true);
+            Solution sols[2];
+            DsState ds_states[2];
+            for (Index i = 0; i < 2; ++i) {
+                ds.Restore(parent.ds_state);
+                model_.SetBounds(iv, cand_bounds[i]);
+                sols[i] = ds.Solve(true);
+                if (sols[i].status == LpStatus::kOptimal) {
+                    if (mip_state_.TestPrimal(sols[i])) {
+                        std::cout << "FSB: New integer solution: " << FMT(10, 5) << sols[i].y
+                                  << "\n";
+                        if (mip_state_.Converged()) return 0;
+                    }
+                    ds_states[i] = ds.Store();
+                }
+            }
 
-            gains[i] = sol.y - parent.sol.y;
-            statuses[i] = sol.status;
-        }
-        model_.SetBounds(iv, bnd);
+            // Если у кандидата нет детей, дропаем всю ноду
+            if (sols[0].status != LpStatus::kOptimal and sols[1].status != LpStatus::kOptimal) {
+                parent.sol = InfeasibleSolution();
+                return 0;
+            }
 
-        // Если у кандидата нет детей, дропаем всю ноду.
-        if (statuses[0] != LpStatus::kOptimal and statuses[1] != LpStatus::kOptimal) {
-            return 0;
-        }
+            // Если ровно один, второй занимает место родителя
+            if (sols[0].status != LpStatus::kOptimal) {
+                n_implied_bounds++;
+                parent.domain.SetBounds(iv, cand_bounds[1]);
+                parent.ds_state = ds_states[1];
+                parent.sol = sols[1];
+                model_.SetBounds(iv, cand_bounds[1]);
+                continue;
+            }
+            if (sols[1].status != LpStatus::kOptimal) {
+                n_implied_bounds++;
+                parent.domain.SetBounds(iv, cand_bounds[0]);
+                parent.ds_state = ds_states[0];
+                parent.sol = sols[0];
+                model_.SetBounds(iv, cand_bounds[0]);
+                continue;
+            }
 
-        Scalar score;
-        // Кандидаты с одним ребёнком в приоритете.
-        // Среди таких выбран будет тот, у кого выше обжектив единственного ребёнка.
-        if (statuses[0] != LpStatus::kOptimal or statuses[1] != LpStatus::kOptimal) {
-            if (statuses[0] == LpStatus::kOptimal) score = gains[0];
-            if (statuses[1] == LpStatus::kOptimal) score = gains[1];
+            // Два => откатываем баунд и считаем скор
+            model_.SetBounds(iv, orig_bnd);
 
-            if ((!have_1ch_cand) or (score > best_score)) {
+            Scalar gains[2] = {sols[0].y - parent.sol.y, sols[1].y - parent.sol.y};
+            Scalar score = (1.0 - kFsbMu) * std::min(gains[0], gains[1]) +
+                           kFsbMu * std::max(gains[0], gains[1]);
+
+            if (score > best_score) {
                 best_score = score;
                 candidate = iv;
             }
-            have_1ch_cand = true;
         }
-        if (have_1ch_cand) continue;
-
-        // Остаются кандидаты с двумя детьми.
-        score =
-            (1.0 - kFsbMu) * std::min(gains[0], gains[1]) + kFsbMu * std::max(gains[0], gains[1]);
-
-        if ((candidate == -1) or (score > best_score)) {
-            best_score = score;
-            candidate = iv;
+        if (n_implied_bounds == 0) {
+            break;
         }
     }
 
-    // Prepare children
+    if (candidate == -1) {  // Всё округлилось
+        return 0;
+    }
+
+    // Это надо делать только тогда, когда два ребёнка
     const Scalar x_cand = parent.sol.x[candidate];
     const Scalar floor_cand = Floor(x_cand);
     const Bounds orig_bnd = model_.GetBounds(candidate);

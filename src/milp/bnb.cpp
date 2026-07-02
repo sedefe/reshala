@@ -9,18 +9,13 @@ std::ostream& operator<<(std::ostream& os, const BnbStats& stats) {
 
 BnbSolver::BnbSolver(MilpModel& model, DualSimplex& ds, MipState& mip_state)
     : model_(model), ds_(ds), mip_state_(mip_state) {
-    branching_ = std::make_unique<FullStrong>(model);
-    // branching_ = std::make_unique<MostInfeasible>(model);
-}
-
-void BnbSolver::SolveRoot(Node& root) {
-    FullStrongDomProp branching(model_);
-    branching.Branch(root, ds_);
+    root_branching_ = std::make_unique<FullStrong>(model, mip_state);
+    node_branching_ = std::make_unique<FullStrong>(model, mip_state);
+    // node_branching_ = std::make_unique<MostInfeasible>(model, mip_state);
 }
 
 void BnbSolver::Solve(const Solution& relaxed) {
     Node root(1, relaxed, model_.GetDomain(), ds_.Store());
-    SolveRoot(root);
     nodes.push_back(root);
 
     while (!nodes.empty()) {
@@ -37,6 +32,8 @@ void BnbSolver::Solve(const Solution& relaxed) {
         }
 
         model_.SetDomain(curr_node.domain);
+        std::unique_ptr<AbstractBranching>& branching_ =
+            (curr_node.level == 1) ? root_branching_ : node_branching_;
         auto num_ch = branching_->Branch(curr_node, ds_);
         if (num_ch == 0) continue;
 
@@ -49,19 +46,13 @@ void BnbSolver::Solve(const Solution& relaxed) {
                 // Todo: run conflict analysis
                 continue;
             }
-            if (model_.IsIntegerFeasible(child.sol.x)) {
-                if (mip_state_.TestPrimal(child.sol)) {
-                    std::cout << "New integer solution: " << FMT(10, 5) << child.sol.y << "\n";
-                }
-            } else {
-                if (child.sol.y < mip_state_.GetCutoff()) {
-                    nodes.push_back(child);
-                }
+            if (child.sol.y < mip_state_.GetCutoff()) {
+                nodes.push_back(child);
             }
         }
 
         UpdDual();
-        DebugPrint();
+        DebugPrint(branching_);
     }
 
     model_.SetDomain(root.domain);
@@ -78,21 +69,20 @@ void BnbSolver::UpdDual() {
     mip_state_.UpdDual(min_dual);
 }
 
-void BnbSolver::DebugPrint() {
+void BnbSolver::DebugPrint(std::unique_ptr<AbstractBranching>& branching) {
     if (stats.n_nodes % 50 == 1) {
-        std::cout
-            << "===================================================================================\n";
-        std::cout
-            << "lev | LPiter | left         | right        | dual         | primal       |  gap,%  \n";
-        std::cout
-            << "===================================================================================\n";
+        std::cout << "============================================================================="
+                     "======\n";
+        std::cout << "lev | LPiter | left         | right        | dual         | primal       |  "
+                     "gap,%  \n";
+        std::cout << "============================================================================="
+                     "======\n";
     }
     std::cout << FMT(3, 5) << curr_node.level << " | " << FMT(6, 5)
               << FormatInteger(ds_.GetStats().n_iter) << " | " << FMT(12, 5)
-              << branching_->GetChild(0).sol.y << " | " << FMT(12, 5)
-              << branching_->GetChild(1).sol.y << " | " << FMT(12, 5) << mip_state_.GetDual()
-              << " | " << FMT(12, 5) << mip_state_.GetPrimal() << " | " << FMT(7, 4)
-              << mip_state_.GetGap() * 1e2 << "\n"
+              << branching->GetChild(0).sol.y << " | " << FMT(12, 5) << branching->GetChild(1).sol.y
+              << " | " << FMT(12, 5) << mip_state_.GetDual() << " | " << FMT(12, 5)
+              << mip_state_.GetPrimal() << " | " << FMT(7, 4) << mip_state_.GetGap() * 1e2 << "\n"
               << FMT_DEFAULT;
 }
 
