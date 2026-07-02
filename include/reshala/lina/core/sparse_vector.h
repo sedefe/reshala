@@ -37,13 +37,13 @@ class SparseVector {
     SparseVector(const DenseVector &vec) : SparseVector(vec.size(), vec.data()) {}
 
     Scalar At(Index i) const {
-        auto pos = FindIndex(i);
-        return (pos != indices_.end() && *pos == i) ? values_[pos - indices_.begin()] : Scalar(0);
+        auto offset = FindOffset(i);
+        return (offset != Size() && indices_.data()[offset] == i) ? values_[offset] : Scalar(0);
     }
     Scalar &AtRef(Index i) {
-        auto pos = FindIndex(i);
-        assert(pos != indices_.end());
-        return values_[pos - indices_.begin()];
+        auto offset = FindOffset(i);
+        assert(offset != Size());
+        return values_[offset];
     }
 
     inline size_t Size() const { return indices_.size(); }
@@ -69,32 +69,25 @@ class SparseVector {
         values_.push_back(x);
     }
 
-    void Erase(typename std::vector<Index>::iterator it) {  // Erase by iterator
-        // Verify the iterator is valid (optional, for debugging)
-        assert(it >= indices_.begin() && it < indices_.end());
-
-        Index pos = std::distance(indices_.begin(), it);
-        indices_.erase(it);
-        values_.erase(values_.begin() + pos);
+    void EraseOffset(Index offset) {  // Erase by offset
+        assert(offset >= 0 && offset < Size());
+        indices_.erase(indices_.begin() + offset);
+        values_.erase(values_.begin() + offset);
     }
 
-    void Erase(Index i) {  // Erase by index, no reindexing
-        auto it = std::lower_bound(indices_.begin(), indices_.end(), i);
-        assert(it != indices_.end() && *it == i);
-        Erase(it);  // Reuse the iterator version
+    void EraseIndex(Index i) {  // Erase by index, no reindexing
+        auto offset = FindOffset(i);
+        EraseOffset(offset);  // Reuse the offset version
     }
 
-    inline std::vector<Index>::const_iterator FindIndex(Index i) const {
-        return std::lower_bound(indices_.begin(), indices_.end(), i);
-    }
-    inline std::vector<Index>::iterator FindIndex(Index i) {
-        return std::lower_bound(indices_.begin(), indices_.end(), i);
+    inline Index FindOffset(Index i) const {
+        return std::lower_bound(indices_.data(), indices_.data() + indices_.size(), i) -
+               indices_.data();
     }
 
-    void Insert(Index i, Scalar v, typename std::vector<Index>::const_iterator pos) {
-        Index d = pos - indices_.begin();
-        indices_.insert(pos, i);
-        values_.insert(values_.begin() + d, v);
+    void Insert(Index i, Scalar v, Index offset) {
+        indices_.insert(indices_.begin() + offset, i);
+        values_.insert(values_.begin() + offset, v);
     }
 
     void Sort();

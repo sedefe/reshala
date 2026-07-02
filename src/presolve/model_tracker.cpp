@@ -185,27 +185,27 @@ bool ModelTracker::SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b) {
         Scalar val_iv1 = el.value();
         Scalar val_iv2 = a * val_iv1;
         SparseVector& row = model_.GetRow(el.index());
-        row.Erase(iv1);
+        row.EraseIndex(iv1);
 
         Activity& act = activities_[ic];
         act.RmTerm(val_iv1, bnd1);
 
         // Ar & activity
-        auto pos = row.FindIndex(iv2);  // Todo double iteration on iv1&iv2?
-        if (*pos == iv2) {              // Can update inplace
+        Index offset = row.FindOffset(iv2);  // Todo double iteration on iv1&iv2?
+        if (row.indices()[offset] == iv2) {  // Can update inplace
             // Scalar
-            Scalar old_val_iv2 = row.values()[pos - row.indices().begin()];
+            Scalar old_val_iv2 = row.values()[offset];
             Scalar new_val_iv2 = old_val_iv2 + val_iv2;
-            row.values()[pos - row.indices().begin()] = new_val_iv2;
+            row.values()[offset] = new_val_iv2;
             // Проверяем на 0, иначе ниже при апдейте столбца Ac и Ar станут неконсистентны
-            if (IsZero(row.values()[pos - row.indices().begin()])) {
-                row.Erase(pos);
+            if (IsZero(row.values()[offset])) {
+                row.EraseOffset(offset);
             }
             act.RmTerm(old_val_iv2, bnd2);
             act.AddTerm(new_val_iv2, bnd2);
         } else {  // Insert a new value
             if (!IsZero(val_iv2)) {
-                row.Insert(iv2, val_iv2, pos);
+                row.Insert(iv2, val_iv2, offset);
             }
             act.AddTerm(val_iv2, bnd2);
         }
