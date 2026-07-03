@@ -61,6 +61,14 @@ class Objective {
                 os << v << " x" << i;
             }
         }
+        if (obj.c0 != 0) {
+            if (first_coeff) {
+                os << (obj.c0 > 0 ? "" : "- ");
+            } else {
+                os << (obj.c0 > 0 ? " + " : " - ");
+            }
+            os << std::abs(obj.c0);
+        }
         return os;
     }
 };
