@@ -1,4 +1,6 @@
 #include "reshala/model/domain.h"
+
+#include "reshala/numerics.h"
 #include "reshala/utils.h"
 
 namespace reshala {

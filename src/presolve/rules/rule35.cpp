@@ -1,34 +1,7 @@
-#include <limits>
-#include <numeric>
-
+#include "reshala/numerics.h"
 #include "reshala/presolve/rules.h"
 
 namespace reshala {
-
-Index GetGcd(const std::vector<Scalar>& vec) {
-    Index gcd = 0;
-    for (auto x : vec) {
-        if ((std::abs(x) <= kMaxInt) and GetFraction(x) == 0.0) {
-            gcd = std::gcd(gcd, Index(x));
-        } else {
-            return 0;
-        }
-    }
-    return gcd;
-}
-
-void GetExpRange(const std::vector<Scalar>& vec, Index& min_exp, Index& max_exp) {
-    min_exp = std::numeric_limits<Index>::max();
-    max_exp = std::numeric_limits<Index>::min();
-    Index exp;
-
-    for (auto x : vec) {
-        if (x == 0) continue;
-        std::frexp(x, &exp);
-        min_exp = std::min(min_exp, exp);
-        max_exp = std::max(max_exp, exp);
-    }
-}
 
 RuleResult Rule35::Apply(ModelTracker& tracker) {
     const MilpModel& model = tracker.GetModel();

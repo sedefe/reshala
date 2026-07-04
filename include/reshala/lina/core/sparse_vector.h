@@ -8,6 +8,7 @@
 
 #include "reshala/constants.h"
 #include "reshala/lina/core/dense_vector.h"
+#include "reshala/numerics.h"
 #include "reshala/utils.h"
 
 namespace reshala {
