@@ -22,19 +22,7 @@ std::ostream& operator<<(std::ostream& os, const LinaStats& stats);
 class Lina {
    public:
     Lina() : ftran_res(0) {}
-    Lina(const SparseColMatrix* Ac, const SparseRowMatrix* Ar, const LpBasis* basis)
-        : Ac_(Ac),
-          Ar_(Ar),
-          m(Ac->GetNRows()),
-          n(Ac->GetNCols()),
-          basis_(basis),
-          Lr(m, m),
-          Ur(m, m),
-          Lc(m, m),
-          Uc(m, m),
-          ftran_res(m) {
-        Reset();
-    }
+    Lina(const SparseColMatrix& Ac, const SparseRowMatrix& Ar, const LpBasis* basis);
     Lina& operator=(const Lina&) = default;
     void Reset();
 
@@ -51,8 +39,8 @@ class Lina {
 
     LinaStats stats;
 
-    const SparseColMatrix* Ac_;
-    const SparseRowMatrix* Ar_;
+    SparseColMatrix Ac_;
+    SparseRowMatrix Ar_;
     Index m;
     Index n;
 

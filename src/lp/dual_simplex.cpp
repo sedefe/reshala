@@ -12,7 +12,7 @@ void DualSimplex::SetModel(MilpModel& model) {
     m = model_->GetNCons();
     n = model_->GetNVars();
     basis = LpBasis(m, n);
-    lina = Lina(&model.GetAc(), &model.GetAr(), &basis);
+    lina = Lina(model.GetAc(), model.GetAr(), &basis);
     c_n.resize(n);
     x_b.resize(m);
     e_p.resize(m);

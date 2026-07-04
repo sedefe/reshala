@@ -16,12 +16,9 @@ bool Lina::SparseLU() {
 
     for (Index ic = 0; ic < m; ic++) {
         Index ib = basis_->Basis()[ic];
-        if (ib < n) {
-            for (SvIterator el(Ac_->GetCol(ib)); el; ++el) {
-                Ur.GetRow(el.index()).Push(ic, el.value());
-            }
-        } else
-            Ur.GetRow(ib - n).Push(ic, 1);
+        for (SvIterator el(Ac_.GetCol(ib)); el; ++el) {
+            Ur.GetRow(el.index()).Push(ic, el.value());
+        }
     }
 
     for (Index k = 0; k < m; ++k) {

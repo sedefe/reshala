@@ -88,12 +88,8 @@ void Lina::FtranS(Index iv, DenseVector& res) {
     // x = Ek^-1 .. E1^-1 U^-1 L^-1 P b
 
     res.assign(m, 0.0);
-    if (iv < n) {
-        for (SvIterator el(Ac_->GetCol(iv)); el; ++el) {
-            res[row_perm_inv[el.index()]] = el.value();
-        }
-    } else {
-        res[row_perm_inv[iv - n]] = 1.0;
+    for (SvIterator el(Ac_.GetCol(iv)); el; ++el) {
+        res[row_perm_inv[el.index()]] = el.value();
     }
 
     SolveL(res);  // b = L y
