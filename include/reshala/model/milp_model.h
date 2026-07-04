@@ -55,6 +55,7 @@ class MilpModel {
         return GetIntegrality(iv) && (domain_.GetBounds(iv).ri == 1) &&
                (domain_.GetBounds(iv).le == 0);
     }
+    bool ObjIsInteger() const;
 
     bool RowIsInteger(Index ic) const;
     bool IsIntegerFeasible(const std::vector<Scalar>& x) const;

@@ -68,6 +68,7 @@ class ModelTracker {
     void UpdVarBounds(Index iv, Bounds bnd);
     void UpdCoeff(Index ic, Index iv, Scalar val);
     void ScaleObj(Scalar x);
+    void ScaleObjExp(Index e);
     void ScaleRow(Index ic, Scalar x);
 
     inline Index GetOrigNVars() const { return orig_n_vars_; }

@@ -302,6 +302,12 @@ void ModelTracker::ScaleObj(Scalar x) {
     model_.GetObj().mult /= x;
 }
 
+void ModelTracker::ScaleObjExp(Index e) {
+    for (auto& val : model_.GetObj().coefficients) val = std::ldexp(val, e);
+    model_.GetObj().c0 = std::ldexp(model_.GetObj().c0, e);
+    model_.GetObj().mult = std::ldexp(model_.GetObj().mult, -e);
+}
+
 void ModelTracker::ScaleRow(Index ic, Scalar x) {
     SparseVector& row = model_.GetRow(ic);
     row *= x;

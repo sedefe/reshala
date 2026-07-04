@@ -6,6 +6,19 @@
 
 namespace reshala {
 
+bool MilpModel::ObjIsInteger() const {
+    for (Index iv = 0; iv < GetNVars(); ++iv) {
+        if (GetIntegrality(iv)) {
+            if (GetFraction(obj_.coefficients[iv]) != 0.0) {
+                return false;
+            }
+        } else if (obj_.coefficients[iv] != 0.0) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool MilpModel::RowIsInteger(Index ic) const {
     for (SvIterator el(Ar_.GetRow(ic)); el; ++el) {
         if (!GetIntegrality(el.index())) return false;

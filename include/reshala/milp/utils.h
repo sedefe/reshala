@@ -22,7 +22,7 @@ class MipState {
     MipState(const MilpModel& model, const Solution best_sol = InfeasibleSolution(),
              Scalar dual = -kInf)
         : model_(model), best_sol_(best_sol), dual_(dual) {
-        int_obj_ = ObjIsInteger();
+        int_obj_ = model_.ObjIsInteger();
         Recalc();
     }
     const Solution& GetBestSol() const { return best_sol_; }
@@ -52,19 +52,6 @@ class MipState {
     bool int_obj_;
     Scalar gap_;
     Solution best_sol_;
-
-    bool ObjIsInteger() {
-        for (Index iv = 0; iv < model_.GetNVars(); ++iv) {
-            if (model_.GetIntegrality(iv)) {
-                if (GetFraction(model_.GetObj().coefficients[iv]) != 0.0) {
-                    return false;
-                }
-            } else if (model_.GetObj().coefficients[iv] != 0.0) {
-                return false;
-            }
-        }
-        return true;
-    }
 
     void Recalc() {
         Scalar primal = best_sol_.y;
