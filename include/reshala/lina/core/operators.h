@@ -8,6 +8,7 @@ namespace reshala {
 void dot(const Scalar* ar1, const SparseVector& sv2, Scalar& res);
 void dot(const SparseVector& sv1, const SparseVector& sv2, Scalar& res);
 void dot(const DenseVector& dv1, const SparseVector& sv2, Scalar& res);
+void dot(const SparseVector& sv1, const DenseVector& dv2, Scalar& res);
 void dot(const DenseVector& dv1, const DenseVector& dv2, Scalar& res);
 
 void MulScmDv(const SparseColMatrix& scm, const DenseVector& sv, DenseVector& res);

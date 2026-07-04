@@ -7,6 +7,7 @@ MilpSolver::MilpSolver(MilpModel& model)
       mip_state(model),
       presolver(model),
       heuristics(model, mip_state),
+      cutter(model, presolver, ds, mip_state),
       bnb(model, ds, mip_state) {}
 
 Solution MilpSolver::Solve() {
@@ -23,6 +24,11 @@ Solution MilpSolver::Solve() {
 
     mip_state.TestPrimal(sol);
     mip_state.UpdDual(sol.y);
+    if (mip_state.Converged()) {
+        return presolver.Postsolve(mip_state.GetBestSol());
+    }
+
+    cutter.Run(sol);
     if (mip_state.Converged()) {
         return presolver.Postsolve(mip_state.GetBestSol());
     }
