@@ -36,11 +36,13 @@ void Lina::Ftran(Index iv, DenseVector& res) {
 }
 
 void Lina::BtranS(Index iv, DenseVector& res) {
-    // x^T P^T L U E1 ... Ek = e^T =>
-    // x = P^T L^-T U^-T E1^-T ... Ek^-T e
+    // x^T B = ep^T
+    // x^T R Bs Cb = ep^T
+    // x^T R P^T L U Cb = ep^T
+    // x = R^-1 P^T L^-T U^-T E1^-T ... Ek^-T Cb^-1 ep
 
     DenseVector x(m);
-    x[iv] = 1.0;
+    x[iv] = std::ldexp(1.0, -scaling.col[basis_->Basis()[iv]]);
     for (Index i = etas.size() - 1; i >= 0; i--) {
         EtaBtran(etas[i], x);
     }
@@ -50,6 +52,7 @@ void Lina::BtranS(Index iv, DenseVector& res) {
 
     for (Index i = 0; i < m; ++i) {  // permute x
         res[i] = x[row_perm_inv[i]];
+        res[i] = std::ldexp(res[i], -scaling.row[i]);
     }
 }
 
@@ -84,12 +87,21 @@ void Lina::EtaBtran(const Eta& eta, DenseVector& x) {
 }
 
 void Lina::FtranS(Index iv, DenseVector& res) {
-    // P^T L U E1 .. Ek x = b =>
-    // x = Ek^-1 .. E1^-1 U^-1 L^-1 P b
+    // B x = A eq
+    // R Bs Cb x = R As C eq
+    // Bs Cb x = As C eq
+    // P^T L U E1 .. Ek Cb x = As C eq
+    // x = Cb^-1 Ek^-1 .. E1^-1 U^-1 L^-1 P As C eq
 
+    // Assign b
     res.assign(m, 0.0);
+
+    DenseVector tmp(m, 0.0);
     for (SvIterator el(Ac_.GetCol(iv)); el; ++el) {
-        res[row_perm_inv[el.index()]] = el.value();
+        tmp[el.index()] = std::ldexp(el.value(), scaling.col[iv]);
+    }
+    for (Index i = 0; i < m; i++) {
+        res[row_perm_inv[i]] = tmp[i];
     }
 
     SolveL(res);  // b = L y
@@ -99,7 +111,15 @@ void Lina::FtranS(Index iv, DenseVector& res) {
         EtaFtran(etas[i], res);
     }
 
+    for (Index i = 0; i < m; i++) {
+        res[i] = std::ldexp(res[i], -scaling.col[basis_->Basis()[i]]);
+    }
+
     ftran_res = res;  // For update
+    for (MutableSvIterator el(ftran_res); el; ++el) {
+        Index scale = scaling.col[basis_->Basis()[el.index()]] - scaling.col[iv];
+        el.valueRef() = std::ldexp(el.value(), scale);
+    }
 }
 
 void Lina::SolveL(DenseVector& x) {

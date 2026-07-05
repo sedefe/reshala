@@ -3,6 +3,7 @@
 #include "reshala/lina/basis.h"
 #include "reshala/lina/core/dense_matrix.h"
 #include "reshala/lina/core/sparse_matrix.h"
+#include "reshala/lina/scaling.h"
 
 namespace reshala {
 
@@ -25,6 +26,7 @@ class Lina {
     Lina(const SparseColMatrix& Ac, const SparseRowMatrix& Ar, const LpBasis* basis);
     Lina& operator=(const Lina&) = default;
     void Reset();
+    void Scale();
 
     void Btran(Index iv, DenseVector& res);
     void Ftran(Index iv, DenseVector& res);
@@ -43,6 +45,7 @@ class Lina {
     SparseRowMatrix Ar_;
     Index m;
     Index n;
+    Scaling scaling;
 
     const LpBasis* basis_;
     DenseMatrix Binv_;
