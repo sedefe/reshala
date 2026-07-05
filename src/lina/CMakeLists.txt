@@ -6,6 +6,7 @@ target_sources(${PROJECT_NAME}-lib PRIVATE
     dense.cpp
     lina.cpp
     lu.cpp
+    scaling.cpp
     solvers.cpp
     update.cpp
 )

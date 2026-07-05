@@ -52,10 +52,14 @@ void Lina::Scale() {
     scaling.row.assign(m, 0.0);
     scaling.col.assign(n + m, 0.0);
 
+    // ScaleReport rep0 = GetScaleReport(Ar_);
+    // std::cout << rep0;
+
     // Init scaling
     Index exp;
     Index sum;
     Index kMaxIters = 5;
+
     for (Index i = 0; i < kMaxIters; i++) {
         for (Index ic = 0; ic < m; ic++) {
             if (Ar_.GetRow(ic).Size() == 0) continue;
@@ -89,6 +93,9 @@ void Lina::Scale() {
             el.valueRef() = std::ldexp(el.value(), -scaling.row[ic] - scaling.col[el.index()]);
         }
     }
+
+    // ScaleReport rep1 = GetScaleReport(Ar_);
+    // std::cout << rep1;
 }
 
 }  // namespace reshala
