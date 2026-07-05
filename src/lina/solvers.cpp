@@ -51,8 +51,7 @@ void Lina::BtranS(Index iv, DenseVector& res) {
     SolveLt(x);  // y = L^T x
 
     for (Index i = 0; i < m; ++i) {  // permute x
-        res[i] = x[row_perm_inv[i]];
-        res[i] = std::ldexp(res[i], -scaling.row[i]);
+        res[i] = std::ldexp(x[row_perm_inv[i]], -scaling.row[i]);
     }
 }
 
@@ -93,15 +92,13 @@ void Lina::FtranS(Index iv, DenseVector& res) {
     // P^T L U E1 .. Ek Cb x = As C eq
     // x = Cb^-1 Ek^-1 .. E1^-1 U^-1 L^-1 P As C eq
 
+    // Ek  = I + (aq - ep) ap^T
+    // Eks = I + Cb (aq - ep) ap^T Cb^T
+
     // Assign b
     res.assign(m, 0.0);
-
-    DenseVector tmp(m, 0.0);
     for (SvIterator el(Ac_.GetCol(iv)); el; ++el) {
-        tmp[el.index()] = std::ldexp(el.value(), scaling.col[iv]);
-    }
-    for (Index i = 0; i < m; i++) {
-        res[row_perm_inv[i]] = tmp[i];
+        res[row_perm_inv[el.index()]] = std::ldexp(el.value(), scaling.col[iv]);
     }
 
     SolveL(res);  // b = L y
@@ -111,7 +108,7 @@ void Lina::FtranS(Index iv, DenseVector& res) {
         EtaFtran(etas[i], res);
     }
 
-    for (Index i = 0; i < m; i++) {
+    for (Index i = 0; i < m; i++) {  // Todo use sparse ftran_res for this loop
         res[i] = std::ldexp(res[i], -scaling.col[basis_->Basis()[i]]);
     }
 
