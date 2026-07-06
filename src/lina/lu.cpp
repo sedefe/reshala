@@ -48,13 +48,13 @@ bool Lina::SparseLU() {
             std::swap(row_perm[k], row_perm[pivot_row]);
             std::swap(row_perm_inv[row_k], row_perm_inv[row_pivot]);
         }
+        u_diag[k] = pivot_val;
+        Ur.GetRow(k).EraseOffset(0);
 
-        // --- Eliminate rows below k ---
+        // Eliminate rows below k
         for (Index i = k + 1; i < m; ++i) {
-            Scalar aik = Ur.GetRow(i).At(k);
-            if (IsZero(aik)) continue;  // already zero
-
-            Scalar factor = aik / pivot_val;
+            if (Ur.GetRow(i).indices()[0] != k) continue;  // a_ik is already zero
+            Scalar factor = Ur.GetRow(i).values()[0] / pivot_val;
 
             Lr.GetRow(i).Push(k, factor);  // Store multiplier in L
 
@@ -62,6 +62,7 @@ bool Lina::SparseLU() {
             const auto& row_k = Ur.GetRow(k);
             SparseVector scaled = row_k * factor;  // Todo: combine to daxpy
             Ur.GetRow(i) = Ur.GetRow(i) - scaled;
+            Ur.GetRow(i).EraseOffset(0);
         }
     }
 

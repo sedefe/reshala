@@ -14,6 +14,7 @@ Lina::Lina(const SparseColMatrix& Ac, const SparseRowMatrix& Ar, const LpBasis* 
       Ur(m, m),
       Lc(m, m),
       Uc(m, m),
+      u_diag(m),
       ftran_res(m) {
     Ar_.Resize(m, n + m);
     Ac_.Resize(m, n + m);
@@ -40,11 +41,12 @@ void Lina::Reset() {
     row_perm.resize(m);
     row_perm_inv.resize(m);
     Lr.Clear();
+    Ur.Clear();
     Lc.Clear();
+    Uc.Clear();
     for (Index i = 0; i < m; ++i) {
         row_perm[i] = row_perm_inv[i] = i;
-        Ur.GetRow(i) = SparseVector(m, i, std::ldexp(1.0, -scaling.row[i]));
-        Uc.GetCol(i) = SparseVector(m, i, std::ldexp(1.0, -scaling.row[i]));
+        u_diag[i] = std::ldexp(1.0, -scaling.row[i]);
     };
 }
 

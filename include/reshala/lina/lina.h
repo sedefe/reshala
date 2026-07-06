@@ -62,6 +62,7 @@ class Lina {
     // Sparse
     SparseRowMatrix Lr, Ur;
     SparseColMatrix Lc, Uc;
+    DenseVector u_diag;
 
     std::vector<Index> row_perm;
     std::vector<Index> row_perm_inv;

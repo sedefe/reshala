@@ -59,8 +59,7 @@ void Lina::SolveUt(DenseVector& x) {
     for (Index k = 0; k < m; k++) {
         if (IsZero(x[k])) continue;
         Scalar u_ik = x[k];
-        Scalar u_kk = Ur.GetRow(k).At(k);
-        Scalar factor = u_ik / u_kk;
+        Scalar factor = u_ik / u_diag[k];
 
         for (SvIterator el(Ur.GetRow(k)); el; ++el) {
             x[el.index()] -= factor * el.value();
@@ -132,8 +131,7 @@ void Lina::SolveU(DenseVector& x) {
     for (Index k = m - 1; k >= 0; k--) {
         if (IsZero(x[k])) continue;
         Scalar u_ik = x[k];
-        Scalar u_kk = Ur.GetRow(k).At(k);
-        Scalar factor = u_ik / u_kk;
+        Scalar factor = u_ik / u_diag[k];
 
         for (SvIterator el(Uc.GetCol(k)); el; ++el) {
             x[el.index()] -= factor * el.value();
