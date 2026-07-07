@@ -5,7 +5,7 @@
 
 namespace reshala {
 
-bool Lina::SparseLU() {
+bool Lina::Refactor() {
     row_perm.resize(m);
     row_perm_inv.resize(m);
     for (Index i = 0; i < m; ++i) {
@@ -13,6 +13,7 @@ bool Lina::SparseLU() {
     }
     Lr.Clear();
     Ur.Clear();
+    etas.clear();
 
     for (Index ic = 0; ic < m; ic++) {
         Index ib = basis_->Basis()[ic];

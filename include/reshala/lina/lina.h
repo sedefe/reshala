@@ -35,7 +35,7 @@ class Lina {
     inline const LinaStats& GetStats() const { return stats; }
 
    private:
-    enum class UpdType { kDluSm, kSluSm, kSlu, kSluPf };
+    enum class UpdType { kSlu, kSluPf };
     static const UpdType ut = UpdType::kSluPf;
     static const Index kMaxUpdates = 50;
 
@@ -48,18 +48,9 @@ class Lina {
     Scaling scaling;
 
     const LpBasis* basis_;
-    DenseMatrix Binv_;
 
     Index n_updates_ = 0;
 
-    // Dense
-    bool InvertD();
-    bool SparseLu2Binv();  // From sparse LU
-    void SherMor(Index iv_leaving, Index iv_entering);
-    void BtranD(Index iv, DenseVector& res);
-    void FtranD(Index iv, DenseVector& res);
-
-    // Sparse
     SparseRowMatrix Lr, Ur;
     SparseColMatrix Lc, Uc;
     DenseVector u_diag;
@@ -70,15 +61,13 @@ class Lina {
 
     SparseVector ftran_res;
 
-    bool SparseLU();
+    bool Refactor();
     void ProdForm(Index iv_leaving, Index iv_entering);
 
-    void BtranS(Index iv, DenseVector& res);
     void SolveUt(DenseVector& x);
     void SolveLt(DenseVector& x);
     void EtaBtran(const Eta& eta, DenseVector& x);
 
-    void FtranS(Index iv, DenseVector& res);
     void SolveL(DenseVector& x);
     void SolveU(DenseVector& x);
     void EtaFtran(const Eta& eta, DenseVector& x);

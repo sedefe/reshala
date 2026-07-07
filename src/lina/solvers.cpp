@@ -6,36 +6,6 @@
 namespace reshala {
 
 void Lina::Btran(Index iv, DenseVector& res) {
-    switch (ut) {
-        case UpdType::kDluSm:
-        case UpdType::kSluSm:
-            BtranD(iv, res);
-            break;
-        case UpdType::kSlu:
-        case UpdType::kSluPf:
-            BtranS(iv, res);
-            break;
-        default:
-            break;
-    }
-}
-
-void Lina::Ftran(Index iv, DenseVector& res) {
-    switch (ut) {
-        case UpdType::kDluSm:
-        case UpdType::kSluSm: {
-            FtranD(iv, res);
-        } break;
-        case UpdType::kSlu:
-        case UpdType::kSluPf:
-            FtranS(iv, res);
-            break;
-        default:
-            break;
-    }
-}
-
-void Lina::BtranS(Index iv, DenseVector& res) {
     // x^T B = ep^T
     // x^T R Bs Cb = ep^T
     // x^T R P^T L U Cb = ep^T
@@ -84,7 +54,7 @@ void Lina::EtaBtran(const Eta& eta, DenseVector& x) {
     x[p] += (x[p] - d) / eta.diag;
 }
 
-void Lina::FtranS(Index iv, DenseVector& res) {
+void Lina::Ftran(Index iv, DenseVector& res) {
     // B x = A eq
     // R Bs Cb x = R As C eq
     // Bs Cb x = As C eq

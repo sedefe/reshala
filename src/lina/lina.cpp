@@ -33,11 +33,6 @@ std::ostream& operator<<(std::ostream& os, const LinaStats& stats) {
 }
 
 void Lina::Reset() {
-    Binv_.ResizeAsZero(m, m);
-    for (Index i = 0; i < m; i++) {
-        Binv_[i][i] = 1;
-    }
-
     row_perm.resize(m);
     row_perm_inv.resize(m);
     Lr.Clear();
