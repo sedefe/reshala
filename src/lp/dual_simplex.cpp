@@ -34,7 +34,7 @@ void DualSimplex::Restore(const DsState& state) {
 void DualSimplex::Init() {
     // basic -> non_basis -> c_n -> d_n -> x_b
     basis.Reset();
-    lina.Reset();
+    lina.Refactor();
 
     c_n = model_->GetObj().coefficients;
 
@@ -221,7 +221,12 @@ void DualSimplex::Update() {
 
     {  // Update lina
         basis.Swap(iv_leaving, iv_entering);
-        lina.Update(iv_leaving, iv_entering);
+
+        if (lina.GetAge() < kMaxLinaAge) {
+            lina.Update(iv_leaving, iv_entering);
+        } else {
+            lina.Refactor();
+        }
     }
 
     {  // Update c_n

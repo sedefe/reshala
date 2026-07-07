@@ -6,6 +6,8 @@
 namespace reshala {
 
 bool Lina::Refactor() {
+    stats.n_lus++;
+
     row_perm.resize(m);
     row_perm_inv.resize(m);
     for (Index i = 0; i < m; ++i) {

@@ -21,7 +21,8 @@ struct DsStats {
 std::ostream& operator<<(std::ostream& os, const DsStats& stats);
 
 class DualSimplex {
-    Scalar kPivotTolerance = 1e-6;
+    const Scalar kPivotTolerance = 1e-6;
+    const Index kMaxLinaAge = 50;
 
    public:
     DualSimplex() {}

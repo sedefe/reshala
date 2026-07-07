@@ -24,25 +24,12 @@ Lina::Lina(const SparseColMatrix& Ac, const SparseRowMatrix& Ar, const LpBasis* 
     }
 
     Scale();
-    Reset();
+    Refactor();
 }
 
 std::ostream& operator<<(std::ostream& os, const LinaStats& stats) {
     os << "Lina: " << stats.n_lus << " LUs, " << stats.n_updates << " updates\n";
     return os;
-}
-
-void Lina::Reset() {
-    row_perm.resize(m);
-    row_perm_inv.resize(m);
-    Lr.Clear();
-    Ur.Clear();
-    Lc.Clear();
-    Uc.Clear();
-    for (Index i = 0; i < m; ++i) {
-        row_perm[i] = row_perm_inv[i] = i;
-        u_diag[i] = std::ldexp(1.0, -scaling.row[i]);
-    };
 }
 
 void Lina::Scale() {

@@ -25,8 +25,10 @@ class Lina {
     Lina() : ftran_res(0) {}
     Lina(const SparseColMatrix& Ac, const SparseRowMatrix& Ar, const LpBasis* basis);
     Lina& operator=(const Lina&) = default;
-    void Reset();
     void Scale();
+
+    bool Refactor();
+    inline Index GetAge() const { return etas.size(); }
 
     void Btran(Index iv, DenseVector& res);
     void Ftran(Index iv, DenseVector& res);
@@ -37,7 +39,6 @@ class Lina {
    private:
     enum class UpdType { kSlu, kSluPf };
     static const UpdType ut = UpdType::kSluPf;
-    static const Index kMaxUpdates = 50;
 
     LinaStats stats;
 
@@ -49,8 +50,6 @@ class Lina {
 
     const LpBasis* basis_;
 
-    Index n_updates_ = 0;
-
     SparseRowMatrix Lr, Ur;
     SparseColMatrix Lc, Uc;
     DenseVector u_diag;
@@ -61,7 +60,6 @@ class Lina {
 
     SparseVector ftran_res;
 
-    bool Refactor();
     void ProdForm(Index iv_leaving, Index iv_entering);
 
     void SolveUt(DenseVector& x);
