@@ -30,11 +30,10 @@ class DualSimplex {
     Solution Solve(bool warm);
 
     inline const DsStats& GetStats() const { return stats; }
+    inline const Lina& GetLina() { return lina; }
 
     DsState Store() const;
     void Restore(const DsState& state);
-
-    inline const Lina& GetLina() { return lina; }
 
    private:
     MilpModel* model_;
@@ -70,7 +69,10 @@ class DualSimplex {
     void Ftran();
     void Update();
 
-    inline Scalar GetXnValue(Index iv);
+    Scalar GetXnValue(Index iv);
+    void MulNLeft(const DenseVector& x, DenseVector& res) const;
+    void MulNRight(const DenseVector& x, DenseVector& res) const;
+
     Domain initial_domain;
     void ForceBounds();
     void UnforceBounds();
