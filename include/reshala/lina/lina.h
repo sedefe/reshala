@@ -31,7 +31,9 @@ class Lina {
     inline Index GetAge() const { return etas.size(); }
 
     void Btran(Index iv, DenseVector& res);
+    void Btran(DenseVector& x, DenseVector& res);  // NB: x is modified!
     void Ftran(Index iv, DenseVector& res);
+    void Ftran(const DenseVector& x, DenseVector& res);
     void Update(Index iv_leaving, Index iv_entering);
 
     inline const LinaStats& GetStats() const { return stats; }

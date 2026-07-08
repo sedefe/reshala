@@ -2,18 +2,82 @@
 
 namespace reshala {
 
-void DualSimplex::Update() {
-    auto x_q_old = GetXnValue(iv_entering);
+void DualSimplex::RebuildAll() {
+    lina.Refactor();
 
-    {  // Update lina
-        basis.Swap(iv_leaving, iv_entering);
+    DenseVector c_b(m);
+    DenseVector tmp(m);
 
-        if (lina.GetAge() < kMaxLinaAge) {
-            lina.Update(iv_leaving, iv_entering);
-        } else {
-            lina.Refactor();
+    {  // Update c_n
+        for (Index ic = 0; ic < m; ic++) {
+            Index ib = basis.Basis()[ic];
+            c_b[ic] = (ib < n) ? model_->GetObj().coefficients[ib] : 0.0;
+        }
+        lina.Btran(c_b, tmp);
+        MulNLeft(tmp, c_n);
+        for (Index iv = 0; iv < n; iv++) {
+            Index inb = basis.NonBasis()[iv];
+            if (inb < n) {
+                c_n[iv] = model_->GetObj().coefficients[inb] - c_n[iv];
+            } else {
+                c_n[iv] = -c_n[iv];
+            }
         }
     }
+
+    {  // Update d_n
+        for (Index iv = 0; iv < n; iv++) {
+            Index i_nb = basis.NonBasis()[iv];
+            const Bounds& bnd = model_->GetBounds(i_nb);
+
+            switch (model_->GetType(i_nb)) {
+                case BndType::kBoxed:
+                    // NB: Когда c_n маленький, d_n может часто флипаться, что усложняет процесс
+                    // решения. Поэтому для маленьких c_n ничего не меняем
+                    if (StrongGt(c_n[iv], 0.0)) {
+                        d_n[iv] = 1;
+                    } else if (StrongLt(c_n[iv], 0.0)) {
+                        d_n[iv] = -1;
+                    }
+                    break;
+                case BndType::kLower:
+                    d_n[iv] = 1;
+                    break;
+                case BndType::kUpper:
+                    d_n[iv] = -1;
+                    break;
+                case BndType::kFree:
+                    d_n[iv] = 1;  // Todo тут ещё a_p[iv] надо смотреть
+                    break;
+                case BndType::kFixed:
+                    d_n[iv] = 0;
+                    break;
+                default:
+                    assert(false);
+            }
+        }
+        BndType type = model_->GetType(basis.NonBasis()[iv_entering]);
+        d_n[iv_entering] = (type == BndType::kFixed) ? 0 : (s_p > 0 ? -1 : 1);
+    }
+
+    {  // Updade x_b
+        DenseVector x_n(n, 0.0);
+        for (Index iv = 0; iv < n; iv++) x_n[iv] = GetXnValue(iv);
+        MulNRight(x_n, tmp);
+        lina.Ftran(tmp, x_b);
+        for (Scalar& x : x_b) x = -x;
+    }
+}
+
+void DualSimplex::Update() {
+    auto x_q_old = GetXnValue(iv_entering);
+    basis.Swap(iv_leaving, iv_entering);
+
+    if (lina.GetAge() >= kMaxLinaAge) {
+        RebuildAll();
+        return;
+    }
+    lina.Update(iv_leaving, iv_entering);  // Update lina
 
     {  // Update c_n
         for (Index iv = 0; iv < n; iv++) {
@@ -31,15 +95,7 @@ void DualSimplex::Update() {
     {  // Update d_n
         const Bounds& bnd = model_->GetBounds(basis.NonBasis()[iv_entering]);
         BndType type = model_->GetType(basis.NonBasis()[iv_entering]);
-        if (type == BndType::kFixed) {
-            d_n[iv_entering] = 0;  // A fixed can't enter the basis
-        } else {
-            if (s_p > 0) {
-                d_n[iv_entering] = -1;
-            } else {
-                d_n[iv_entering] = 1;
-            }
-        }
+        d_n[iv_entering] = (type == BndType::kFixed) ? 0 : (s_p > 0 ? -1 : 1);
     }
 
     {  // Update x_b

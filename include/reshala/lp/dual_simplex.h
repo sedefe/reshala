@@ -68,6 +68,7 @@ class DualSimplex {
     void Chuzc();
     void Ftran();
     void Update();
+    void RebuildAll();
 
     Scalar GetXnValue(Index iv);
     void MulNLeft(const DenseVector& x, DenseVector& res) const;
