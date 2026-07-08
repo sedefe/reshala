@@ -28,7 +28,14 @@ Lina::Lina(const SparseColMatrix& Ac, const SparseRowMatrix& Ar, const LpBasis* 
 }
 
 std::ostream& operator<<(std::ostream& os, const LinaStats& stats) {
-    os << "Lina: " << stats.n_lus << " LUs, " << stats.n_updates << " updates\n";
+    Scalar avg_fillin = stats.total_nnz_b > 0
+                            ? Scalar(stats.total_nnz_l + stats.total_nnz_u) / stats.total_nnz_b
+                            : 0.0;
+    os << "Lina stats: \n"
+       << "\t" << stats.n_lus << " LUs, " << stats.n_updates << " updates\n"
+       << "\tAvg fill-in: " << avg_fillin << "\n"
+       << "\tBefore scaling: " << stats.scale_rep_before << "\n"
+       << "\tAfter scaling : " << stats.scale_rep_after << "\n";
     return os;
 }
 
@@ -36,8 +43,7 @@ void Lina::Scale() {
     scaling.row.assign(m, 0.0);
     scaling.col.assign(n + m, 0.0);
 
-    // ScaleReport rep0 = GetScaleReport(Ar_);
-    // std::cout << rep0;
+    stats.scale_rep_before = GetScaleReport(Ar_);
 
     // Init scaling
     Index exp;
@@ -78,8 +84,7 @@ void Lina::Scale() {
         }
     }
 
-    // ScaleReport rep1 = GetScaleReport(Ar_);
-    // std::cout << rep1;
+    stats.scale_rep_after = GetScaleReport(Ar_);
 }
 
 }  // namespace reshala

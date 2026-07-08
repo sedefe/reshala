@@ -10,8 +10,8 @@ struct Scaling {
 };
 
 struct ScaleReport {
-    Scalar frob_norm;
-    Scalar max_min_ratio;
+    Scalar frob_norm = 0.0;
+    Scalar max_min_ratio = 0.0;
 };
 std::ostream& operator<<(std::ostream& os, const ScaleReport& rep);
 

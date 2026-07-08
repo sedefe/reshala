@@ -3,7 +3,7 @@
 namespace reshala {
 
 std::ostream& operator<<(std::ostream& os, const ScaleReport& rep) {
-    os << "FrobNorm: " << rep.frob_norm << ", MaxMinRatio: " << rep.max_min_ratio << "\n";
+    os << "FrobNorm: " << rep.frob_norm << ", MaxMinRatio: " << rep.max_min_ratio;
     return os;
 }
 

@@ -23,6 +23,7 @@ bool Lina::Refactor() {
             Ur.GetRow(el.index()).Push(ic, el.value());
         }
     }
+    stats.total_nnz_b += Ur.GetNnz();
 
     for (Index k = 0; k < m; ++k) {
         // Partial pivoting
@@ -71,6 +72,9 @@ bool Lina::Refactor() {
 
     Srm2Scm(Lr, Lc);
     Srm2Scm(Ur, Uc);
+
+    stats.total_nnz_l += Lr.GetNnz();
+    stats.total_nnz_u += Ur.GetNnz() + m;
 
     return true;
 }

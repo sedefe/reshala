@@ -17,6 +17,13 @@ struct Eta {
 struct LinaStats {
     Index n_lus = 0;
     Index n_updates = 0;
+
+    Index total_nnz_b = 0;
+    Index total_nnz_l = 0;
+    Index total_nnz_u = 0;
+
+    ScaleReport scale_rep_before;
+    ScaleReport scale_rep_after;
 };
 std::ostream& operator<<(std::ostream& os, const LinaStats& stats);
 
