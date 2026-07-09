@@ -26,7 +26,7 @@ ExpType LpChar2ExpType(char c) {
 
 struct Monom {
     Scalar coeff;
-    size_t index;
+    Index index;
 };
 
 class LpReader {
@@ -51,8 +51,8 @@ class LpReader {
     void ParseBinaries(const std::vector<std::string>&);
     void ParseGenerals(const std::vector<std::string>&);
 
-    void ParseLincomb(const std::vector<std::string>& tokens, std::vector<Monom>& lhs, Index begin,
-                      Index end);
+    void ParseLincomb(const std::vector<std::string>& tokens, std::vector<Monom>& lhs,
+                      Scalar& free_term, Index begin, Index end);
     void FinalizeMatrix();
 };
 

@@ -100,17 +100,18 @@ FileReadStatus LpReader::Read(const std::filesystem::path& path) {
 
 void LpReader::ParseObjective(const std::vector<std::string>& tokens) {
     std::vector<Monom> lhs;
+    Scalar c0;
     Index begin = 0;
     if (tokens.size() >= 1 and tokens[0].back() == ':') {
         names_.obj.assign(tokens[0], 0, tokens[0].length() - 1);
         begin = 1;
     }
     Index end = tokens.size();
-    ParseLincomb(tokens, lhs, begin, end);
+    ParseLincomb(tokens, lhs, c0, begin, end);
 
     Objective& obj = model_.GetObj();
-    model_.GetObj().coefficients.resize(names_.vars.size());
-    obj.c0 = 0;  // Todo: parse c0
+    model_.GetObj().coefficients.resize(names_.vars.Size());
+    obj.c0 = c0;
     if (model_.GetObj().orig_sense == Sense::kMin) {
         for (const auto& m : lhs) {
             obj.coefficients[m.index] = m.coeff;
@@ -124,15 +125,17 @@ void LpReader::ParseObjective(const std::vector<std::string>& tokens) {
 
 void LpReader::ParseConstraint(const std::vector<std::string>& tokens) {
     std::vector<Monom> lhs;
+    Scalar c0;
     Index begin = 0;
     if (tokens.size() >= 1 and tokens[0].back() == ':') {
         std::string con_name(tokens[0].begin(), tokens[0].end() - 1);
-        names_.cons.get_index(con_name);
+        names_.cons.GetIndex(con_name);
         begin = 1;
     }
     Index end = tokens.size() - 2;
 
-    ParseLincomb(tokens, lhs, begin, end);
+    ParseLincomb(tokens, lhs, c0, begin, end);
+    assert(c0 == 0.0 && "Free terms in constraints are not supported");
 
     const std::string& exp_token = tokens[tokens.size() - 2];
     const std::string& rhs_token = tokens[tokens.size() - 1];
@@ -145,7 +148,7 @@ void LpReader::ParseConstraint(const std::vector<std::string>& tokens) {
     Scalar coeff = std::stod(rhs_token);
     Bounds rhs = ExpType2Bounds(exp_type, coeff);
 
-    SparseVector sv(names_.vars.size());
+    SparseVector sv(names_.vars.Size());
     sv.Reserve(lhs.size());
     for (const auto& m : lhs) {
         sv.Push(m.index, m.coeff);
@@ -156,7 +159,7 @@ void LpReader::ParseConstraint(const std::vector<std::string>& tokens) {
 void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
     size_t n = tokens.size();
     if (n == 2 and tokens[1] == "Free") {
-        Index index = names_.vars.get_index(tokens[0]);
+        Index index = names_.vars.GetIndex(tokens[0]);
         model_.SetBounds(index, {-kInf, kInf});
         return;
     }
@@ -166,7 +169,7 @@ void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
     if (names_.vars.name_to_index.find(tokens[i_var]) == names_.vars.name_to_index.end()) {
         ThrowParseError("Unexpected variable " + tokens[i_var] + " in Bounds section");
     }
-    Index index = names_.vars.get_index(tokens[i_var]);
+    Index index = names_.vars.GetIndex(tokens[i_var]);
 
     std::vector<std::tuple<bool, ExpType, Scalar>> expressions;
     if (n == 3) {
@@ -208,7 +211,7 @@ void LpReader::ParseBinaries(const std::vector<std::string>& tokens) {
         if (names_.vars.name_to_index.find(str) == names_.vars.name_to_index.end()) {
             ThrowParseError("Unexpected variable " + str + " in Binaries section");
         }
-        auto index = names_.vars.get_index(str);
+        auto index = names_.vars.GetIndex(str);
         model_.SetIntegrality(index, true);
         const Bounds& bnd = model_.GetBounds(index);
         model_.SetBounds(index, BoundsIntersection(bnd, {0, 1}));
@@ -220,7 +223,7 @@ void LpReader::ParseGenerals(const std::vector<std::string>& tokens) {
         if (names_.vars.name_to_index.find(str) == names_.vars.name_to_index.end()) {
             ThrowParseError("Unexpected variable " + str + " in Generals section");
         }
-        auto index = names_.vars.get_index(str);
+        auto index = names_.vars.GetIndex(str);
         model_.SetIntegrality(index, true);
     }
 }
@@ -230,10 +233,11 @@ void sort_monoms(std::vector<Monom>& monoms) {
               [](const Monom& a, const Monom& b) { return a.index < b.index; });
 }
 
-// <expression> ::= [sign] <monom> { ('+' | '-') <monom> }
+// <expression> ::= [sign] <monom> { ('+' | '-') <monom> } [ ('+' | '-') <constant> ]
 // <monom>      ::= [number] <variable>
+// <constant>   ::= [number]   (only allowed as the very last term)
 void LpReader::ParseLincomb(const std::vector<std::string>& tokens, std::vector<Monom>& lhs,
-                            Index begin, Index end) {
+                            Scalar& free_term, Index begin, Index end) {
     enum State { kExpectOperand, kExpectVariable, kExpectOperator };
     State state = kExpectOperand;
     Scalar sign = 1.0;        // sign of the current monom
@@ -287,7 +291,7 @@ void LpReader::ParseLincomb(const std::vector<std::string>& tokens, std::vector<
                 ThrowParseError("Token " + std::to_string(i) + ": expected operator, got \"" +
                                 token + "\"");
 
-            size_t idx = names_.vars.get_index(token);
+            Index idx = names_.vars.GetIndex(token);
             lhs.push_back({sign * coeff, idx});
 
             // Reset
@@ -299,7 +303,12 @@ void LpReader::ParseLincomb(const std::vector<std::string>& tokens, std::vector<
         }
     }
 
-    // Valid expression must end right after a variable
+    free_term = 0.0;
+    if (state == kExpectVariable && has_number) {
+        free_term = sign * coeff;
+        state = kExpectOperator;
+    }
+
     if (state != kExpectOperator) ThrowParseError("Unexpected end of a linear combination");
 
     sort_monoms(lhs);
@@ -307,7 +316,7 @@ void LpReader::ParseLincomb(const std::vector<std::string>& tokens, std::vector<
 
 void LpReader::FinalizeMatrix() {
     size_t n_cons = model_.GetAr().GetRows().size();
-    size_t n_vars = names_.vars.size();
+    size_t n_vars = names_.vars.Size();
     model_.Resize(n_cons, n_vars);
     model_.FinalizeAc();
     matrix_finalized = true;

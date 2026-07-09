@@ -25,7 +25,7 @@ class Io {
     MilpModel& GetModel() { return model_; }
 
     void PrintValues(std::ostream& os, const std::vector<Scalar>& x) const {
-        assert(names_.vars.size() == x.size());
+        assert(names_.vars.Size() == x.size());
         for (Index iv = 0; iv < x.size(); iv++) {
             if (!IsZero(x[iv])) {
                 os << names_.vars.index_to_name[iv] << ": " << x[iv] << " ";
