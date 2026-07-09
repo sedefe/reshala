@@ -48,6 +48,7 @@ class SparseVector {
     }
 
     inline size_t Size() const { return indices_.size(); }
+
     inline void Clear() {
         indices_.clear();
         values_.clear();
@@ -92,6 +93,12 @@ class SparseVector {
     }
 
     void Sort();
+
+    inline Scalar Norm2() const {
+        Scalar res = 0.0;
+        for (auto v : values_) res += v * v;
+        return res;
+    }
 
     const std::vector<Index> &indices() const { return indices_; }
     std::vector<Index> &indices() { return indices_; }

@@ -16,4 +16,10 @@ void MulDmSv(const DenseMatrix& dm, const SparseVector& sv, DenseVector& res);
 
 bool Invert(DenseMatrix& dm);
 
+inline Scalar Cos2(const SparseVector& sv1, const SparseVector& sv2) {
+    Scalar scal_mult;
+    dot(sv1, sv2, scal_mult);
+    return (scal_mult * scal_mult) / (sv1.Norm2() * sv2.Norm2());
+}
+
 }  // namespace reshala

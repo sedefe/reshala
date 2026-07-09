@@ -10,7 +10,7 @@ class ProbingCg : public AbstractCg {
     ProbingCg(MilpModel& model, Presolver& presolver, DualSimplex& ds)
         : AbstractCg("Probing", model, ds), impls_(presolver.GetTracker().GetImplications()) {}
 
-    Index Generate(const Solution& sol, std::vector<Cut>& dst) override;
+    void Generate(const Solution& sol, std::vector<Cut>& dst) override;
 
    private:
     const std::vector<Implication>& impls_;

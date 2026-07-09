@@ -12,7 +12,7 @@ class AbstractCg {
     virtual ~AbstractCg() = default;
 
     const std::string GetName() const { return name_; }
-    virtual Index Generate(const Solution& sol, std::vector<Cut>& dst) = 0;
+    virtual void Generate(const Solution& sol, std::vector<Cut>& dst) = 0;
 
    protected:
     const std::string name_;
