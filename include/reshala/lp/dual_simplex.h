@@ -74,10 +74,6 @@ class DualSimplex {
     void MulNLeft(const DenseVector& x, DenseVector& res) const;
     void MulNRight(const DenseVector& x, DenseVector& res) const;
 
-    Domain initial_domain;
-    void ForceBounds();
-    void UnforceBounds();
-
     void DebugPrint();
 };
 

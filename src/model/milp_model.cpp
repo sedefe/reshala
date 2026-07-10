@@ -78,8 +78,11 @@ void MilpModel::AddSlacks() {
     auto m = GetNCons();
     auto n = GetNVars();
 
-    domain_.Resize(n + m);
+    Resize(m, n + m);
     for (Index ic = 0; ic < m; ic++) {
+        Ac_.GetCol(n + ic) = SparseVector(m, ic, 1.0);
+        Ar_.GetRow(ic).Push(n + ic, 1.0);
+
         domain_.SetBounds(n + ic, {-rhs_[ic].ri, -rhs_[ic].le});
         domain_.SetIntegrality(n + ic, false);
     }
@@ -89,6 +92,12 @@ void MilpModel::PruneSlacks() {
     assert(has_slacks_);
     has_slacks_ = false;
 
+    auto m = GetNCons();
+    auto n = GetNVars();
+    Resize(m, n - m);
+    for (Index ic = 0; ic < m; ic++) {
+        Ar_.GetRow(ic).Resize(Ar_.GetRow(ic).Size() - 1);
+    }
     domain_.Resize(GetNVars());
 }
 

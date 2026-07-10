@@ -64,7 +64,6 @@ void DualSimplex::Init() {
 
 Solution DualSimplex::Solve(bool warm) {
     model_->AddSlacks();
-    ForceBounds();
     LpStatus status;
 
     if (!warm) {
@@ -99,7 +98,6 @@ Solution DualSimplex::Solve(bool warm) {
     }
 
     model_->PruneSlacks();
-    UnforceBounds();
 
     DenseVector x;
     if (status == LpStatus::kOptimal) {

@@ -32,9 +32,6 @@ void DualSimplex::MulNLeft(const DenseVector& x, DenseVector& res) const {
                 res[basis.Index2Nb()[el.index()]] += x[ic] * el.value();
             }
         }
-        if (basis.Index2Nb()[n + ic] >= 0) {
-            res[basis.Index2Nb()[n + ic]] += x[ic];
-        }
     }
 }
 
@@ -43,24 +40,11 @@ void DualSimplex::MulNRight(const DenseVector& x, DenseVector& res) const {
     for (Index iv = 0; iv < n; iv++) {
         if (IsZero(x[iv])) continue;
         Index inb = basis.NonBasis()[iv];
-        if (inb < n) {
-            for (SvIterator el(model_->GetCol(inb)); el; ++el) {
-                res[el.index()] += el.value() * x[iv];
-            }
-        } else {
-            res[inb - n] += x[iv];
+        for (SvIterator el(model_->GetCol(inb)); el; ++el) {
+            res[el.index()] += el.value() * x[iv];
         }
     }
 }
-
-void DualSimplex::ForceBounds() {
-    initial_domain = model_->GetDomain();
-    for (Index iv = 0; iv < m + n; iv++) {
-        model_->SetBounds(iv, BoundsIntersection(model_->GetBounds(iv), {-kMaxAbs, kMaxAbs}));
-    }
-}
-
-void DualSimplex::UnforceBounds() { model_->SetDomain(initial_domain); }
 
 void DualSimplex::DebugPrint() {
     DenseVector x(n);
