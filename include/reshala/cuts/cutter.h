@@ -8,7 +8,7 @@ namespace reshala {
 
 class Cutter {
    public:
-    Cutter(MilpModel& model, Presolver& presolver, DualSimplex& ds, MipState& mip_state);
+    Cutter(MilpModel& model, const Presolver& presolver, DualSimplex& ds, MipState& mip_state);
 
     void Run(Solution& sol);
 
@@ -21,6 +21,7 @@ class Cutter {
     const Scalar kThdCos2 = 1.0 / 100;
 
     MilpModel& model_;
+    const Presolver& presolver_;
     DualSimplex& ds_;
     MipState& mip_state_;
     Solution sol_;
@@ -29,8 +30,6 @@ class Cutter {
 
     Index max_cuts_;
     Index max_support_;
-
-    std::vector<std::unique_ptr<AbstractCg>> generators_;
 
     std::vector<Cut> pool_;
 

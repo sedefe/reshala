@@ -11,10 +11,8 @@ bool CutCompare(const Cut& c1, const Cut& c2) {
     return c1.quality > c2.quality;
 }
 
-Cutter::Cutter(MilpModel& model, Presolver& presolver, DualSimplex& ds, MipState& mip_state)
-    : model_(model), ds_(ds), mip_state_(mip_state) {
-    generators_.push_back(std::make_unique<ProbingCg>(model, presolver, ds));
-
+Cutter::Cutter(MilpModel& model, const Presolver& presolver, DualSimplex& ds, MipState& mip_state)
+    : model_(model), presolver_(presolver), ds_(ds), mip_state_(mip_state) {
     auto m = model.GetNCons();
     auto n = model.GetNVars();
 
@@ -52,6 +50,10 @@ void Cutter::Run(Solution& sol) {
 
 Index Cutter::Generate(const Solution& sol) {
     Index prev_size = pool_.size();
+
+    std::vector<std::unique_ptr<AbstractCg>> generators_;
+    generators_.push_back(std::make_unique<ProbingCg>(model_, presolver_, ds_));
+
     for (auto& cg : generators_) {
         Index k = pool_.size();
         cg->Generate(sol, pool_);

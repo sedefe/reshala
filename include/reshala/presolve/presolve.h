@@ -16,7 +16,7 @@ class Presolver {
     LpStatus Presolve();
     Solution Postsolve(const Solution&);
 
-    inline const ModelTracker& GetTracker() { return tracker_; }
+    inline const ModelTracker& GetTracker() const { return tracker_; }
 
    private:
     MilpModel& model_;

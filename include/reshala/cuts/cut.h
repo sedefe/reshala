@@ -44,9 +44,7 @@ struct Cut {
         m_int_support = GetIntegralSupport();
     }
 
-    bool IsViolated(const std::vector<Scalar>& x) const {
-        return StrongGt(GetViolation(x), 0.0);
-    }
+    bool IsViolated(const std::vector<Scalar>& x) const { return StrongGt(GetViolation(x), 0.0); }
 
    private:
     //////////////////////////////////////////////////

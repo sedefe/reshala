@@ -7,7 +7,7 @@ namespace reshala {
 
 class ProbingCg : public AbstractCg {
    public:
-    ProbingCg(MilpModel& model, Presolver& presolver, DualSimplex& ds)
+    ProbingCg(MilpModel& model, const Presolver& presolver, DualSimplex& ds)
         : AbstractCg("Probing", model, ds), impls_(presolver.GetTracker().GetImplications()) {}
 
     void Generate(const Solution& sol, std::vector<Cut>& dst) override;
