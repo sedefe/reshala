@@ -35,6 +35,13 @@ class DualSimplex {
     DsState Store() const;
     void Restore(const DsState& state);
 
+    void SetDomain(const Domain& domain) {
+        for (Index iv = 0; iv < domain.Size(); iv++) {
+            SetBounds(iv, domain.GetBounds(iv));
+        }
+    }
+    inline void SetBounds(Index iv, const Bounds& bnd) { model_->SetBounds(iv, bnd); }
+
    private:
     MilpModel* model_;
 

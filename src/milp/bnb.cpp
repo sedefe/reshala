@@ -7,7 +7,7 @@ std::ostream& operator<<(std::ostream& os, const BnbStats& stats) {
     return os;
 }
 
-BnbSolver::BnbSolver(MilpModel& model, DualSimplex& ds, MipState& mip_state)
+BnbSolver::BnbSolver(const MilpModel& model, DualSimplex& ds, MipState& mip_state)
     : model_(model), ds_(ds), mip_state_(mip_state) {
     root_branching_ = std::make_unique<FullStrong>(model, mip_state);
     node_branching_ = std::make_unique<FullStrong>(model, mip_state);
@@ -31,7 +31,7 @@ void BnbSolver::Solve(const Solution& relaxed) {
             break;
         }
 
-        model_.SetDomain(curr_node.domain);
+        ds_.SetDomain(curr_node.domain);
         std::unique_ptr<AbstractBranching>& branching_ =
             (curr_node.level == 1) ? root_branching_ : node_branching_;
         auto num_ch = branching_->Branch(curr_node, ds_);
@@ -55,7 +55,7 @@ void BnbSolver::Solve(const Solution& relaxed) {
         DebugPrint(branching_);
     }
 
-    model_.SetDomain(root.domain);
+    ds_.SetDomain(root.domain);
 }
 
 void BnbSolver::UpdDual() {

@@ -32,7 +32,7 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
             DsState ds_states[2];
             for (Index i = 0; i < 2; ++i) {
                 ds.Restore(parent.ds_state);
-                model_.SetBounds(iv, cand_bounds[i]);
+                ds.SetBounds(iv, cand_bounds[i]);
                 sols[i] = ds.Solve(true);
 
                 // Катоф не прошёл => нахрен пошёл
@@ -63,7 +63,7 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
                 parent.domain.SetBounds(iv, cand_bounds[1]);
                 parent.ds_state = ds_states[1];
                 parent.sol = sols[1];
-                model_.SetBounds(iv, cand_bounds[1]);
+                ds.SetBounds(iv, cand_bounds[1]);
                 continue;
             }
             if (sols[1].status != LpStatus::kOptimal) {
@@ -71,12 +71,12 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
                 parent.domain.SetBounds(iv, cand_bounds[0]);
                 parent.ds_state = ds_states[0];
                 parent.sol = sols[0];
-                model_.SetBounds(iv, cand_bounds[0]);
+                ds.SetBounds(iv, cand_bounds[0]);
                 continue;
             }
 
             // Два => откатываем баунд и считаем скор
-            model_.SetBounds(iv, orig_bnd);
+            ds.SetBounds(iv, orig_bnd);
 
             Scalar gains[2] = {sols[0].y - parent.sol.y, sols[1].y - parent.sol.y};
             Scalar score = (1.0 - kFsbMu) * std::min(gains[0], gains[1]) +
@@ -105,7 +105,7 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
     Index num_ch = 0;
     for (Index i = 0; i < 2; ++i) {
         ds.Restore(parent.ds_state);
-        model_.SetBounds(candidate, final_bounds[i]);
+        ds.SetBounds(candidate, final_bounds[i]);
         auto sol = ds.Solve(true);
         children_[i] = Node(parent.level + 1, sol, model_.GetDomain(), ds.Store());
 
