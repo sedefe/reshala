@@ -1,7 +1,6 @@
 #pragma once
 
 #include "reshala/lina/basis.h"
-#include "reshala/lina/core/dense_matrix.h"
 #include "reshala/lina/core/sparse_matrix.h"
 #include "reshala/lina/scaling.h"
 
