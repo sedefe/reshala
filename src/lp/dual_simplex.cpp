@@ -8,13 +8,15 @@ void DualSimplex::SetModel(MilpModel& model) {
     m = model_.GetNCons();
     n = model_.GetNVars();
     basis = LpBasis(m, n);
-    lina = Lina(model_.GetAc(), model_.GetAr(), &basis);
     c_n.resize(n);
     x_b.resize(m);
     e_p.resize(m);
     a_p.resize(n);
     a_q.resize(m);
     d_n.resize(n);
+
+    scaling.ScaleModel(model_);
+    lina = Lina(model_.GetAc(), model_.GetAr(), &basis);
 }
 
 void DualSimplex::Init() {
@@ -64,7 +66,7 @@ void DualSimplex::Init() {
 }
 
 Solution DualSimplex::Solve(bool warm) {
-    model_.AddSlacks();
+    AddSlacks();
     LpStatus status;
 
     if (!warm) {
@@ -98,32 +100,32 @@ Solution DualSimplex::Solve(bool warm) {
         Update();
     }
 
-    model_.PruneSlacks();
+    PruneSlacks();
 
-    DenseVector x;
+    DenseVector x;  // Fill & unscale
     if (status == LpStatus::kOptimal) {
         x.resize(n);
         for (Index ic = 0; ic < m; ic++) {
             Index i_b = basis.Basis()[ic];
             if (i_b < n) {
-                x[i_b] = x_b[ic];
+                x[i_b] = std::ldexp(x_b[ic], -scaling.col[i_b]);
             }
         }
         for (Index iv = 0; iv < n; iv++) {
             Index i_nb = basis.NonBasis()[iv];
             if (i_nb < n) {
-                x[i_nb] = GetXnValue(iv);
+                x[i_nb] = std::ldexp(GetXnValue(iv), -scaling.col[i_nb]);
             }
         }
     }
 
-    return model_.PrepareSolution(status, x);
+    return model_orig_->PrepareSolution(status, x);
 }
 
-void DualSimplex::Btran() { lina.Btran(iv_leaving, e_p); }
+void DualSimplex::Btran() { lina.Btran(SparseVector(m, iv_leaving, 1.0), e_p); }
 
 void DualSimplex::Price() { MulNLeft(e_p, a_p); }
 
-void DualSimplex::Ftran() { lina.Ftran(basis.NonBasis()[iv_entering], a_q); }
+void DualSimplex::Ftran() { lina.Ftran(model_.GetCol(basis.NonBasis()[iv_entering]), a_q); }
 
 }  // namespace reshala

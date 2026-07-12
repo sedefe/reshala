@@ -2,7 +2,6 @@
 
 #include "reshala/lina/basis.h"
 #include "reshala/lina/core/sparse_matrix.h"
-#include "reshala/lina/scaling.h"
 
 namespace reshala {
 
@@ -20,9 +19,6 @@ struct LinaStats {
     Index total_nnz_b = 0;
     Index total_nnz_l = 0;
     Index total_nnz_u = 0;
-
-    ScaleReport scale_rep_before;
-    ScaleReport scale_rep_after;
 };
 std::ostream& operator<<(std::ostream& os, const LinaStats& stats);
 
@@ -31,14 +27,13 @@ class Lina {
     Lina() : ftran_res(0) {}
     Lina(const SparseColMatrix& Ac, const SparseRowMatrix& Ar, const LpBasis* basis);
     Lina& operator=(const Lina&) = default;
-    void Scale();
 
     bool Refactor();
     inline Index GetAge() const { return etas.size(); }
 
-    void Btran(Index iv, DenseVector& res);
+    void Btran(const SparseVector& b, DenseVector& res);
     void Btran(DenseVector& x, DenseVector& res);  // NB: x is modified!
-    void Ftran(Index iv, DenseVector& res);
+    void Ftran(const SparseVector& b, DenseVector& res);
     void Ftran(const DenseVector& x, DenseVector& res);
     void Update(Index iv_leaving, Index iv_entering);
 
@@ -54,7 +49,6 @@ class Lina {
     SparseRowMatrix Ar_;
     Index m;
     Index n;
-    Scaling scaling;
 
     const LpBasis* basis_;
 

@@ -3,7 +3,8 @@
 namespace reshala {
 
 std::ostream& operator<<(std::ostream& os, const DsStats& stats) {
-    os << "Lp iters: " << stats.n_iter << "\n";
+    os << "DS stats: \n"
+       << "\tLp iters: " << stats.n_iter << "\n";
     return os;
 }
 
@@ -15,6 +16,26 @@ void DualSimplex::Restore(const DsState& state) {
     d_n = state.d_n;
     basis = state.basis;
     lina = state.lina;
+}
+
+void DualSimplex::AddSlacks() {
+    model_.Resize(m, n + m);
+    for (Index ic = 0; ic < m; ic++) {
+        const Bounds& rhs = model_.GetRhs(ic);
+
+        model_.GetCol(n + ic) = SparseVector(m, ic, 1.0);
+        model_.GetRow(ic).Push(n + ic, 1.0);
+
+        model_.SetBounds(n + ic, {-rhs.ri, -rhs.le});
+        model_.SetIntegrality(n + ic, false);
+    }
+}
+
+void DualSimplex::PruneSlacks() {
+    model_.Resize(m, n);
+    for (Index ic = 0; ic < m; ic++) {
+        model_.GetRow(ic).Resize(model_.GetRow(ic).Size() - 1);
+    }
 }
 
 Scalar DualSimplex::GetXnValue(Index iv) {

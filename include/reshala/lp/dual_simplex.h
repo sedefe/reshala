@@ -1,6 +1,7 @@
 #pragma once
 
 #include "reshala/lina/lina.h"
+#include "reshala/lp/scaling.h"
 #include "reshala/model/milp_model.h"
 #include "reshala/model/solution.h"
 
@@ -31,6 +32,7 @@ class DualSimplex {
 
     inline const DsStats& GetStats() const { return stats; }
     inline const Lina& GetLina() { return lina; }
+    inline const Scaling& GetScaling() { return scaling; }
 
     DsState Store() const;
     void Restore(const DsState& state);
@@ -43,12 +45,14 @@ class DualSimplex {
     }
     inline void SetBounds(Index iv, const Bounds& bnd) {
         model_orig_->SetBounds(iv, bnd);
-        model_.SetBounds(iv, bnd);
+        model_.SetBounds(
+            iv, {std::ldexp(bnd.le, scaling.col[iv]), std::ldexp(bnd.ri, scaling.col[iv])});
     }
 
    private:
     MilpModel* model_orig_;
-    MilpModel model_;
+    MilpModel model_;  // Scaled
+    Scaling scaling;
 
     DsStats stats;
 
@@ -82,6 +86,8 @@ class DualSimplex {
     void Update();
     void RebuildAll();
 
+    void AddSlacks();
+    void PruneSlacks();
     Scalar GetXnValue(Index iv);
     void MulNLeft(const DenseVector& x, DenseVector& res) const;
     void MulNRight(const DenseVector& x, DenseVector& res) const;

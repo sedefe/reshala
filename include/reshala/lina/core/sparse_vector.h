@@ -36,6 +36,7 @@ class SparseVector {
         }
     }
     SparseVector(const DenseVector &vec) : SparseVector(vec.size(), vec.data()) {}
+    DenseVector ToDense() const;
 
     Scalar At(Index i) const {
         auto offset = FindOffset(i);

@@ -4,6 +4,14 @@
 
 namespace reshala {
 
+DenseVector SparseVector::ToDense() const {
+    DenseVector res(dim_, 0.0);
+    for (SvIterator el(*this); el; ++el) {
+        res[el.index()] = el.value();
+    }
+    return res;
+}
+
 void SparseVector::Sort() {
     Index n = indices_.size();
     if (n <= 1) return;

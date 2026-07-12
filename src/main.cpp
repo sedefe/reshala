@@ -30,6 +30,7 @@ int main(int argc, char** argv) {
               << "\n";
     std::cout << milp.ds.GetLina().GetStats();
     std::cout << milp.ds.GetStats();
+    std::cout << milp.ds.GetScaling().stats;
     std::cout << milp.bnb.GetStats();
     if (sol.status == LpStatus::kOptimal) {
         std::cout << "=== Checking ===\n";
