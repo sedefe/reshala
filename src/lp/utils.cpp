@@ -19,7 +19,7 @@ void DualSimplex::Restore(const DsState& state) {
 
 Scalar DualSimplex::GetXnValue(Index iv) {
     // Todo обрабатывать свободные переменные, глядя на a_p
-    const Bounds& bnd = model_->GetBounds(basis.NonBasis()[iv]);
+    const Bounds& bnd = model_.GetBounds(basis.NonBasis()[iv]);
     return (d_n[iv] >= 0) ? bnd.le : bnd.ri;
 }
 
@@ -27,7 +27,7 @@ void DualSimplex::MulNLeft(const DenseVector& x, DenseVector& res) const {
     res.assign(n, 0.0);
     for (Index ic = 0; ic < m; ic++) {
         if (IsZero(x[ic])) continue;
-        for (SvIterator el(model_->GetRow(ic)); el; ++el) {
+        for (SvIterator el(model_.GetRow(ic)); el; ++el) {
             if (basis.Index2Nb()[el.index()] >= 0) {
                 res[basis.Index2Nb()[el.index()]] += x[ic] * el.value();
             }
@@ -40,7 +40,7 @@ void DualSimplex::MulNRight(const DenseVector& x, DenseVector& res) const {
     for (Index iv = 0; iv < n; iv++) {
         if (IsZero(x[iv])) continue;
         Index inb = basis.NonBasis()[iv];
-        for (SvIterator el(model_->GetCol(inb)); el; ++el) {
+        for (SvIterator el(model_.GetCol(inb)); el; ++el) {
             res[el.index()] += el.value() * x[iv];
         }
     }
@@ -54,7 +54,7 @@ void DualSimplex::DebugPrint() {
     for (Index iv = 0; iv < n; iv++) {
         if (basis.NonBasis()[iv] < n) x[basis.NonBasis()[iv]] = GetXnValue(iv);
     }
-    auto res = model_->PrepareSolution(LpStatus::kOptimal, x);
+    auto res = model_.PrepareSolution(LpStatus::kOptimal, x);
 
     std::cout << "===== " << stats.n_iter << " y=" << res.y << " =====\n";
     std::cout << "Basis   : ";

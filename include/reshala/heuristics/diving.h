@@ -11,7 +11,7 @@ class Diving : public AbstractHeuristic {
         : AbstractHeuristic("Diving-" + RoundingType2Str(type)), type_(type) {}
 
    protected:
-    Solution InternalRun(MilpModel& model, const Solution& relaxed, const MipState& mip_state);
+    Solution InternalRun(const MilpModel& model, const Solution& relaxed, const MipState& mip_state);
     RoundingType type_;
 
    private:

@@ -9,7 +9,7 @@ void DualSimplex::Chuzr() {
     Scalar infeasibility;
 
     for (Index ic = 0; ic < m; ic++) {
-        const Bounds& bnd = model_->GetBounds(basis.Basis()[ic]);
+        const Bounds& bnd = model_.GetBounds(basis.Basis()[ic]);
         infeasibility = std::max(x_b[ic] - bnd.ri, bnd.le - x_b[ic]);
         if (infeasibility > max_infeasibility) {
             max_infeasibility = infeasibility;
@@ -18,7 +18,7 @@ void DualSimplex::Chuzr() {
     }
 
     if (iv_leaving >= 0) {
-        auto& bounds = model_->GetBounds(basis.Basis()[iv_leaving]);
+        auto& bounds = model_.GetBounds(basis.Basis()[iv_leaving]);
         if ((x_b[iv_leaving] - bounds.ri) > (bounds.le - x_b[iv_leaving])) {
             s_p = +1;
             primal_infeasibility = x_b[iv_leaving] - bounds.ri;

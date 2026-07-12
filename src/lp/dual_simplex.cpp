@@ -3,11 +3,12 @@
 namespace reshala {
 
 void DualSimplex::SetModel(MilpModel& model) {
-    model_ = &model;
-    m = model_->GetNCons();
-    n = model_->GetNVars();
+    model_orig_ = &model;
+    model_ = model;
+    m = model_.GetNCons();
+    n = model_.GetNVars();
     basis = LpBasis(m, n);
-    lina = Lina(model.GetAc(), model.GetAr(), &basis);
+    lina = Lina(model_.GetAc(), model_.GetAr(), &basis);
     c_n.resize(n);
     x_b.resize(m);
     e_p.resize(m);
@@ -21,13 +22,13 @@ void DualSimplex::Init() {
     basis.Reset();
     lina.Refactor();
 
-    c_n = model_->GetObj().coefficients;
+    c_n = model_.GetObj().coefficients;
 
     DenseVector x_n(n, 0);
     for (Index iv = 0; iv < n; iv++) {
         Index i_nb = basis.NonBasis()[iv];
-        const Bounds& bnd = model_->GetBounds(i_nb);
-        switch (model_->GetType(i_nb)) {
+        const Bounds& bnd = model_.GetBounds(i_nb);
+        switch (model_.GetType(i_nb)) {
             case BndType::kBoxed:
                 if (c_n[iv] >= 0.0) {
                     d_n[iv] = 1;
@@ -63,7 +64,7 @@ void DualSimplex::Init() {
 }
 
 Solution DualSimplex::Solve(bool warm) {
-    model_->AddSlacks();
+    model_.AddSlacks();
     LpStatus status;
 
     if (!warm) {
@@ -97,7 +98,7 @@ Solution DualSimplex::Solve(bool warm) {
         Update();
     }
 
-    model_->PruneSlacks();
+    model_.PruneSlacks();
 
     DenseVector x;
     if (status == LpStatus::kOptimal) {
@@ -116,7 +117,7 @@ Solution DualSimplex::Solve(bool warm) {
         }
     }
 
-    return model_->PrepareSolution(status, x);
+    return model_.PrepareSolution(status, x);
 }
 
 void DualSimplex::Btran() { lina.Btran(iv_leaving, e_p); }

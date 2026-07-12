@@ -36,14 +36,19 @@ class DualSimplex {
     void Restore(const DsState& state);
 
     void SetDomain(const Domain& domain) {
+        model_orig_->SetDomain(domain);
         for (Index iv = 0; iv < domain.Size(); iv++) {
             SetBounds(iv, domain.GetBounds(iv));
         }
     }
-    inline void SetBounds(Index iv, const Bounds& bnd) { model_->SetBounds(iv, bnd); }
+    inline void SetBounds(Index iv, const Bounds& bnd) {
+        model_orig_->SetBounds(iv, bnd);
+        model_.SetBounds(iv, bnd);
+    }
 
    private:
-    MilpModel* model_;
+    MilpModel* model_orig_;
+    MilpModel model_;
 
     DsStats stats;
 

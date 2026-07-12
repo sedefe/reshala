@@ -11,7 +11,7 @@ class AbstractHeuristic {
     virtual ~AbstractHeuristic() = default;
     const std::string& GetName() const { return name_; }
 
-    Solution Run(MilpModel& model, const Solution& relaxed, const MipState& mip_state) {
+    Solution Run(const MilpModel& model, const Solution& relaxed, const MipState& mip_state) {
         std::cout << "Running " << name_ << "\n";
 
         auto [sol, t_heur] = MEASURE_TIME(InternalRun(model, relaxed, mip_state));
@@ -27,7 +27,7 @@ class AbstractHeuristic {
 
    protected:
     const std::string name_;
-    virtual Solution InternalRun(MilpModel& model, const Solution& relaxation,
+    virtual Solution InternalRun(const MilpModel& model, const Solution& relaxation,
                                  const MipState& mip_state) = 0;
 };
 

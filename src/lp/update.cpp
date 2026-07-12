@@ -11,14 +11,14 @@ void DualSimplex::RebuildAll() {
     {  // Update c_n
         for (Index ic = 0; ic < m; ic++) {
             Index ib = basis.Basis()[ic];
-            c_b[ic] = (ib < n) ? model_->GetObj().coefficients[ib] : 0.0;
+            c_b[ic] = (ib < n) ? model_.GetObj().coefficients[ib] : 0.0;
         }
         lina.Btran(c_b, tmp);
         MulNLeft(tmp, c_n);
         for (Index iv = 0; iv < n; iv++) {
             Index inb = basis.NonBasis()[iv];
             if (inb < n) {
-                c_n[iv] = model_->GetObj().coefficients[inb] - c_n[iv];
+                c_n[iv] = model_.GetObj().coefficients[inb] - c_n[iv];
             } else {
                 c_n[iv] = -c_n[iv];
             }
@@ -28,9 +28,9 @@ void DualSimplex::RebuildAll() {
     {  // Update d_n
         for (Index iv = 0; iv < n; iv++) {
             Index i_nb = basis.NonBasis()[iv];
-            const Bounds& bnd = model_->GetBounds(i_nb);
+            const Bounds& bnd = model_.GetBounds(i_nb);
             Scalar d_obj;
-            switch (model_->GetType(i_nb)) {
+            switch (model_.GetType(i_nb)) {
                 case BndType::kBoxed:
                     d_obj = (bnd.ri - bnd.le) * c_n[iv];
                     if (StrongGt(c_n[iv], 0.0) or StrongGt(d_obj, 0.0)) {
@@ -57,7 +57,7 @@ void DualSimplex::RebuildAll() {
                     assert(false);
             }
         }
-        BndType type = model_->GetType(basis.NonBasis()[iv_entering]);
+        BndType type = model_.GetType(basis.NonBasis()[iv_entering]);
         d_n[iv_entering] = (type == BndType::kFixed) ? 0 : (s_p > 0 ? -1 : 1);
     }
 
@@ -85,7 +85,7 @@ void DualSimplex::Update() {
             Scalar old = c_n[iv];
             c_n[iv] -= theta_d * a_p[iv];
             if (old * c_n[iv] < -0.1 and iv != iv_entering and
-                model_->GetType(basis.NonBasis()[iv]) != BndType::kFixed) {
+                model_.GetType(basis.NonBasis()[iv]) != BndType::kFixed) {
                 // Might make us dual infeasible
                 std::cerr << "Abnormal c_n update: " << old << " -> " << c_n[iv] << "\n";
             }
@@ -94,8 +94,8 @@ void DualSimplex::Update() {
     }
 
     {  // Update d_n
-        const Bounds& bnd = model_->GetBounds(basis.NonBasis()[iv_entering]);
-        BndType type = model_->GetType(basis.NonBasis()[iv_entering]);
+        const Bounds& bnd = model_.GetBounds(basis.NonBasis()[iv_entering]);
+        BndType type = model_.GetType(basis.NonBasis()[iv_entering]);
         d_n[iv_entering] = (type == BndType::kFixed) ? 0 : (s_p > 0 ? -1 : 1);
     }
 
