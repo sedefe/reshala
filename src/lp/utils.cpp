@@ -38,6 +38,27 @@ void DualSimplex::PruneSlacks() {
     }
 }
 
+Solution DualSimplex::PrepareSolution() {
+    DenseVector x;  // Fill & unscale
+    if (status == LpStatus::kOptimal) {
+        x.resize(n);
+        for (Index ic = 0; ic < m; ic++) {
+            Index i_b = basis.Basis()[ic];
+            if (i_b < n) {
+                x[i_b] = std::ldexp(x_b[ic], -scaling.col[i_b]);
+            }
+        }
+        for (Index iv = 0; iv < n; iv++) {
+            Index i_nb = basis.NonBasis()[iv];
+            if (i_nb < n) {
+                x[i_nb] = std::ldexp(GetXnValue(iv), -scaling.col[i_nb]);
+            }
+        }
+    }
+
+    return model_orig_->PrepareSolution(status, x);
+}
+
 Scalar DualSimplex::GetXnValue(Index iv) {
     // Todo обрабатывать свободные переменные, глядя на a_p
     const Bounds& bnd = model_.GetBounds(basis.NonBasis()[iv]);

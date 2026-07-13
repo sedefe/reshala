@@ -67,7 +67,6 @@ void DualSimplex::Init() {
 
 Solution DualSimplex::Solve(bool warm) {
     AddSlacks();
-    LpStatus status;
 
     if (!warm) {
         Init();
@@ -102,24 +101,7 @@ Solution DualSimplex::Solve(bool warm) {
 
     PruneSlacks();
 
-    DenseVector x;  // Fill & unscale
-    if (status == LpStatus::kOptimal) {
-        x.resize(n);
-        for (Index ic = 0; ic < m; ic++) {
-            Index i_b = basis.Basis()[ic];
-            if (i_b < n) {
-                x[i_b] = std::ldexp(x_b[ic], -scaling.col[i_b]);
-            }
-        }
-        for (Index iv = 0; iv < n; iv++) {
-            Index i_nb = basis.NonBasis()[iv];
-            if (i_nb < n) {
-                x[i_nb] = std::ldexp(GetXnValue(iv), -scaling.col[i_nb]);
-            }
-        }
-    }
-
-    return model_orig_->PrepareSolution(status, x);
+    return PrepareSolution();
 }
 
 void DualSimplex::Btran() { lina.Btran(SparseVector(m, iv_leaving, 1.0), e_p); }

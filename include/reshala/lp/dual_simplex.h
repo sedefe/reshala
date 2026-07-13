@@ -57,7 +57,7 @@ class DualSimplex {
     DsStats stats;
 
     Index m, n;
-
+    LpStatus status;
     LpBasis basis;
 
     DenseVector c_n;
@@ -88,6 +88,8 @@ class DualSimplex {
 
     void AddSlacks();
     void PruneSlacks();
+    Solution PrepareSolution();
+
     Scalar GetXnValue(Index iv);
     void MulNLeft(const DenseVector& x, DenseVector& res) const;
     void MulNRight(const DenseVector& x, DenseVector& res) const;
