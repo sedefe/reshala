@@ -5,7 +5,7 @@
 
 namespace reshala {
 
-void Lina::Btran(const SparseVector& b, DenseVector& res) {
+void Lina::Btran(const SparseVector& b, DenseVector& res) const {
     // x^T B = b^T
     // x^T P^T L U E1 .. Ek = b^T
     // x = P^T L^-T U^-T E1^-T ... Ek^-T b
@@ -24,7 +24,7 @@ void Lina::Btran(const SparseVector& b, DenseVector& res) {
     }
 }
 
-void Lina::Btran(DenseVector& x, DenseVector& res) {
+void Lina::Btran(DenseVector& x, DenseVector& res) const {
     for (Index i = etas.size() - 1; i >= 0; i--) {
         EtaBtran(etas[i], x);
     }
@@ -37,7 +37,7 @@ void Lina::Btran(DenseVector& x, DenseVector& res) {
     }
 }
 
-void Lina::SolveUt(DenseVector& x) {
+void Lina::SolveUt(DenseVector& x) const {
     for (Index k = 0; k < m; k++) {
         if (IsZero(x[k])) continue;
         Scalar u_ik = x[k];
@@ -50,7 +50,7 @@ void Lina::SolveUt(DenseVector& x) {
     }
 }
 
-void Lina::SolveLt(DenseVector& x) {
+void Lina::SolveLt(DenseVector& x) const {
     for (Index k = m - 1; k >= 0; k--) {
         if (IsZero(x[k])) continue;
         for (SvIterator el(Lr.GetRow(k)); el; ++el) {
@@ -59,7 +59,7 @@ void Lina::SolveLt(DenseVector& x) {
     }
 }
 
-void Lina::EtaBtran(const Eta& eta, DenseVector& x) {
+void Lina::EtaBtran(const Eta& eta, DenseVector& x) const {
     Index p = eta.i_col;
     Scalar d;
     dot(x, eta.eta, d);
@@ -86,10 +86,10 @@ void Lina::Ftran(const SparseVector& b, DenseVector& res) {
         EtaFtran(etas[i], res);
     }
 
-    ftran_res = res;  // For update
+    ftran_res = SparseVector(res);  // For update
 }
 
-void Lina::Ftran(const DenseVector& x, DenseVector& res) {
+void Lina::Ftran(const DenseVector& x, DenseVector& res) const {
     for (Index i = 0; i < m; i++) {
         res[row_perm_inv[i]] = x[i];
     }
@@ -102,7 +102,7 @@ void Lina::Ftran(const DenseVector& x, DenseVector& res) {
     }
 }
 
-void Lina::SolveL(DenseVector& x) {
+void Lina::SolveL(DenseVector& x) const {
     for (Index k = 0; k < m; k++) {
         if (IsZero(x[k])) continue;
         for (SvIterator el(Lc.GetCol(k)); el; ++el) {
@@ -111,7 +111,7 @@ void Lina::SolveL(DenseVector& x) {
     }
 }
 
-void Lina::SolveU(DenseVector& x) {
+void Lina::SolveU(DenseVector& x) const {
     for (Index k = m - 1; k >= 0; k--) {
         if (IsZero(x[k])) continue;
         Scalar u_ik = x[k];
@@ -124,7 +124,7 @@ void Lina::SolveU(DenseVector& x) {
     }
 }
 
-void Lina::EtaFtran(const Eta& eta, DenseVector& x) {
+void Lina::EtaFtran(const Eta& eta, DenseVector& x) const {
     Index p = eta.i_col;
     Scalar xp = x[p] / eta.diag;
     for (SvIterator el(eta.eta); el; ++el) {

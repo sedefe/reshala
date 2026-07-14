@@ -23,7 +23,7 @@ void DualSimplex::AddSlacks() {
     for (Index ic = 0; ic < m; ic++) {
         const Bounds& rhs = model_.GetRhs(ic);
 
-        model_.GetCol(n + ic) = SparseVector(m, ic, 1.0);
+        model_.GetCol(n + ic) = SparseVector::UnitVector(m, ic);
         model_.GetRow(ic).Push(n + ic, 1.0);
 
         model_.SetBounds(n + ic, {-rhs.ri, -rhs.le});

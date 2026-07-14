@@ -20,7 +20,7 @@ Lina::Lina(const SparseColMatrix& Ac, const SparseRowMatrix& Ar, const LpBasis* 
     Ac_.Resize(m, n + m);
     for (Index i = 0; i < m; i++) {
         Ar_.GetRow(i).Push(n + i, 1.0);
-        Ac_.GetCol(n + i) = {m, i, 1.0};
+        Ac_.GetCol(n + i) = SparseVector::UnitVector(m, i);
     }
 
     Refactor();

@@ -104,7 +104,7 @@ Solution DualSimplex::Solve(bool warm) {
     return PrepareSolution();
 }
 
-void DualSimplex::Btran() { lina.Btran(SparseVector(m, iv_leaving, 1.0), e_p); }
+void DualSimplex::Btran() { lina.Btran(SparseVector::UnitVector(m, iv_leaving), e_p); }
 
 void DualSimplex::Price() { MulNLeft(e_p, a_p); }
 

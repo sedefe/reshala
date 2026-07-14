@@ -31,10 +31,10 @@ class Lina {
     bool Refactor();
     inline Index GetAge() const { return etas.size(); }
 
-    void Btran(const SparseVector& b, DenseVector& res);
-    void Btran(DenseVector& x, DenseVector& res);  // NB: x is modified!
-    void Ftran(const SparseVector& b, DenseVector& res);
-    void Ftran(const DenseVector& x, DenseVector& res);
+    void Btran(const SparseVector& b, DenseVector& res) const;
+    void Btran(DenseVector& x, DenseVector& res) const;   // NB: x is modified!
+    void Ftran(const SparseVector& b, DenseVector& res);  // NB: stores the result
+    void Ftran(const DenseVector& x, DenseVector& res) const;
     void Update(Index iv_leaving, Index iv_entering);
 
     inline const LinaStats& GetStats() const { return stats; }
@@ -64,13 +64,13 @@ class Lina {
 
     void ProdForm(Index iv_leaving, Index iv_entering);
 
-    void SolveUt(DenseVector& x);
-    void SolveLt(DenseVector& x);
-    void EtaBtran(const Eta& eta, DenseVector& x);
+    void SolveUt(DenseVector& x) const;
+    void SolveLt(DenseVector& x) const;
+    void EtaBtran(const Eta& eta, DenseVector& x) const;
 
-    void SolveL(DenseVector& x);
-    void SolveU(DenseVector& x);
-    void EtaFtran(const Eta& eta, DenseVector& x);
+    void SolveL(DenseVector& x) const;
+    void SolveU(DenseVector& x) const;
+    void EtaFtran(const Eta& eta, DenseVector& x) const;
 };
 
 }  // namespace reshala

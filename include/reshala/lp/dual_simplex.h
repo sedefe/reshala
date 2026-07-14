@@ -31,6 +31,7 @@ class DualSimplex {
     Solution Solve(bool warm);
 
     inline const DsStats& GetStats() const { return stats; }
+    inline const LpBasis& GetBasis() { return basis; }
     inline const Lina& GetLina() { return lina; }
     inline const Scaling& GetScaling() { return scaling; }
 

@@ -57,7 +57,7 @@ void ProbingCg::Generate(const Solution& sol, std::vector<Cut>& dst) {
             }
         }
 
-        Cut cut({dim, {iv1, iv2}, {c1, c2}, false}, rhs);
+        Cut cut(SparseVector(dim, {iv1, iv2}, {c1, c2}, false), rhs);
         if (cut.IsViolated(sol.x)) {
             dst.push_back(cut);
         }

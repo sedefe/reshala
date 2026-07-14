@@ -18,9 +18,11 @@ class SparseVector {
     class IteratorBase;
 
     SparseVector(Index dim) : dim_(dim) {}
-    SparseVector(Index dim, Index i, Scalar v) : dim_(dim) { Push(i, v); }
-    SparseVector(Index dim, const std::vector<Index> &indices, const std::vector<Scalar> &values,
-                 bool sorted) {
+    inline static const SparseVector UnitVector(Index dim, Index index) {
+        return SparseVector(dim, {index}, {1.0}, true);
+    }
+    explicit SparseVector(Index dim, const std::vector<Index> &indices,
+                          const std::vector<Scalar> &values, bool sorted) {
         dim_ = dim;
         indices_ = std::move(indices);
         values_ = std::move(values);
@@ -28,14 +30,14 @@ class SparseVector {
             Sort();
         }
     }
-    SparseVector(Index dim, const Scalar *array) : dim_(dim) {
+    explicit SparseVector(Index dim, const Scalar *array) : dim_(dim) {
         for (Index i = 0; i < dim; i++) {
             if (!IsZero(array[i])) {
                 Push(i, array[i]);
             }
         }
     }
-    SparseVector(const DenseVector &vec) : SparseVector(vec.size(), vec.data()) {}
+    explicit SparseVector(const DenseVector &vec) : SparseVector(vec.size(), vec.data()) {}
     DenseVector ToDense() const;
 
     Scalar At(Index i) const {
