@@ -61,6 +61,9 @@ class MilpModel {
     bool IsIntegerFeasible(const std::vector<Scalar>& x) const;
     FeasibilityReport GetFeasReport(const std::vector<Scalar>& x) const;
 
+    void AddSlacks();
+    void PruneSlacks();
+
     void Resize(Index m, Index n) {
         obj_.coefficients.resize(n);
         Ac_.Resize(m, n);
@@ -90,6 +93,8 @@ class MilpModel {
     SparseRowMatrix Ar_;
     std::vector<Bounds> rhs_;
     Domain domain_;
+
+    bool has_slacks_ = false;
 };
 
 }  // namespace reshala

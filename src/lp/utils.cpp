@@ -18,26 +18,6 @@ void DualSimplex::Restore(const DsState& state) {
     lina = state.lina;
 }
 
-void DualSimplex::AddSlacks() {
-    model_.Resize(m, n + m);
-    for (Index ic = 0; ic < m; ic++) {
-        const Bounds& rhs = model_.GetRhs(ic);
-
-        model_.GetCol(n + ic) = SparseVector::UnitVector(m, ic);
-        model_.GetRow(ic).Push(n + ic, 1.0);
-
-        model_.SetBounds(n + ic, {-rhs.ri, -rhs.le});
-        model_.SetIntegrality(n + ic, false);
-    }
-}
-
-void DualSimplex::PruneSlacks() {
-    model_.Resize(m, n);
-    for (Index ic = 0; ic < m; ic++) {
-        model_.GetRow(ic).Resize(model_.GetRow(ic).Size() - 1);
-    }
-}
-
 Solution DualSimplex::PrepareSolution() {
     DenseVector x;  // Fill & unscale
     if (status == LpStatus::kOptimal) {

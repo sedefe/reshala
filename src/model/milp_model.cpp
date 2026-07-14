@@ -71,6 +71,36 @@ FeasibilityReport MilpModel::GetFeasReport(const std::vector<Scalar>& x) const {
     return rep;
 }
 
+void MilpModel::AddSlacks() {
+    assert(!has_slacks_);
+    has_slacks_ = true;
+
+    auto m = GetNCons();
+    auto n = GetNVars();
+    Resize(m, n + m);
+    for (Index ic = 0; ic < m; ic++) {
+        const Bounds& rhs = GetRhs(ic);
+
+        GetCol(n + ic) = SparseVector::UnitVector(m, ic);
+        GetRow(ic).Push(n + ic, 1.0);
+
+        SetBounds(n + ic, {-rhs.ri, -rhs.le});
+        SetIntegrality(n + ic, false);
+    }
+}
+
+void MilpModel::PruneSlacks() {
+    assert(has_slacks_);
+    has_slacks_ = false;
+
+    auto m = GetNCons();
+    auto n = GetNVars();
+    Resize(m, n - m);
+    for (Index ic = 0; ic < m; ic++) {
+        GetRow(ic).Resize(GetRow(ic).Size() - 1);
+    }
+}
+
 void MilpModel::FinalizeAc() { Srm2Scm(Ar_, Ac_); }
 
 Solution MilpModel::PrepareSolution(const LpStatus status, const std::vector<Scalar>& x) const {

@@ -87,8 +87,6 @@ class DualSimplex {
     void Update();
     void RebuildAll();
 
-    void AddSlacks();
-    void PruneSlacks();
     Solution PrepareSolution();
 
     Scalar GetXnValue(Index iv);

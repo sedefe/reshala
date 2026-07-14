@@ -66,7 +66,7 @@ void DualSimplex::Init() {
 }
 
 Solution DualSimplex::Solve(bool warm) {
-    AddSlacks();
+    model_.AddSlacks();
 
     if (!warm) {
         Init();
@@ -99,7 +99,7 @@ Solution DualSimplex::Solve(bool warm) {
         Update();
     }
 
-    PruneSlacks();
+    model_.PruneSlacks();
 
     return PrepareSolution();
 }
