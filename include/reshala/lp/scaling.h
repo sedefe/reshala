@@ -5,7 +5,7 @@
 namespace reshala {
 
 struct ScaleReport {
-    ScaleReport() = default;
+    ScaleReport(): frob_norm(0.0), max_min_ratio(0.0) {};
     ScaleReport(const SparseRowMatrix& A);
 
     Scalar frob_norm;

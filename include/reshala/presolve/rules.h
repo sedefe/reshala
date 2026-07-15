@@ -82,6 +82,13 @@ class Rule47 : public Rule {
     std::string Name() const { return "4.7 RmSlack"; }
 };
 
+class Rule48 : public Rule {
+   public:
+    Rule48(RuleType t) : Rule(t) {}
+    RuleResult Apply(ModelTracker& tracker);
+    std::string Name() const { return "4.8 Int2Bin"; }
+};
+
 class Rule52 : public Rule {
    public:
     Rule52(RuleType t) : Rule(t) {}

@@ -12,9 +12,20 @@ class Transform {
     virtual void Undo(Solution& sol) = 0;
 };
 
-class FixVariableTransform : public Transform {
+class FixVariableTransform : public Transform {// iv1 <= val
    public:
     FixVariableTransform(Index iv, Scalar val) : iv_(iv), val_(val) {}
+
+    void Undo(Solution& sol) override;
+
+   private:
+    Index iv_;
+    Scalar val_;
+};
+
+class ConstShiftTransform : public Transform { // iv1 <= iv1 + val
+   public:
+    ConstShiftTransform(Index iv, Scalar val) : iv_(iv), val_(val) {}
 
     void Undo(Solution& sol) override;
 

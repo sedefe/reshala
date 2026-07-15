@@ -159,6 +159,21 @@ void ModelTracker::FixVar(Index iv, Scalar val) {
     MaskVar(iv);
 }
 
+void ModelTracker::ConstShiftVar(Index iv, Scalar val) {
+    model_.GetObj().c0 -= model_.GetObj().coefficients[iv] * val;
+
+    const Bounds& bnd = model_.GetBounds(iv);
+    UpdVarBounds(iv, {bnd.le + val, bnd.ri + val});
+
+    for (SvIterator el(model_.GetCol(iv)); el; ++el) {
+        const Bounds& rhs = model_.GetRhs(el.index());
+        model_.GetRhs(el.index()) = {rhs.le + el.value() * val, rhs.ri + el.value() * val};
+    }
+
+    transforms_.push_back(
+        std::make_unique<ConstShiftTransform>(ConstShiftTransform(orig_var_idx_[iv], val)));
+}
+
 bool ModelTracker::SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b) {
     // iv1 <- a*iv2 + b
     const Bounds& bnd1 = model_.GetBounds(iv1);
