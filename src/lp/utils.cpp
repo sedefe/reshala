@@ -79,12 +79,7 @@ void DualSimplex::DebugPrint() {
     auto res = model_.PrepareSolution(LpStatus::kOptimal, x);
 
     std::cout << "===== " << stats.n_iter << " y=" << res.y << " =====\n";
-    std::cout << "Basis   : ";
-    for (auto ic : basis.Basis()) std::cout << ic << " ";
-    std::cout << "\n";
-    std::cout << "Nonbasis: ";
-    for (auto iv : basis.NonBasis()) std::cout << iv << " ";
-    std::cout << "\n";
+    std::cout << basis;
     std::cout << "c_n: ";
     for (auto x : c_n) std::cout << x << " ";
     std::cout << "\n";

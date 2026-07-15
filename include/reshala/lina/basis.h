@@ -44,4 +44,6 @@ class LpBasis {
     std::vector<Index> index2nb;
 };
 
+std::ostream& operator<<(std::ostream& os, const LpBasis& basis);
+
 }  // namespace reshala
