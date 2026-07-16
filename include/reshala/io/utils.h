@@ -34,6 +34,10 @@ struct NameMapper {
         return new_index;
     }
 
+    bool Contains(const std::string& name) {
+        return name_to_index.find(name) != name_to_index.end();
+    }
+
     const std::string& GetName(Index index) const { return index_to_name.at(index); }
 
     Index Size() const { return index_to_name.size(); }

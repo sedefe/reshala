@@ -165,15 +165,20 @@ void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
     }
     if (n != 3 and n != 5) ThrowParseError("Can't parse bounds");
 
-    Index i_var = n - 3;  // 0 for "x <= 1", 2 for "0 <= x <= 1"
-    if (names_.vars.name_to_index.find(tokens[i_var]) == names_.vars.name_to_index.end()) {
-        ThrowParseError("Unexpected variable " + tokens[i_var] + " in Bounds section");
-    }
-    Index index = names_.vars.GetIndex(tokens[i_var]);
-
+    Index index;
     std::vector<std::tuple<bool, ExpType, Scalar>> expressions;
     if (n == 3) {
-        expressions.push_back({false, LpChar2ExpType(tokens[1][0]), std::stod(tokens[2])});
+        bool var_at_0 = names_.vars.Contains(tokens[0]);
+        bool var_at_2 = names_.vars.Contains(tokens[2]);
+        if ((var_at_0 ^ var_at_2) == false) ThrowParseError("Can't parse bounds");
+
+        if (var_at_0) {  // "x >= 0"  ->  no swap
+            index = names_.vars.GetIndex(tokens[0]);
+            expressions.push_back({false, LpChar2ExpType(tokens[1][0]), std::stod(tokens[2])});
+        } else {  // "0 <= x"  ->  swap
+            index = names_.vars.GetIndex(tokens[2]);
+            expressions.push_back({true, LpChar2ExpType(tokens[1][0]), std::stod(tokens[0])});
+        }
     } else {  // (n == 5)
         expressions.push_back({true, LpChar2ExpType(tokens[1][0]), std::stod(tokens[0])});
         expressions.push_back({false, LpChar2ExpType(tokens[3][0]), std::stod(tokens[4])});
