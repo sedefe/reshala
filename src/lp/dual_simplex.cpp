@@ -16,6 +16,7 @@ void DualSimplex::SetModel(MilpModel& model) {
     d_n.resize(n);
 
     scaling.ScaleModel(model_);
+    model_.AddSlacks();
     lina = Lina(model_.GetAc(), model_.GetAr(), &basis);
 }
 
@@ -66,8 +67,6 @@ void DualSimplex::Init() {
 }
 
 Solution DualSimplex::Solve(bool warm) {
-    model_.AddSlacks();
-
     if (!warm) {
         Init();
     }
@@ -98,8 +97,6 @@ Solution DualSimplex::Solve(bool warm) {
         Ftran();
         Update();
     }
-
-    model_.PruneSlacks();
 
     return PrepareSolution();
 }
