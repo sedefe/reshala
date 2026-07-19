@@ -1,5 +1,6 @@
 #pragma once
 
+#include "reshala/cuts/config.h"
 #include "reshala/cuts/cut.h"
 #include "reshala/lp/dual_simplex.h"
 

@@ -149,8 +149,6 @@ Index Cutter::Add() {
     Index n_added = 0;
     for (auto& cut : pool_) {
         if (cut.selected) {
-            // if (n_added >= 10) break;  // 10-й кат в бимва-п ломает
-            // std::cout << "Adding " << cut;
             model_.PrepareConstraint(cut.lhs, {cut.rhs, kInf});
             n_added++;
         }

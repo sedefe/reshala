@@ -18,7 +18,7 @@ void DualSimplex::Restore(const DsState& state) {
     lina = state.lina;
 }
 
-Solution DualSimplex::PrepareSolution() {
+Solution DualSimplex::PrepareSolution() const {
     DenseVector x;  // Fill & unscale
     if (status == LpStatus::kOptimal) {
         x.resize(n);
@@ -39,7 +39,7 @@ Solution DualSimplex::PrepareSolution() {
     return model_orig_->PrepareSolution(status, x);
 }
 
-Scalar DualSimplex::GetXnValue(Index iv) {
+Scalar DualSimplex::GetXnValue(Index iv) const {
     // Todo обрабатывать свободные переменные, глядя на a_p
     const Bounds& bnd = model_.GetBounds(basis.NonBasis()[iv]);
     return (d_n[iv] >= 0) ? bnd.le : bnd.ri;

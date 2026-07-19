@@ -31,9 +31,10 @@ class DualSimplex {
     Solution Solve(bool warm);
 
     inline const DsStats& GetStats() const { return stats; }
-    inline const LpBasis& GetBasis() { return basis; }
-    inline const Lina& GetLina() { return lina; }
-    inline const Scaling& GetScaling() { return scaling; }
+    inline const LpBasis& GetBasis() const { return basis; }
+    inline const Lina& GetLina() const { return lina; }
+    inline const Scaling& GetScaling() const { return scaling; }
+    inline const std::vector<int8_t>& GetDn() const { return d_n; }
 
     DsState Store() const;
     void Restore(const DsState& state);
@@ -49,6 +50,8 @@ class DualSimplex {
         model_.SetBounds(
             iv, {std::ldexp(bnd.le, scaling.col[iv]), std::ldexp(bnd.ri, scaling.col[iv])});
     }
+
+    void MulNLeft(const DenseVector& x, DenseVector& res) const;  // for cuts
 
    private:
     MilpModel* model_orig_;
@@ -87,10 +90,9 @@ class DualSimplex {
     void Update();
     void RebuildAll();
 
-    Solution PrepareSolution();
+    Solution PrepareSolution() const;
 
-    Scalar GetXnValue(Index iv);
-    void MulNLeft(const DenseVector& x, DenseVector& res) const;
+    Scalar GetXnValue(Index iv) const;
     void MulNRight(const DenseVector& x, DenseVector& res) const;
 
     void DebugPrint();
