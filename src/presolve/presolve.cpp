@@ -23,13 +23,15 @@ Presolver::Presolver(MilpModel& model) : model_(model), tracker_(model) {
     }
 }
 
-LpStatus Presolver::Presolve() {
+LpStatus Presolver::Presolve(bool verbose) {
     RuleType curr_level = RuleType::kFast;
     RuleResult status = RuleResult::kUnknown;
 
     tracker_.CalcActivities();
 
-    PrintHeader();
+    if (verbose) {
+        PrintHeader();
+    }
     while (status != RuleResult::kInfeasible) {
         bool changed = false;
         for (auto& rule : rule_map_[curr_level]) {
@@ -39,7 +41,9 @@ LpStatus Presolver::Presolve() {
             if (status != RuleResult::kUnchanged) {
                 changed = true;
                 rule_stat = tracker_.stat - rule_stat;
-                PrintStat(*rule, rule_stat);
+                if (verbose) {
+                    PrintStat(*rule, rule_stat);
+                }
             }
             if (status == RuleResult::kInfeasible) {
                 break;

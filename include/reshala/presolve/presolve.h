@@ -13,7 +13,7 @@ class Presolver {
    public:
     Presolver(MilpModel& model);
 
-    LpStatus Presolve();
+    LpStatus Presolve(bool verbose);
     Solution Postsolve(const Solution&);
 
     inline const ModelTracker& GetTracker() const { return tracker_; }

@@ -15,7 +15,7 @@ Solution Diving::InternalRun(const MilpModel& model, const Solution& relaxed,
     Fixing(type_, model_copy, relaxed.x);
 
     Presolver presolver(model_copy);
-    LpStatus presolve_status = presolver.Presolve();
+    LpStatus presolve_status = presolver.Presolve(false);
     if (presolve_status != LpStatus::kUnknown) {
         return presolver.Postsolve({presolve_status, {}, {}});
     }
