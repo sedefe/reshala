@@ -9,7 +9,7 @@ namespace reshala {
 bool MilpModel::ObjIsInteger() const {
     for (Index iv = 0; iv < GetNVars(); ++iv) {
         if (GetIntegrality(iv)) {
-            if (GetFraction(obj_.coefficients[iv]) != 0.0) {
+            if (MinFraction(obj_.coefficients[iv]) != 0.0) {
                 return false;
             }
         } else if (obj_.coefficients[iv] != 0.0) {
@@ -22,7 +22,7 @@ bool MilpModel::ObjIsInteger() const {
 bool MilpModel::RowIsInteger(Index ic) const {
     for (SvIterator el(Ar_.GetRow(ic)); el; ++el) {
         if (!GetIntegrality(el.index())) return false;
-        if (GetFraction(el.value()) > 0.0) return false;
+        if (MinFraction(el.value()) > 0.0) return false;
     }
     return true;
 }
@@ -30,7 +30,7 @@ bool MilpModel::RowIsInteger(Index ic) const {
 bool MilpModel::IsIntegerFeasible(const std::vector<Scalar>& x) const {
     assert(x.size() == GetNVars());
     for (Index iv = 0; iv < GetNVars(); iv++) {
-        if (GetIntegrality(iv) and GetFraction(x[iv]) > kEpsZero) {
+        if (GetIntegrality(iv) and MinFraction(x[iv]) > kEpsZero) {
             return false;
         }
     }
@@ -56,7 +56,7 @@ FeasibilityReport MilpModel::GetFeasReport(const std::vector<Scalar>& x) const {
 
     for (Index iv = 0; iv < GetNVars(); iv++) {
         if (GetIntegrality(iv)) {
-            rep.abs_int_infeas = std::max(rep.abs_int_infeas, GetFraction(x[iv]));
+            rep.abs_int_infeas = std::max(rep.abs_int_infeas, MinFraction(x[iv]));
         }
         CheckBounds(GetBounds(iv), x[iv], rep.abs_bnd_infeas, rep.rel_bnd_infeas);
     }

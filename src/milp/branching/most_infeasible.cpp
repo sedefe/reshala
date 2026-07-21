@@ -10,7 +10,7 @@ Index MostInfeasible::Branch(Node& parent, DualSimplex& ds) {
 
     for (Index iv = 0; iv < parent.sol.x.size(); ++iv) {
         if (!model_.GetIntegrality(iv)) continue;
-        Scalar current_fraction = GetFraction(parent.sol.x[iv]);
+        Scalar current_fraction = MinFraction(parent.sol.x[iv]);
         if (current_fraction > max_fraction) {
             max_fraction = current_fraction;
             candidate = iv;

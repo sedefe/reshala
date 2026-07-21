@@ -50,8 +50,8 @@ RuleResult Rule46::Apply(ModelTracker& tracker) {
             } else {  // v1 x + x2 = b
                 v1 /= v2;
                 b /= v2;
-                if (IsZero(GetFraction(v1))) {
-                    if (!IsZero(GetFraction(b))) return RuleResult::kInfeasible;
+                if (IsZero(MinFraction(v1))) {
+                    if (!IsZero(MinFraction(b))) return RuleResult::kInfeasible;
                     if (!tracker.SimpleSub(i2, -v1, i1, b)) return RuleResult::kInfeasible;
                     tracker.MaskCon(ic);
                     n_reduced++;

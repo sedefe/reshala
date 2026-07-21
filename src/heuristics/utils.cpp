@@ -25,7 +25,7 @@ void Fixing(RoundingType type, MilpModel &model, const std::vector<Scalar> &rela
     if (type != RoundingType::kNone) {
         for (Index iv = 0; iv < n; ++iv) {
             if (model.GetIntegrality(iv)) {
-                if (GetFraction(relaxed_x[iv]) <= kEpsZero) {
+                if (MinFraction(relaxed_x[iv]) <= kEpsZero) {
                     auto round_x = Round(relaxed_x[iv]);
                     model.SetBounds(iv, {round_x, round_x});
                     n_fixed_integers++;

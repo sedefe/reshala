@@ -22,7 +22,9 @@ inline Scalar Round(Scalar x) { return std::round(x); }
 inline Scalar Ceil(Scalar x) { return std::ceil(x); }
 inline Scalar WeakCeil(Scalar x) { return std::ceil(x - kEpsZero); }
 
-inline Scalar GetFraction(Scalar x) {
+inline Scalar Fraction(Scalar x) { return x - Floor(x); }
+
+inline Scalar MinFraction(Scalar x) {
     Scalar nearest = std::round(x);
     return std::abs(x - nearest);
 }
@@ -30,7 +32,7 @@ inline Scalar GetFraction(Scalar x) {
 inline Index GetGcd(const std::vector<Scalar>& vec) {
     Index gcd = 0;
     for (auto x : vec) {
-        if ((std::abs(x) <= kMaxInt) and GetFraction(x) == 0.0) {
+        if ((std::abs(x) <= kMaxInt) and MinFraction(x) == 0.0) {
             gcd = std::gcd(gcd, Index(x));
         } else {
             return 0;

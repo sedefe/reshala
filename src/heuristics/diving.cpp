@@ -59,7 +59,7 @@ Index Diving::GetCandidate(const MilpModel& model, const Solution& relaxed, cons
 
     for (Index iv = 0; iv < sol.x.size(); ++iv) {
         if (!model.GetIntegrality(iv)) continue;
-        Scalar current_fraction = GetFraction(sol.x[iv]);
+        Scalar current_fraction = MinFraction(sol.x[iv]);
         if (current_fraction > max_fraction) {
             max_fraction = current_fraction;
             candidate = iv;
