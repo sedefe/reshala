@@ -51,7 +51,7 @@ class DualSimplex {
             iv, {std::ldexp(bnd.le, scaling.col[iv]), std::ldexp(bnd.ri, scaling.col[iv])});
     }
 
-    void MulNLeft(const DenseVector& x, DenseVector& res) const;  // for cuts
+    void GetBasicRow(Index ic, DenseVector& res) const;
 
    private:
     MilpModel* model_orig_;
@@ -66,7 +66,6 @@ class DualSimplex {
 
     DenseVector c_n;
     DenseVector x_b;
-    DenseVector e_p;
     DenseVector a_p;
     DenseVector a_q;
     std::vector<int8_t> d_n;  // типы небазисных переменных
@@ -83,8 +82,6 @@ class DualSimplex {
 
     void Init();
     void Chuzr();
-    void Btran();
-    void Price();
     void Chuzc();
     void Ftran();
     void Update();
@@ -93,6 +90,7 @@ class DualSimplex {
     Solution PrepareSolution() const;
 
     Scalar GetXnValue(Index iv) const;
+    void MulNLeft(const DenseVector& x, DenseVector& res) const;
     void MulNRight(const DenseVector& x, DenseVector& res) const;
 
     void DebugPrint();

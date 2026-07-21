@@ -10,7 +10,6 @@ void DualSimplex::SetModel(MilpModel& model) {
     basis = LpBasis(m, n);
     c_n.resize(n);
     x_b.resize(m);
-    e_p.resize(m);
     a_p.resize(n);
     a_q.resize(m);
     d_n.resize(n);
@@ -83,8 +82,7 @@ Solution DualSimplex::Solve(bool warm) {
         // std::cout << "Leaving: " << iv_leaving << " (" << basis.Basis()[iv_leaving]
         //           << "), pinf: " << primal_infeasibility << "\n";
 
-        Btran();
-        Price();
+        GetBasicRow(iv_leaving, a_p);
 
         Chuzc();
         if (iv_entering < 0) {
@@ -101,10 +99,12 @@ Solution DualSimplex::Solve(bool warm) {
     return PrepareSolution();
 }
 
-void DualSimplex::Btran() { lina.Btran(SparseVector::UnitVector(m, iv_leaving), e_p); }
-
-void DualSimplex::Price() { MulNLeft(e_p, a_p); }
-
 void DualSimplex::Ftran() { lina.Ftran(model_.GetCol(basis.NonBasis()[iv_entering]), a_q); }
+
+void DualSimplex::GetBasicRow(Index ic, DenseVector& res) const {
+    DenseVector e_p(m, 0.0);
+    lina.Btran(SparseVector::UnitVector(m, ic), e_p);  // Btran
+    MulNLeft(e_p, res);                                // Price
+}
 
 }  // namespace reshala
