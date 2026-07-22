@@ -28,6 +28,7 @@ class DualSimplex {
    public:
     DualSimplex() {}
     void SetModel(MilpModel& model);
+    inline const MilpModel& GetModel() const { return model_; }  // Scaled!
     Solution Solve(bool warm);
 
     inline const DsStats& GetStats() const { return stats; }

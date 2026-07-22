@@ -31,8 +31,6 @@ void Cutter::Run(Solution& sol) {
         if (!AnyNewSelected()) break;
 
         auto n_added = Add();
-        std::cout << "Added " << n_added << " cuts, size: " << model_.GetNCons() << " x "
-                  << model_.GetNVars() << "\n";
 
         if (n_added > 0) {
             ds_.SetModel(model_);
@@ -40,6 +38,10 @@ void Cutter::Run(Solution& sol) {
             if (sol.y > mip_state_.GetDual()) {
                 mip_state_.UpdDual(sol.y);
             }
+            std::cout << "Added " << n_added << " cuts, size: " << model_.GetNCons() << " x "
+                      << model_.GetNVars() << ", y = " << sol.y << "\n";
+        } else {
+            std::cout << "No cuts added\n";
         }
 
         if (sol.status != LpStatus::kOptimal) break;
@@ -53,6 +55,7 @@ Index Cutter::Generate(const Solution& sol) {
 
     std::vector<std::unique_ptr<AbstractCg>> generators_;
     generators_.push_back(std::make_unique<ProbingCg>(model_, presolver_, ds_));
+    generators_.push_back(std::make_unique<CmirCg>(model_, ds_));
 
     for (auto& cg : generators_) {
         Index k = pool_.size();
@@ -146,13 +149,25 @@ Index Cutter::Add() {
     Index m = model_.GetNCons();
     Index n = model_.GetNVars();
 
+    Index np = 0, nc = 0;
     Index n_added = 0;
     for (auto& cut : pool_) {
         if (cut.selected) {
             model_.PrepareConstraint(cut.lhs, {cut.rhs, kInf});
             n_added++;
+            switch (cut.type) {
+                case CutType::kProbing:
+                    np++;
+                    break;
+                case CutType::kCmir:
+                    nc++;
+                    break;
+                default:
+                    break;
+            }
         }
     }
+    std::cout << "Added " << np << " probing, " << nc << " cmir\n";
     model_.Resize(m + n_added, n);
     model_.FinalizeAc();  // Todo можно без Srm2Scm, т.к. мы просто добавляем новые строки
 

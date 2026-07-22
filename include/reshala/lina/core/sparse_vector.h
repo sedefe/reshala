@@ -103,12 +103,12 @@ class SparseVector {
         return res;
     }
 
-    const std::vector<Index> &indices() const { return indices_; }
-    std::vector<Index> &indices() { return indices_; }
-    const std::vector<Scalar> &values() const { return values_; }
-    std::vector<Scalar> &values() { return values_; }
-    Index dim() const { return dim_; }
-    void SetDim(Index dim) { dim_ = dim; }
+    inline const std::vector<Index> &indices() const { return indices_; }
+    inline std::vector<Index> &indices() { return indices_; }
+    inline const std::vector<Scalar> &values() const { return values_; }
+    inline std::vector<Scalar> &values() { return values_; }
+    inline Index dim() const { return dim_; }
+    inline void SetDim(Index dim) { dim_ = dim; }
 
     // Arithmetics
     inline SparseVector &operator*=(Scalar x) {

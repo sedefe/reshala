@@ -2,6 +2,7 @@
 
 #include "reshala/cuts/config.h"
 #include "reshala/cuts/cut.h"
+#include "reshala/cuts/generators/cmir.h"
 #include "reshala/cuts/generators/probing.h"
 #include "reshala/milp/utils.h"
 

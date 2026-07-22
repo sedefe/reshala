@@ -4,10 +4,12 @@
 
 namespace reshala {
 
+enum class CutType { kProbing = 0, kCmir = 1 };
+
 struct Cut {
     // lhs >= rhs
 
-    Cut(const SparseVector& l, Scalar r) : lhs(l), rhs(r) {}
+    Cut(CutType t, const SparseVector& l, Scalar r) : type(t), lhs(l), rhs(r) {}
 
     SparseVector lhs;
     Scalar rhs;
@@ -16,6 +18,7 @@ struct Cut {
 
     bool removed = false;
     bool selected = false;
+    CutType type;
     Index age = 0;
     Index round = -1;
     Scalar norm2 = kNan;
@@ -52,7 +55,7 @@ struct Cut {
     //////////////////////////////////////////////////
 
     inline Scalar GetViolation(const std::vector<Scalar>& x) const {
-        // v(a, b, x) = a * x - b
+        // v(a, b, x) = b - a * x
         Scalar l;
         dot(lhs, x, l);
         return rhs - l;
