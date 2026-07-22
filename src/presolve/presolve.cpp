@@ -60,7 +60,9 @@ LpStatus Presolver::Presolve(bool verbose) {
         }
     }
 
-    std::cout << "After presolve: " << model_.StatString() << "\n";
+    if (verbose) {
+        std::cout << "After presolve: " << model_.StatString() << "\n";
+    }
 
     if (status == RuleResult::kInfeasible) {
         std::cout << "Presolve proved infeasibility\n";

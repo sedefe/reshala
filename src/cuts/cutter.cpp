@@ -4,6 +4,15 @@
 
 namespace reshala {
 
+std::ostream& operator<<(std::ostream& os, const CutterStats& stats) {
+    os << "Cutter:\n";
+    for (const auto& [type, s] : stats.cg_stats) {
+        os << "\t" << std::setw(7) << CutType2Str(type) << ": " << s.n_generated << " generated, "
+           << s.n_active << " active\n";
+    }
+    return os;
+}
+
 bool CutCompare(const Cut& c1, const Cut& c2) {
     if (c1.removed != c2.removed) {
         return c1.removed < c2.removed;  // удалённый кат всегда хуже
@@ -47,21 +56,24 @@ void Cutter::Run(Solution& sol) {
         if (sol.status != LpStatus::kOptimal) break;
     }
 
-    std::cout << "After cutter: " << sol.y << "\n";
+    std::cout << "After cutter: " << sol.y << ", " << model_.StatString() << "\n";
 }
 
 Index Cutter::Generate(const Solution& sol) {
     Index prev_size = pool_.size();
 
-    std::vector<std::unique_ptr<AbstractCg>> generators_;
-    generators_.push_back(std::make_unique<ProbingCg>(model_, presolver_, ds_));
-    generators_.push_back(std::make_unique<CmirCg>(model_, ds_));
+    std::unordered_map<CutType, std::unique_ptr<AbstractCg>> generators_;
+    generators_.emplace(CutType::kProbing, std::make_unique<ProbingCg>(model_, presolver_, ds_));
+    generators_.emplace(CutType::kCmir, std::make_unique<CmirCg>(model_, ds_));
 
-    for (auto& cg : generators_) {
+    for (const auto& [type, cg] : generators_) {
         Index k = pool_.size();
         cg->Generate(sol, pool_);
         k = pool_.size() - k;
-        std::cout << cg->GetName() << " generated " << k << " cuts\n";
+        if (k > 0) {
+            stats.cg_stats[type].n_generated += k;
+            std::cout << cg->GetName() << " generated " << k << " cuts\n";
+        }
     }
 
     for (auto i = prev_size; i < pool_.size(); i++) {
@@ -149,25 +161,18 @@ Index Cutter::Add() {
     Index m = model_.GetNCons();
     Index n = model_.GetNVars();
 
-    Index np = 0, nc = 0;
+    for (auto& [type, s] : stats.cg_stats) {
+        s.n_active = 0;
+    }
+
     Index n_added = 0;
     for (auto& cut : pool_) {
         if (cut.selected) {
             model_.PrepareConstraint(cut.lhs, {cut.rhs, kInf});
             n_added++;
-            switch (cut.type) {
-                case CutType::kProbing:
-                    np++;
-                    break;
-                case CutType::kCmir:
-                    nc++;
-                    break;
-                default:
-                    break;
-            }
+            stats.cg_stats[cut.type].n_active++;
         }
     }
-    std::cout << "Added " << np << " probing, " << nc << " cmir\n";
     model_.Resize(m + n_added, n);
     model_.FinalizeAc();  // Todo можно без Srm2Scm, т.к. мы просто добавляем новые строки
 

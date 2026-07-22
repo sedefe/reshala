@@ -5,6 +5,7 @@
 namespace reshala {
 
 enum class CutType { kProbing = 0, kCmir = 1 };
+std::string CutType2Str(CutType type);
 
 struct Cut {
     // lhs >= rhs
