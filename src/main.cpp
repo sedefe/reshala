@@ -28,11 +28,7 @@ int main(int argc, char** argv) {
 
     std::cout << "Status: " << LpStatus2Str(sol.status) << ", objective: " << FMT(-10, 5) << sol.y
               << "\n";
-    std::cout << milp.ds.GetLina().GetStats();
-    std::cout << milp.ds.GetStats();
-    std::cout << milp.ds.GetScaling().stats;
-    std::cout << milp.cutter.GetStats();
-    std::cout << milp.bnb.GetStats();
+    milp.PrintStats(std::cout);
     if (sol.status == LpStatus::kOptimal) {
         std::cout << "=== Checking ===\n";
         auto y = model_copy.GetObj().evaluate(sol.x);

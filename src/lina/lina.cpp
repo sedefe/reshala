@@ -24,7 +24,7 @@ std::ostream& operator<<(std::ostream& os, const LinaStats& stats) {
     Scalar avg_fillin = stats.total_nnz_b > 0
                             ? Scalar(stats.total_nnz_l + stats.total_nnz_u) / stats.total_nnz_b
                             : 0.0;
-    os << "Lina stats: \n"
+    os << "Lina: \n"
        << "\t" << stats.n_lus << " LUs, " << stats.n_updates << " updates\n"
        << "\tAvg fill-in: " << avg_fillin << "\n";
     return os;

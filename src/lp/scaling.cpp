@@ -8,7 +8,7 @@ std::ostream& operator<<(std::ostream& os, const ScaleReport& rep) {
 }
 
 std::ostream& operator<<(std::ostream& os, const ScaleStats& stats) {
-    os << "Scaling stats:\n"
+    os << "Scaling:\n"
        << "\tBefore: " << stats.before << "\n"
        << "\tAfter:  " << stats.after << "\n";
     return os;

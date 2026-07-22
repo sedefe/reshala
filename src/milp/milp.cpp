@@ -43,4 +43,13 @@ Solution MilpSolver::Solve() {
     return presolver.Postsolve(mip_state.GetBestSol());
 }
 
+void MilpSolver::PrintStats(std::ostream& os) const {
+    os << "=== Stats ===\n";
+    os << ds.GetLina().GetStats();
+    os << ds.GetStats();
+    os << ds.GetScaling().stats;
+    os << cutter.GetStats();
+    os << bnb.GetStats();
+}
+
 }  // namespace reshala

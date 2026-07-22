@@ -3,7 +3,7 @@
 namespace reshala {
 
 std::ostream& operator<<(std::ostream& os, const DsStats& stats) {
-    os << "DS stats: \n"
+    os << "DS: \n"
        << "\tLp iters: " << stats.n_iter << "\n";
     return os;
 }
