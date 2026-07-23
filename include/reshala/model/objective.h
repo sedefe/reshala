@@ -45,7 +45,7 @@ class Objective {
         }
         for (Index i = 0; i < obj.coefficients.size(); i++) {
             if (obj.coefficients[i] == 0) continue;
-            Scalar v = sense * obj.coefficients[i];
+            Scalar v = sense * obj.coefficients[i] * obj.mult;
 
             if (first_coeff) {
                 os << (v > 0 ? "" : "- ");
@@ -67,7 +67,7 @@ class Objective {
             } else {
                 os << (obj.c0 > 0 ? " + " : " - ");
             }
-            os << std::abs(obj.c0);
+            os << std::abs(obj.c0 * obj.mult);
         }
         return os;
     }
