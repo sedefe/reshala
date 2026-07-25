@@ -17,8 +17,8 @@ class AbstractCg {
 
    protected:
     const std::string name_;
-    MilpModel& model_;
-    DualSimplex& ds_;
+    const MilpModel& model_;
+    const DualSimplex& ds_;
 };
 
 }  // namespace reshala

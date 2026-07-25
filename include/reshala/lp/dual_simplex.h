@@ -35,7 +35,6 @@ class DualSimplex {
     inline const LpBasis& GetBasis() const { return basis; }
     inline const Lina& GetLina() const { return lina; }
     inline const Scaling& GetScaling() const { return scaling; }
-    inline const std::vector<int8_t>& GetDn() const { return d_n; }
 
     DsState Store() const;
     void Restore(const DsState& state);
@@ -53,6 +52,7 @@ class DualSimplex {
     }
 
     void GetBasicRow(Index ic, DenseVector& res) const;
+    const DenseVector GetX() const;  // Scaled!
 
    private:
     MilpModel* model_orig_;

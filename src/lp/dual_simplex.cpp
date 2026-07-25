@@ -107,4 +107,17 @@ void DualSimplex::GetBasicRow(Index ic, DenseVector& res) const {
     MulNLeft(e_p, res);                                // Price
 }
 
+const DenseVector DualSimplex::GetX() const {
+    DenseVector res(n + m, kNan);
+    for (Index ic = 0; ic < m; ic++) {
+        Index i_b = basis.Basis()[ic];
+        res[i_b] = x_b[ic];
+    }
+    for (Index iv = 0; iv < n; iv++) {
+        Index i_nb = basis.NonBasis()[iv];
+        res[i_nb] = GetXnValue(iv);
+    }
+    return res;
+}
+
 }  // namespace reshala
