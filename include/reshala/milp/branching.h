@@ -2,6 +2,7 @@
 
 #include <array>
 
+#include "reshala/milp/history.h"
 #include "reshala/milp/utils.h"
 #include "reshala/model/milp_model.h"
 
@@ -41,8 +42,12 @@ class MostInfeasible : public AbstractBranching {
 
 class FullStrong : public AbstractBranching {
    public:
-    FullStrong(const MilpModel& model, MipState& mip_state) : AbstractBranching(model, mip_state) {}
+    FullStrong(const MilpModel& model, MipState& mip_state)
+        : AbstractBranching(model, mip_state), hist_(model.GetNVars()) {}
     Index Branch(Node& parent, DualSimplex& ds) override;
+
+   private:
+    History hist_;
 };
 
 }  // namespace reshala

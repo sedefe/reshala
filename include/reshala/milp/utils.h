@@ -6,6 +6,9 @@
 
 namespace reshala {
 
+enum class Direction { kLeft = 0, kRight = 1 };
+inline Index Dir2Index(Direction dir) { return static_cast<Index>(dir); }
+
 struct Node {
     Node() {}
     Node(Index l, const Solution& s, const Domain& d, const DsState& st)

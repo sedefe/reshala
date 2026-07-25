@@ -82,6 +82,9 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
             Scalar score = (1.0 - kFsbMu) * std::min(gains[0], gains[1]) +
                            kFsbMu * std::max(gains[0], gains[1]);
 
+            hist_.Add(Direction::kLeft, iv, gains[0], x_val - floor_x);
+            hist_.Add(Direction::kRight, iv, gains[1], ceil_x - x_val);
+
             if (score > best_score) {
                 best_score = score;
                 candidate = iv;
