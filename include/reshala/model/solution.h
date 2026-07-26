@@ -7,7 +7,7 @@
 
 namespace reshala {
 
-enum class LpStatus { kUnknown, kOptimal, kInfeasible, kUnbounded };
+enum class LpStatus { kUnknown, kOptimal, kInfeasible, kDropped, kUnbounded };
 std::string LpStatus2Str(LpStatus status);
 
 struct Solution {

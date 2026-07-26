@@ -12,6 +12,8 @@ std::string LpStatus2Str(LpStatus status) {
             return "Optimal";
         case LpStatus::kInfeasible:
             return "Infeasible";
+        case LpStatus::kDropped:
+            return "Dropped";
         case LpStatus::kUnbounded:
             return "Unbounded";
         default:

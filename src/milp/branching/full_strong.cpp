@@ -37,15 +37,19 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
 
                 // Катоф не прошёл => нахрен пошёл
                 if (sols[i].y >= mip_state_.GetCutoff()) {
-                    sols[i].status = LpStatus::kInfeasible;
+                    sols[i].status = LpStatus::kDropped;
+                    continue;
                 }
 
                 if (sols[i].status == LpStatus::kOptimal) {
-                    // Todo drop if integer
-                    if (mip_state_.TestPrimal(sols[i])) {
-                        std::cout << "FSB: New integer solution: " << FMT(10, 5) << sols[i].y
-                                  << "\n";
-                        if (mip_state_.Converged()) return 0;
+                    if (model_.IsIntegerFeasible(sols[i].x)) {
+                        if (mip_state_.TestPrimal(sols[i])) {
+                            std::cout << "FSB: New integer solution: " << FMT(10, 5) << sols[i].y
+                                      << "\n";
+                            if (mip_state_.Converged()) return 0;
+                        }
+                        sols[i].status = LpStatus::kDropped;
+                        continue;
                     }
                     ds_states[i] = ds.Store();
                 }
