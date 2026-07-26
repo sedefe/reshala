@@ -11,6 +11,7 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
     Index candidate;
     Scalar best_score;
     Index n_implied_bounds;
+    Scalar gains[2];
 
     while (true) {
         candidate = -1;
@@ -34,6 +35,15 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
                 ds.Restore(parent.ds_state);
                 ds.SetBounds(iv, cand_bounds[i]);
                 sols[i] = ds.Solve(true);
+                gains[i] = sols[i].y - parent.sol.y;
+
+                if (sols[i].status != LpStatus::kInfeasible) {
+                    if (i == 0) {
+                        hist_.Add(iv, Direction::kLeft, gains[0], x_val - floor_x);
+                    } else {
+                        hist_.Add(iv, Direction::kRight, gains[1], ceil_x - x_val);
+                    }
+                }
 
                 // Катоф не прошёл => нахрен пошёл
                 if (sols[i].y >= mip_state_.GetCutoff()) {
@@ -42,16 +52,15 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
                 }
 
                 if (sols[i].status == LpStatus::kOptimal) {
-                    if (model_.IsIntegerFeasible(sols[i].x)) {
-                        if (mip_state_.TestPrimal(sols[i])) {
-                            std::cout << "FSB: New integer solution: " << FMT(10, 5) << sols[i].y
-                                      << "\n";
-                            if (mip_state_.Converged()) return 0;
-                        }
+                    if (mip_state_.TestPrimal(sols[i])) {
+                        std::cout << "FSB: New integer solution: " << FMT(10, 5) << sols[i].y
+                                  << "\n";
+                        if (mip_state_.Converged()) return 0;
+                        // Хорошая была нода, но обрабатывать её дальше незачем
                         sols[i].status = LpStatus::kDropped;
-                        continue;
+                    } else {
+                        ds_states[i] = ds.Store();
                     }
-                    ds_states[i] = ds.Store();
                 }
             }
 
@@ -82,12 +91,8 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
             // Два => откатываем баунд и считаем скор
             ds.SetBounds(iv, orig_bnd);
 
-            Scalar gains[2] = {sols[0].y - parent.sol.y, sols[1].y - parent.sol.y};
             Scalar score = (1.0 - kFsbMu) * std::min(gains[0], gains[1]) +
                            kFsbMu * std::max(gains[0], gains[1]);
-
-            hist_.Add(Direction::kLeft, iv, gains[0], x_val - floor_x);
-            hist_.Add(Direction::kRight, iv, gains[1], ceil_x - x_val);
 
             if (score > best_score) {
                 best_score = score;

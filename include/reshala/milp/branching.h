@@ -14,6 +14,7 @@ class AbstractBranching {
    public:
     AbstractBranching(const MilpModel& model, MipState& mip_state)
         : model_(model), mip_state_(mip_state) {}
+    virtual ~AbstractBranching() = default;
     virtual Index Branch(Node& parent, DualSimplex& ds) = 0;
 
     inline const Node& GetChild(Index i) const { return children_[i]; }
