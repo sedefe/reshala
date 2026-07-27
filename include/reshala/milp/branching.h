@@ -12,8 +12,8 @@ const Scalar kFsbMu = 1. / 6.;
 
 class AbstractBranching {
    public:
-    AbstractBranching(const MilpModel& model, MipState& mip_state)
-        : model_(model), mip_state_(mip_state) {}
+    AbstractBranching(const MilpModel& model, MipState& mip_state, History& hist)
+        : model_(model), mip_state_(mip_state), hist_(hist) {}
     virtual ~AbstractBranching() = default;
     virtual Index Branch(Node& parent, DualSimplex& ds) = 0;
 
@@ -30,25 +30,23 @@ class AbstractBranching {
    protected:
     const MilpModel& model_;
     MipState& mip_state_;
+    History& hist_;
     std::array<Node, 2> children_;
     Index best_child_;
 };
 
 class MostInfeasible : public AbstractBranching {
    public:
-    MostInfeasible(const MilpModel& model, MipState& mip_state)
-        : AbstractBranching(model, mip_state) {}
+    MostInfeasible(const MilpModel& model, MipState& mip_state, History& hist)
+        : AbstractBranching(model, mip_state, hist) {}
     Index Branch(Node& parent, DualSimplex& ds) override;
 };
 
 class FullStrong : public AbstractBranching {
    public:
-    FullStrong(const MilpModel& model, MipState& mip_state)
-        : AbstractBranching(model, mip_state), hist_(model.GetNVars()) {}
+    FullStrong(const MilpModel& model, MipState& mip_state, History& hist)
+        : AbstractBranching(model, mip_state, hist) {}
     Index Branch(Node& parent, DualSimplex& ds) override;
-
-   private:
-    History hist_;
 };
 
 }  // namespace reshala

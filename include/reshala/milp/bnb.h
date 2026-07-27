@@ -27,6 +27,7 @@ class BnbSolver {
     const MilpModel& model_;
     DualSimplex& ds_;
     MipState& mip_state_;
+    History hist_;
 
     BnbStats stats;
 

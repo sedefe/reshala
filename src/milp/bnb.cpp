@@ -8,9 +8,9 @@ std::ostream& operator<<(std::ostream& os, const BnbStats& stats) {
 }
 
 BnbSolver::BnbSolver(const MilpModel& model, DualSimplex& ds, MipState& mip_state)
-    : model_(model), ds_(ds), mip_state_(mip_state) {
-    root_branching_ = std::make_unique<FullStrong>(model, mip_state);
-    node_branching_ = std::make_unique<FullStrong>(model, mip_state);
+    : model_(model), ds_(ds), mip_state_(mip_state), hist_(model.GetNVars()) {
+    root_branching_ = std::make_unique<FullStrong>(model, mip_state, hist_);
+    node_branching_ = std::make_unique<FullStrong>(model, mip_state, hist_);
     // node_branching_ = std::make_unique<MostInfeasible>(model, mip_state);
 }
 
