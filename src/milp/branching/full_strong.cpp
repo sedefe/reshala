@@ -27,7 +27,8 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
             const Scalar ceil_x = floor_x + 1;
 
             Bounds orig_bnd = model_.GetBounds(iv);
-            std::array<Bounds, 2> cand_bounds{{{orig_bnd.le, floor_x}, {ceil_x, orig_bnd.ri}}};
+            Bounds cand_bounds[2] = {{orig_bnd.le, floor_x}, {ceil_x, orig_bnd.ri}};
+            Scalar dxs[2] = {x_val - floor_x, ceil_x - x_val};
 
             Solution sols[2];
             DsState ds_states[2];
@@ -38,11 +39,7 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
                 gains[i] = sols[i].y - parent.sol.y;
 
                 if (sols[i].status != LpStatus::kInfeasible) {
-                    if (i == 0) {
-                        hist_.Add(iv, Direction::kLeft, gains[0], x_val - floor_x);
-                    } else {
-                        hist_.Add(iv, Direction::kRight, gains[1], ceil_x - x_val);
-                    }
+                    hist_.Add(iv, Index2Dir(i), gains[i], dxs[i]);
                 }
 
                 // Катоф не прошёл => нахрен пошёл

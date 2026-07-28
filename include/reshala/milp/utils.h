@@ -8,6 +8,7 @@ namespace reshala {
 
 enum class Direction { kLeft = 0, kRight = 1 };
 inline Index Dir2Index(Direction dir) { return static_cast<Index>(dir); }
+inline Direction Index2Dir(Index i) { return static_cast<Direction>(i); }
 
 struct Node {
     Node() {}
