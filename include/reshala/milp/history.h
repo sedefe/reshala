@@ -14,12 +14,22 @@ class History {
     History(Index n_vars) : s_(n_vars, {0.0, 0.0}), s2_(n_vars, {0.0, 0.0}), n_(n_vars, {0, 0}) {}
 
     void Add(Index iv, Direction dir, Scalar dy, Scalar dx);
-    Scalar Estimate(Index iv, Direction dir, Scalar dx) const;
-    Scalar GetSigma(Index iv, Direction dir) const;
-    inline Index GetN(Index iv, Direction dir) const { return n_[iv][Dir2Index(dir)]; }
-    inline bool IsEnough(Index iv) const {
-        return n_[iv][0] >= kMinSamples and n_[iv][1] >= kMinSamples;
+
+    inline Scalar Estimate(Index iv, Direction dir, Scalar dx) const {
+        return GetMean(iv, dir) * dx;
     }
+
+    inline Scalar GetMean(Index iv, Direction dir) const {
+        Index d = Dir2Index(dir);
+        return s_[iv][d] / n_[iv][d];
+    }
+
+    inline Scalar GetVariance(Index iv, Direction dir) const {
+        Index d = Dir2Index(dir);
+        return (s2_[iv][d] - s_[iv][d] * s_[iv][d] / n_[iv][d]) / (n_[iv][d] - 1);
+    }
+
+    bool IsEnough(Index iv) const;
 
    private:
     std::vector<std::array<Scalar, 2>> s_;

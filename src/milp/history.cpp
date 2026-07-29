@@ -4,7 +4,7 @@ namespace reshala {
 
 void History::Add(Index iv, Direction dir, Scalar dy, Scalar dx) {
     assert(!IsZero(MinFraction(dx)));
-    assert(dx > 0);
+    assert(StrongGt(dx, 0.0));
 
     Scalar slope = std::max(dy, 0.0) / dx;  // Может быть околонулевой отрицательный мусор
 
@@ -14,14 +14,17 @@ void History::Add(Index iv, Direction dir, Scalar dy, Scalar dx) {
     s2_[iv][d] += slope * slope;
 }
 
-Scalar History::Estimate(Index iv, Direction dir, Scalar dx) const {
-    Index d = Dir2Index(dir);
-    return s_[iv][d] / n_[iv][d] * dx;
-}
+bool History::IsEnough(Index iv) const {
+    // m >= 2*s  =>  m*m >= 4*v
 
-Scalar History::GetSigma(Index iv, Direction dir) const {
-    Index d = Dir2Index(dir);
-    return (s2_[iv][d] - s_[iv][d] * s_[iv][d] / n_[iv][d]) / (n_[iv][d] - 1);
+    if (n_[iv][0] < kMinSamples or n_[iv][1] < kMinSamples) return false;
+
+    Scalar m0 = GetMean(iv, Direction::kLeft);
+    Scalar m1 = GetMean(iv, Direction::kRight);
+    Scalar v0 = GetVariance(iv, Direction::kLeft);
+    Scalar v1 = GetVariance(iv, Direction::kRight);
+
+    return (m0 * m0 >= 4 * v0) and (m1 * m1 >= 4 * v1);
 }
 
 }  // namespace reshala
