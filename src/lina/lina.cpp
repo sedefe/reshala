@@ -4,6 +4,8 @@
 
 namespace reshala {
 
+LinaStats Lina::stats;
+
 Lina::Lina(const SparseColMatrix& Ac, const SparseRowMatrix& Ar, const LpBasis* basis)
     : Ac_(Ac),
       Ar_(Ar),
@@ -16,7 +18,6 @@ Lina::Lina(const SparseColMatrix& Ac, const SparseRowMatrix& Ar, const LpBasis* 
       Uc(m, m),
       u_diag(m),
       ftran_res(m) {
-
     Refactor();
 }
 

@@ -23,6 +23,8 @@ struct LinaStats {
 std::ostream& operator<<(std::ostream& os, const LinaStats& stats);
 
 class Lina {
+    static LinaStats stats;
+
    public:
     Lina() : ftran_res(0) {}
     Lina(const SparseColMatrix& Ac, const SparseRowMatrix& Ar, const LpBasis* basis);
@@ -42,8 +44,6 @@ class Lina {
    private:
     enum class UpdType { kSlu, kSluPf };
     static const UpdType ut = UpdType::kSluPf;
-
-    LinaStats stats;
 
     SparseColMatrix Ac_;
     SparseRowMatrix Ar_;
