@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+
 #include "reshala/lp/dual_simplex.h"
 #include "reshala/model/milp_model.h"
 #include "reshala/utils.h"
@@ -10,11 +12,16 @@ enum class Direction { kLeft = 0, kRight = 1 };
 inline Index Dir2Index(Direction dir) { return static_cast<Index>(dir); }
 inline Direction Index2Dir(Index i) { return static_cast<Direction>(i); }
 
-static Index node_id = 0;
 struct Node {
     Node() {}
     Node(Index l, const Solution& s, const Domain& d, const DsState& st)
-        : id(node_id++), level(l), sol(s), domain(d), ds_state(st) {}
+        : id(next_id()), level(l), sol(s), domain(d), ds_state(st) {}
+
+    static Index next_id() {
+        static std::atomic<Index> counter{0};
+        return counter.fetch_add(1, std::memory_order_relaxed);
+    }
+
     Index id;
     Index level;
     Solution sol;
