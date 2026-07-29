@@ -13,6 +13,8 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
     Scalar best_score;
     Index n_implied_bounds;
     Scalar gains[2];
+    Solution sols[2];
+    DsState ds_states[2];
 
     while (true) {
         candidate = -1;
@@ -32,46 +34,38 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
             Scalar dxs[2] = {x_val - floor_x, ceil_x - x_val};
 
             bool use_ps = false and hist_.IsEnough(iv);
+            if (use_ps) {
+                gains[0] = hist_.Estimate(iv, Direction::kLeft, dxs[0]);
+                gains[1] = hist_.Estimate(iv, Direction::kRight, dxs[1]);
+                sols[0].status = sols[1].status = LpStatus::kOptimal;
+            } else {  // честно бранчим
+                for (Index i = 0; i < 2; ++i) {
+                    ds.Restore(parent.ds_state);
+                    ds.SetBounds(iv, cand_bounds[i]);
+                    sols[i] = ds.Solve(true);
+                    gains[i] = sols[i].y - parent.sol.y;
 
-            Solution sols[2];
-            DsState ds_states[2];
-            for (Index i = 0; i < 2; ++i) {
-                Direction dir = Index2Dir(i);
-                if (use_ps) {
-                    gains[i] = hist_.Estimate(iv, dir, dxs[i]);
-                    sols[i].status = LpStatus::kOptimal;
-                    continue;
-                }
+                    if (sols[i].status == LpStatus::kOptimal) {
+                        hist_.Add(iv, Index2Dir(i), gains[i], dxs[i]);
 
-                ds.Restore(parent.ds_state);
-                ds.SetBounds(iv, cand_bounds[i]);
-                sols[i] = ds.Solve(true);
-                gains[i] = sols[i].y - parent.sol.y;
+                        // Катоф не прошёл => нахрен пошёл
+                        if (sols[i].y >= mip_state_.GetCutoff()) {
+                            sols[i].status = LpStatus::kDropped;
+                            continue;
+                        }
 
-                if (sols[i].status != LpStatus::kInfeasible) {
-                    hist_.Add(iv, dir, gains[i], dxs[i]);
-                }
-
-                // Катоф не прошёл => нахрен пошёл
-                if (sols[i].y >= mip_state_.GetCutoff()) {
-                    sols[i].status = LpStatus::kDropped;
-                    continue;
-                }
-
-                if (sols[i].status == LpStatus::kOptimal) {
-                    if (mip_state_.TestPrimal(sols[i])) {
-                        std::cout << "FSB: New integer solution: " << FMT(10, 5) << sols[i].y
-                                  << "\n";
-                        if (mip_state_.Converged()) return 0;
-                        // Хорошая была нода, но обрабатывать её дальше незачем
-                        sols[i].status = LpStatus::kDropped;
-                    } else {
-                        ds_states[i] = ds.Store();
+                        if (mip_state_.TestPrimal(sols[i])) {
+                            std::cout << "FSB: New integer solution: " << FMT(10, 5) << sols[i].y
+                                      << "\n";
+                            if (mip_state_.Converged()) return 0;
+                            // Хорошая была нода, но обрабатывать её дальше незачем
+                            sols[i].status = LpStatus::kDropped;
+                        } else {
+                            ds_states[i] = ds.Store();
+                        }
                     }
                 }
-            }
 
-            if (!use_ps) {
                 // Если у кандидата нет детей, дропаем всю ноду
                 if (sols[0].status != LpStatus::kOptimal and sols[1].status != LpStatus::kOptimal) {
                     parent.sol = InfeasibleSolution();
@@ -122,6 +116,7 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
     // Это надо делать только тогда, когда два ребёнка
     const Scalar x_cand = parent.sol.x[candidate];
     const Scalar floor_cand = Floor(x_cand);
+    const Scalar frac_cand = x_cand - floor_cand;
     const Bounds orig_bnd = model_.GetBounds(candidate);
     std::array<Bounds, 2> final_bounds{{{orig_bnd.le, floor_cand}, {floor_cand + 1, orig_bnd.ri}}};
 
@@ -132,9 +127,15 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
         auto sol = ds.Solve(true);
         children_[i] = Node(parent.level + 1, sol, model_.GetDomain(), ds.Store());
 
-        Scalar f = Fraction(parent.sol.x[candidate]);
-        if (candidate_used_ps and sol.status != LpStatus::kInfeasible) {
-            hist_.Add(candidate, Index2Dir(i), sol.y - parent.sol.y, i == 0 ? f : 1 - f);
+        if (candidate_used_ps) {
+            if (sol.status == LpStatus::kOptimal) {
+                hist_.Add(candidate, Index2Dir(i), sol.y - parent.sol.y,
+                          i == 0 ? frac_cand : 1 - frac_cand);
+
+                if (mip_state_.TestPrimal(sol)) {
+                    std::cout << "FSB: New integer solution: " << FMT(10, 5) << sol.y << "\n";
+                }
+            }
         }
 
         num_ch += (sol.status == LpStatus::kOptimal);
