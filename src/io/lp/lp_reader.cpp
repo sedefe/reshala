@@ -180,6 +180,7 @@ void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
             expressions.push_back({true, LpChar2ExpType(tokens[1][0]), std::stod(tokens[0])});
         }
     } else {  // (n == 5)
+        index = names_.vars.GetIndex(tokens[2]);
         expressions.push_back({true, LpChar2ExpType(tokens[1][0]), std::stod(tokens[0])});
         expressions.push_back({false, LpChar2ExpType(tokens[3][0]), std::stod(tokens[4])});
     }
