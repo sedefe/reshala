@@ -9,6 +9,7 @@ namespace reshala {
 
 Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
     Index candidate;
+    bool candidate_used_ps;
     Scalar best_score;
     Index n_implied_bounds;
     Scalar gains[2];
@@ -30,16 +31,25 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
             Bounds cand_bounds[2] = {{orig_bnd.le, floor_x}, {ceil_x, orig_bnd.ri}};
             Scalar dxs[2] = {x_val - floor_x, ceil_x - x_val};
 
+            bool use_ps = false and hist_.IsEnough(iv);
+
             Solution sols[2];
             DsState ds_states[2];
             for (Index i = 0; i < 2; ++i) {
+                Direction dir = Index2Dir(i);
+                if (use_ps) {
+                    gains[i] = hist_.Estimate(iv, dir, dxs[i]);
+                    sols[i].status = LpStatus::kOptimal;
+                    continue;
+                }
+
                 ds.Restore(parent.ds_state);
                 ds.SetBounds(iv, cand_bounds[i]);
                 sols[i] = ds.Solve(true);
                 gains[i] = sols[i].y - parent.sol.y;
 
                 if (sols[i].status != LpStatus::kInfeasible) {
-                    hist_.Add(iv, Index2Dir(i), gains[i], dxs[i]);
+                    hist_.Add(iv, dir, gains[i], dxs[i]);
                 }
 
                 // Катоф не прошёл => нахрен пошёл
@@ -61,32 +71,34 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
                 }
             }
 
-            // Если у кандидата нет детей, дропаем всю ноду
-            if (sols[0].status != LpStatus::kOptimal and sols[1].status != LpStatus::kOptimal) {
-                parent.sol = InfeasibleSolution();
-                return 0;
-            }
+            if (!use_ps) {
+                // Если у кандидата нет детей, дропаем всю ноду
+                if (sols[0].status != LpStatus::kOptimal and sols[1].status != LpStatus::kOptimal) {
+                    parent.sol = InfeasibleSolution();
+                    return 0;
+                }
 
-            // Если ровно один, второй занимает место родителя
-            if (sols[0].status != LpStatus::kOptimal) {
-                n_implied_bounds++;
-                parent.domain.SetBounds(iv, cand_bounds[1]);
-                parent.ds_state = ds_states[1];
-                parent.sol = sols[1];
-                ds.SetBounds(iv, cand_bounds[1]);
-                continue;
-            }
-            if (sols[1].status != LpStatus::kOptimal) {
-                n_implied_bounds++;
-                parent.domain.SetBounds(iv, cand_bounds[0]);
-                parent.ds_state = ds_states[0];
-                parent.sol = sols[0];
-                ds.SetBounds(iv, cand_bounds[0]);
-                continue;
-            }
+                // Если ровно один, второй занимает место родителя
+                if (sols[0].status != LpStatus::kOptimal) {
+                    n_implied_bounds++;
+                    parent.domain.SetBounds(iv, cand_bounds[1]);
+                    parent.ds_state = ds_states[1];
+                    parent.sol = sols[1];
+                    ds.SetBounds(iv, cand_bounds[1]);
+                    continue;
+                }
+                if (sols[1].status != LpStatus::kOptimal) {
+                    n_implied_bounds++;
+                    parent.domain.SetBounds(iv, cand_bounds[0]);
+                    parent.ds_state = ds_states[0];
+                    parent.sol = sols[0];
+                    ds.SetBounds(iv, cand_bounds[0]);
+                    continue;
+                }
 
-            // Два => откатываем баунд и считаем скор
-            ds.SetBounds(iv, orig_bnd);
+                // Два => откатываем баунд
+                ds.SetBounds(iv, orig_bnd);
+            }
 
             Scalar score = (1.0 - kFsbMu) * std::min(gains[0], gains[1]) +
                            kFsbMu * std::max(gains[0], gains[1]);
@@ -94,8 +106,10 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
             if (score > best_score) {
                 best_score = score;
                 candidate = iv;
+                candidate_used_ps = use_ps;
             }
         }
+
         if (n_implied_bounds == 0) {
             break;
         }
@@ -117,6 +131,11 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
         ds.SetBounds(candidate, final_bounds[i]);
         auto sol = ds.Solve(true);
         children_[i] = Node(parent.level + 1, sol, model_.GetDomain(), ds.Store());
+
+        Scalar f = Fraction(parent.sol.x[candidate]);
+        if (candidate_used_ps and sol.status != LpStatus::kInfeasible) {
+            hist_.Add(candidate, Index2Dir(i), sol.y - parent.sol.y, i == 0 ? f : 1 - f);
+        }
 
         num_ch += (sol.status == LpStatus::kOptimal);
     }

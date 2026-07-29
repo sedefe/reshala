@@ -16,7 +16,7 @@ void History::Add(Index iv, Direction dir, Scalar dy, Scalar dx) {
 
 Scalar History::Estimate(Index iv, Direction dir, Scalar dx) const {
     Index d = Dir2Index(dir);
-    return s_[iv][d] / n_[iv][d];
+    return s_[iv][d] / n_[iv][d] * dx;
 }
 
 Scalar History::GetSigma(Index iv, Direction dir) const {

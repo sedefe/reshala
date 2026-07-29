@@ -8,6 +8,8 @@
 namespace reshala {
 
 class History {
+    Index kMinSamples = 8;
+
    public:
     History(Index n_vars) : s_(n_vars, {0.0, 0.0}), s2_(n_vars, {0.0, 0.0}), n_(n_vars, {0, 0}) {}
 
@@ -15,6 +17,9 @@ class History {
     Scalar Estimate(Index iv, Direction dir, Scalar dx) const;
     Scalar GetSigma(Index iv, Direction dir) const;
     inline Index GetN(Index iv, Direction dir) const { return n_[iv][Dir2Index(dir)]; }
+    inline bool IsEnough(Index iv) const {
+        return n_[iv][0] >= kMinSamples and n_[iv][1] >= kMinSamples;
+    }
 
    private:
     std::vector<std::array<Scalar, 2>> s_;
