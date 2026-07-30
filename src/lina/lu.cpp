@@ -56,14 +56,19 @@ bool Lina::Refactor() {
         Ur.GetRow(k).EraseOffset(0);
 
         // Eliminate rows below k
+        const auto& row_k = Ur.GetRow(k);
         for (Index i = k + 1; i < m; ++i) {
+            if (Ur.GetRow(i).Empty()) {
+                std::cerr << "Empty row " << i << "\n";
+                exit(0);
+                return false;
+            }
             if (Ur.GetRow(i).indices()[0] != k) continue;  // a_ik is already zero
             Scalar factor = Ur.GetRow(i).values()[0] / pivot_val;
 
             Lr.GetRow(i).Push(k, factor);  // Store multiplier in L
 
             // row_i = row_i - factor * row_k
-            const auto& row_k = Ur.GetRow(k);
             SparseVector scaled = row_k * factor;  // Todo: combine to daxpy
             Ur.GetRow(i) = Ur.GetRow(i) - scaled;
             Ur.GetRow(i).EraseOffset(0);
