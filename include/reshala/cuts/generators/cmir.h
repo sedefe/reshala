@@ -17,7 +17,7 @@ class CmirCg : public AbstractCg {
     void DoCut(std::vector<Cut>& dst);
     SparseVector lhs;
     Scalar rhs;
-    DenseVector x_scaled;
+    DenseVector x;
 };
 
 }  // namespace reshala

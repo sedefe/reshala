@@ -6,7 +6,11 @@ void CmirCg::Generate(const Solution& sol, std::vector<Cut>& dst) {
     Index m = model_.GetNCons();
     Index n = model_.GetNVars();
     const Index max_support = std::max(2, Index(kMaxRelSupport * n));
-    x_scaled = ds_.GetX();
+
+    x = sol.x;
+    x.resize(m + n);
+    auto slacks = ds_.GetSlacks();
+    std::copy(slacks.begin(), slacks.end(), x.begin() + n);
 
     for (Index ic = 0; ic < m; ic++) {
         if (!PrepareRow(ic)) continue;
@@ -23,23 +27,33 @@ void CmirCg::Generate(const Solution& sol, std::vector<Cut>& dst) {
 bool CmirCg::PrepareRow(Index ic) {
     Index m = model_.GetNCons();
     Index n = model_.GetNVars();
-    const MilpModel& model_scaled = ds_.GetModel();
 
     Index ib = ds_.GetBasis().Basis()[ic];
-    if (ib >= n) return false;                           // slack
-    if (!model_scaled.GetIntegrality(ib)) return false;  // continuous
+    if (ib >= n) return false;                     // slack
+    if (!model_.GetIntegrality(ib)) return false;  // continuous
 
     // apply basic col scaling
-    Scalar xb = x_scaled[ib];
+    Scalar xb = x[ib];
     if (IsZero(MinFraction(xb))) return false;
 
     DenseVector lhs_dense;
     ds_.GetBasicRow(ic, lhs_dense);  // Btran+Price in scaled space
 
     lhs = SparseVector(lhs_dense);
-    lhs.SetDim(n + m);
     for (MutableSvIterator el(lhs); el; ++el) {
         el.indexRef() = ds_.GetBasis().NonBasis()[el.index()];
+    }
+
+    // Unscale but keep ib's coeff as 1
+    Scalar c = ds_.GetScaling().col[ib];
+    Index scale;
+    for (MutableSvIterator el(lhs); el; ++el) {
+        if (el.index() < n) {
+            scale = ds_.GetScaling().col[el.index()] - c;
+        } else {
+            scale = -ds_.GetScaling().row[el.index() - n] - c;
+        }
+        el.valueRef() = std::ldexp(el.value(), scale);
     }
     lhs.Push(ib, 1.0);
     lhs.Sort();
@@ -52,15 +66,17 @@ bool CmirCg::PrepareRow(Index ic) {
 void CmirCg::DoCut(std::vector<Cut>& dst) {
     Index m = model_.GetNCons();
     Index n = model_.GetNVars();
-    const MilpModel& model_scaled = ds_.GetModel();
     std::vector<bool> sides(lhs.Size());
 
     // Displacement: x <- l+d or x <- u-d
     for (Index i = 0; i < lhs.Size(); i++) {
         Index iv = lhs.indices()[i];
         Scalar v = lhs.values()[i];
-        const Bounds& bnd = model_scaled.GetBounds(iv);
-        if (x_scaled[iv] - bnd.le > bnd.ri - x_scaled[iv]) {  // ri
+
+        Bounds bnd = (iv < n) ? model_.GetBounds(iv)
+                              : Bounds{-model_.GetRhs(iv - n).ri, -model_.GetRhs(iv - n).le};
+
+        if (x[iv] - bnd.le > bnd.ri - x[iv]) {  // ri
             rhs -= v * bnd.ri;
             lhs.values()[i] = -v;
             sides[i] = true;
@@ -76,8 +92,9 @@ void CmirCg::DoCut(std::vector<Cut>& dst) {
     // sum(aj dj) = b  =>  sum(alphaj dj) >= ceil(b) * frac(b)
     for (MutableSvIterator el(lhs); el; ++el) {
         Scalar r = Fraction(el.value());
+        Scalar v = el.value();
 
-        if (model_scaled.GetIntegrality(el.index())) {
+        if (el.index() < n and model_.GetIntegrality(el.index())) {
             if (r > f) {
                 el.valueRef() = f * Ceil(el.value());
             } else {
@@ -97,11 +114,15 @@ void CmirCg::DoCut(std::vector<Cut>& dst) {
     for (Index i = 0; i < lhs.Size(); i++) {
         Index iv = lhs.indices()[i];
         Scalar v = lhs.values()[i];
+
+        Bounds bnd = (iv < n) ? model_.GetBounds(iv)
+                              : Bounds{-model_.GetRhs(iv - n).ri, -model_.GetRhs(iv - n).le};
+
         if (sides[i]) {  // ri
             lhs.values()[i] = -v;
-            rhs -= v * model_scaled.GetBounds(iv).ri;
+            rhs -= v * bnd.ri;
         } else {  // le
-            rhs += v * model_scaled.GetBounds(iv).le;
+            rhs += v * bnd.le;
         }
     }
 
@@ -110,16 +131,11 @@ void CmirCg::DoCut(std::vector<Cut>& dst) {
     {
         for (SvIterator el(lhs); el; ++el) {
             if (el.index() >= n) {
-                lhs_copy = lhs_copy - el.value() * model_scaled.GetRow(el.index() - n);
-                // lhs_copy.EraseIndex(el.index());  // Todo use EraseOffset()
+                lhs_copy = lhs_copy - el.value() * model_.GetRow(el.index() - n);
+                lhs_copy.EraseIndex(el.index());  // Todo use EraseOffset()
             }
         }
         lhs_copy.SetDim(model_.GetNVars());
-    }
-
-    // Convert to our cuts format & unscale a_ij
-    for (MutableSvIterator el(lhs_copy); el; ++el) {
-        el.valueRef() = std::ldexp(el.value(), ds_.GetScaling().col[el.index()]);
     }
 
     std::swap(lhs, lhs_copy);

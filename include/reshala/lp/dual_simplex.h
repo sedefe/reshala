@@ -52,7 +52,7 @@ class DualSimplex {
     }
 
     void GetBasicRow(Index ic, DenseVector& res) const;
-    const DenseVector GetX() const;  // Scaled!
+    DenseVector GetSlacks() const;
 
    private:
     MilpModel* model_orig_;

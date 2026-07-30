@@ -39,6 +39,23 @@ Solution DualSimplex::PrepareSolution() const {
     return model_orig_->PrepareSolution(status, x);
 }
 
+DenseVector DualSimplex::GetSlacks() const {
+    DenseVector res(m, kNan);
+    for (Index ic = 0; ic < m; ic++) {
+        Index i_b = basis.Basis()[ic];
+        if (i_b >= n) {
+            res[i_b - n] = std::ldexp(x_b[ic], scaling.row[i_b - n]);
+        }
+    }
+    for (Index iv = 0; iv < n; iv++) {
+        Index i_nb = basis.NonBasis()[iv];
+        if (i_nb >= n) {
+            res[i_nb - n] = std::ldexp(GetXnValue(iv), scaling.row[i_nb - n]);
+        }
+    }
+    return res;
+}
+
 Scalar DualSimplex::GetXnValue(Index iv) const {
     // Todo обрабатывать свободные переменные, глядя на a_p
     const Bounds& bnd = model_.GetBounds(basis.NonBasis()[iv]);
