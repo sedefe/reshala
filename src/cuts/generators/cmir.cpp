@@ -73,21 +73,25 @@ void CmirCg::DoCut(std::vector<Cut>& dst) {
     Scalar f = Fraction(rhs);
 
     // Generate cut coeffs
-    // sum(aj dj) = b  =>  sum(alphaj dj) <= floor(b)
+    // sum(aj dj) = b  =>  sum(alphaj dj) >= ceil(b) * frac(b)
     for (MutableSvIterator el(lhs); el; ++el) {
         Scalar r = Fraction(el.value());
 
         if (model_scaled.GetIntegrality(el.index())) {
-            el.valueRef() = Floor(el.value()) + std::max(0.0, r - f) / (1 - f);
+            if (r > f) {
+                el.valueRef() = f * Ceil(el.value());
+            } else {
+                el.valueRef() = f * Ceil(el.value()) + r;
+            }
         } else {
-            if (el.value() > 0) {
+            if (el.value() < 0) {
                 el.valueRef() = 0.0;
             } else {
-                el.valueRef() = el.value() / (1 - f);
+                el.valueRef() = el.value();
             }
         }
     }
-    rhs = Floor(rhs);
+    rhs = Ceil(rhs) * f;
 
     // Backward substitution
     for (Index i = 0; i < lhs.Size(); i++) {
@@ -115,9 +119,8 @@ void CmirCg::DoCut(std::vector<Cut>& dst) {
 
     // Convert to our cuts format & unscale a_ij
     for (MutableSvIterator el(lhs_copy); el; ++el) {
-        el.valueRef() = -std::ldexp(el.value(), ds_.GetScaling().col[el.index()]);
+        el.valueRef() = std::ldexp(el.value(), ds_.GetScaling().col[el.index()]);
     }
-    rhs = -rhs;
 
     std::swap(lhs, lhs_copy);
 }
