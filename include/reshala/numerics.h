@@ -29,9 +29,10 @@ inline Scalar MinFraction(Scalar x) {
     return std::abs(x - nearest);
 }
 
-inline Index GetGcd(const std::vector<Scalar>& vec) {
+inline Index GetGcd(const std::vector<Scalar>& vec, Index denominator = 1) {
     Index gcd = 0;
-    for (auto x : vec) {
+    for (Scalar x : vec) {
+        x *= denominator;
         if ((std::abs(x) <= kMaxInt) and MinFraction(x) == 0.0) {
             gcd = std::gcd(gcd, Index(x));
         } else {

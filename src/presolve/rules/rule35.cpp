@@ -4,31 +4,38 @@
 namespace reshala {
 
 RuleResult Rule35::Apply(ModelTracker& tracker) {
+    const Index kGcdDenominator = 600;
+    const Index kFpExpScalingLim = 5;
+
     const MilpModel& model = tracker.GetModel();
     Index n_reduced = 0;
 
-    auto obj_gcd = GetGcd(model.GetObj().coefficients);
-    if (obj_gcd > 1) {
-        tracker.ScaleObj(1. / obj_gcd);
-    } else if (!model.ObjIsInteger()) {
-        Index min_exp, max_exp;
-        Index scale = 0;
-        GetExpRange(model.GetObj().coefficients, min_exp, max_exp);
-        scale = std::max(scale, min_exp);
-        scale = std::min(scale, max_exp);
-        if (scale != 0) {
-            tracker.ScaleObjExp(-scale);
+    {  // objective
+        auto obj_gcd = GetGcd(model.GetObj().coefficients, kGcdDenominator);
+        if (obj_gcd != 0 and obj_gcd != kGcdDenominator) {
+            tracker.ScaleObj(Scalar(kGcdDenominator) / obj_gcd);  // Todo rational scaling
+        } else if (!model.ObjIsInteger()) {
+            Index min_exp, max_exp;
+            Index scale = 0;
+            GetExpRange(model.GetObj().coefficients, min_exp, max_exp);
+            scale = std::max(scale, min_exp);
+            scale = std::min(scale, max_exp);
+            if (abs(scale) > kFpExpScalingLim) {
+                tracker.ScaleObjExp(-scale);
+            }
         }
     }
 
-    for (Index ic = 0; ic < model.GetNCons(); ic++) {
-        if (tracker.GetConMask(ic)) continue;
+    {  // constraints
+        for (Index ic = 0; ic < model.GetNCons(); ic++) {
+            if (tracker.GetConMask(ic)) continue;
 
-        const SparseVector& row = model.GetRow(ic);
-        auto gcd = GetGcd(row.values());
-        if (gcd > 1) {
-            tracker.ScaleRow(ic, 1. / gcd);
-            n_reduced++;
+            const SparseVector& row = model.GetRow(ic);
+            auto gcd = GetGcd(row.values());
+            if (gcd > 1) {
+                tracker.ScaleRow(ic, 1. / gcd);
+                n_reduced++;
+            }
         }
     }
 
