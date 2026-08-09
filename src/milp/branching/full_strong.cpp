@@ -24,7 +24,7 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
         for (Index iv = 0; iv < model_.GetNVars(); ++iv) {
             if (!model_.GetIntegrality(iv)) continue;
             const Scalar x_val = parent.sol.x[iv];
-            if (MinFraction(x_val) <= kEpsZero) continue;
+            if (IsZero(MinFraction(x_val))) continue;
 
             const Scalar floor_x = Floor(x_val);
             const Scalar ceil_x = floor_x + 1;
