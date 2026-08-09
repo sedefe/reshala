@@ -17,7 +17,7 @@ std::ostream& operator<<(std::ostream& os, const BnbStats& stats);
 
 class BnbSolver {
    public:
-    BnbSolver(const MilpModel& model, DualSimplex& ds, MipState& mip_state);
+    BnbSolver(const MilpModel& model, DualSimplex& ds, MipTracker& mip_tracker);
 
     void Solve(const Solution& relaxed);
 
@@ -26,7 +26,7 @@ class BnbSolver {
    private:
     const MilpModel& model_;
     DualSimplex& ds_;
-    MipState& mip_state_;
+    MipTracker& mip_tracker_;
     History hist_;
 
     BnbStats stats;

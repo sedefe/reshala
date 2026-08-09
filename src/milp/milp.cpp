@@ -4,11 +4,11 @@ namespace reshala {
 
 MilpSolver::MilpSolver(MilpModel& model)
     : model(model),
-      mip_state(model),
+      mip_tracker(model),
       presolver(model),
-      heuristics(model, mip_state),
-      cutter(model, presolver, ds, mip_state),
-      bnb(model, ds, mip_state) {}
+      heuristics(model, mip_tracker),
+      cutter(model, presolver, ds, mip_tracker),
+      bnb(model, ds, mip_tracker) {}
 
 Solution MilpSolver::Solve() {
     auto [presolve_status, t_presolve] = MEASURE_TIME(presolver.Presolve(true));
@@ -22,25 +22,25 @@ Solution MilpSolver::Solve() {
     std::cout << "Root LP: " << sol.y << ", " << t_root << " ms, " << ds.GetStats().n_iter
               << " iterations\n";
 
-    mip_state.TestPrimal(sol);
-    mip_state.UpdDual(sol.y);
-    if (mip_state.Converged()) {
-        return presolver.Postsolve(mip_state.GetBestSol());
+    mip_tracker.TestPrimal(sol);
+    mip_tracker.UpdDual(sol.y);
+    if (mip_tracker.Converged()) {
+        return presolver.Postsolve(mip_tracker.GetBestSol());
     }
 
     cutter.Run(sol);
-    if (mip_state.Converged()) {
-        return presolver.Postsolve(mip_state.GetBestSol());
+    if (mip_tracker.Converged()) {
+        return presolver.Postsolve(mip_tracker.GetBestSol());
     }
 
     heuristics.Run(sol);
-    if (mip_state.Converged()) {
-        return presolver.Postsolve(mip_state.GetBestSol());
+    if (mip_tracker.Converged()) {
+        return presolver.Postsolve(mip_tracker.GetBestSol());
     }
 
     bnb.Solve(sol);
 
-    return presolver.Postsolve(mip_state.GetBestSol());
+    return presolver.Postsolve(mip_tracker.GetBestSol());
 }
 
 void MilpSolver::PrintStats(std::ostream& os) const {

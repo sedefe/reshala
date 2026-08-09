@@ -20,8 +20,8 @@ bool CutCompare(const Cut& c1, const Cut& c2) {
     return c1.quality > c2.quality;
 }
 
-Cutter::Cutter(MilpModel& model, const Presolver& presolver, DualSimplex& ds, MipState& mip_state)
-    : model_(model), presolver_(presolver), ds_(ds), mip_state_(mip_state) {
+Cutter::Cutter(MilpModel& model, const Presolver& presolver, DualSimplex& ds, MipTracker& mip_tracker)
+    : model_(model), presolver_(presolver), ds_(ds), mip_tracker_(mip_tracker) {
     auto m = model.GetNCons();
     auto n = model.GetNVars();
 
@@ -44,8 +44,8 @@ void Cutter::Run(Solution& sol) {
         if (n_added > 0) {
             ds_.SetModel(model_);
             sol = ds_.Solve(false);
-            if (sol.y > mip_state_.GetDual()) {
-                mip_state_.UpdDual(sol.y);
+            if (sol.y > mip_tracker_.GetDual()) {
+                mip_tracker_.UpdDual(sol.y);
             }
             std::cout << "Added " << n_added << " cuts, size: " << model_.GetNCons() << " x "
                       << model_.GetNVars() << ", y = " << sol.y << "\n";

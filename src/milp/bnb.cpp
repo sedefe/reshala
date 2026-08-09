@@ -7,11 +7,11 @@ std::ostream& operator<<(std::ostream& os, const BnbStats& stats) {
     return os;
 }
 
-BnbSolver::BnbSolver(const MilpModel& model, DualSimplex& ds, MipState& mip_state)
-    : model_(model), ds_(ds), mip_state_(mip_state), hist_(model.GetNVars()) {
-    root_branching_ = std::make_unique<FullStrong>(model, mip_state, hist_);
-    node_branching_ = std::make_unique<FullStrong>(model, mip_state, hist_);
-    // node_branching_ = std::make_unique<MostInfeasible>(model, mip_state);
+BnbSolver::BnbSolver(const MilpModel& model, DualSimplex& ds, MipTracker& mip_tracker)
+    : model_(model), ds_(ds), mip_tracker_(mip_tracker), hist_(model.GetNVars()) {
+    root_branching_ = std::make_unique<FullStrong>(model, mip_tracker, hist_);
+    node_branching_ = std::make_unique<FullStrong>(model, mip_tracker, hist_);
+    // node_branching_ = std::make_unique<MostInfeasible>(model, mip_tracker);
 }
 
 void BnbSolver::Solve(const Solution& relaxed) {
@@ -22,12 +22,12 @@ void BnbSolver::Solve(const Solution& relaxed) {
         curr_node = std::move(nodes.back());
         nodes.pop_back();
         stats.n_nodes++;
-        if (curr_node.sol.y >= mip_state_.GetCutoff()) {
+        if (curr_node.sol.y >= mip_tracker_.GetCutoff()) {
             stats.n_dropped++;
             continue;
         }
 
-        if (mip_state_.Converged()) {
+        if (mip_tracker_.Converged()) {
             break;
         }
 
@@ -46,7 +46,7 @@ void BnbSolver::Solve(const Solution& relaxed) {
                 // Todo: run conflict analysis
                 continue;
             }
-            if (child.sol.y < mip_state_.GetCutoff()) {
+            if (child.sol.y < mip_tracker_.GetCutoff()) {
                 nodes.push_back(child);
             }
         }
@@ -60,13 +60,13 @@ void BnbSolver::Solve(const Solution& relaxed) {
 
 void BnbSolver::UpdDual() {
     // В стеке могут оказаться только плохие ноды, поэтому праймал тоже считаем оценкой
-    Scalar min_dual = mip_state_.GetPrimal();
+    Scalar min_dual = mip_tracker_.GetPrimal();
     for (const auto& node : nodes) {
         if (node.sol.y < min_dual) {
             min_dual = node.sol.y;
         }
     }
-    mip_state_.UpdDual(min_dual);
+    mip_tracker_.UpdDual(min_dual);
 }
 
 void BnbSolver::DebugPrint(std::unique_ptr<AbstractBranching>& branching) {
@@ -82,8 +82,8 @@ void BnbSolver::DebugPrint(std::unique_ptr<AbstractBranching>& branching) {
     std::cout << FMT(3, 5) << curr_node.level << " | " << FMT(6, 5)
               << FormatInteger(ds_.GetStats().n_iter) << " | " << FMT(12, 5)
               << branching->GetChild(0).sol.y << " | " << FMT(12, 5) << branching->GetChild(1).sol.y
-              << " | " << FMT(12, 5) << mip_state_.GetDual() << " | " << FMT(12, 5)
-              << mip_state_.GetPrimal() << " | " << FMT(7, 4) << mip_state_.GetGap() * 1e2 << "\n"
+              << " | " << FMT(12, 5) << mip_tracker_.GetDual() << " | " << FMT(12, 5)
+              << mip_tracker_.GetPrimal() << " | " << FMT(7, 4) << mip_tracker_.GetGap() * 1e2 << "\n"
               << FMT_DEFAULT;
     n++;
 }

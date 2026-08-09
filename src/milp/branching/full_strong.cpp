@@ -49,15 +49,15 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
                         hist_.Add(iv, Index2Dir(i), gains[i], dxs[i]);
 
                         // Катоф не прошёл => нахрен пошёл
-                        if (sols[i].y >= mip_state_.GetCutoff()) {
+                        if (sols[i].y >= mip_tracker_.GetCutoff()) {
                             sols[i].status = LpStatus::kDropped;
                             continue;
                         }
 
-                        if (mip_state_.TestPrimal(sols[i])) {
+                        if (mip_tracker_.TestPrimal(sols[i])) {
                             std::cout << "FSB: New integer solution: " << FMT(10, 5) << sols[i].y
                                       << "\n";
-                            if (mip_state_.Converged()) return 0;
+                            if (mip_tracker_.Converged()) return 0;
                             // Хорошая была нода, но обрабатывать её дальше незачем
                             sols[i].status = LpStatus::kDropped;
                         } else {
@@ -132,7 +132,7 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
                 hist_.Add(candidate, Index2Dir(i), sol.y - parent.sol.y,
                           i == 0 ? frac_cand : 1 - frac_cand);
 
-                if (mip_state_.TestPrimal(sol)) {
+                if (mip_tracker_.TestPrimal(sol)) {
                     std::cout << "FSB: New integer solution: " << FMT(10, 5) << sol.y << "\n";
                 }
             }

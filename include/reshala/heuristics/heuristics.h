@@ -6,14 +6,14 @@ namespace reshala {
 
 class Heuristics {
    public:
-    Heuristics(const MilpModel& model, MipState& mip_state);
+    Heuristics(const MilpModel& model, MipTracker& mip_tracker);
 
     void Run(const Solution& relaxed);
 
    private:
     std::vector<std::unique_ptr<AbstractHeuristic>> heuristics_;
     const MilpModel& model_;
-    MipState& mip_state_;
+    MipTracker& mip_tracker_;
 
     Solution best_sol_;
 };

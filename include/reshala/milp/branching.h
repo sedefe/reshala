@@ -3,7 +3,7 @@
 #include <array>
 
 #include "reshala/milp/history.h"
-#include "reshala/milp/utils.h"
+#include "reshala/milp/mip_tracker.h"
 #include "reshala/model/milp_model.h"
 
 namespace reshala {
@@ -12,8 +12,8 @@ const Scalar kFsbMu = 1. / 6.;
 
 class AbstractBranching {
    public:
-    AbstractBranching(const MilpModel& model, MipState& mip_state, History& hist)
-        : model_(model), mip_state_(mip_state), hist_(hist) {}
+    AbstractBranching(const MilpModel& model, MipTracker& mip_tracker, History& hist)
+        : model_(model), mip_tracker_(mip_tracker), hist_(hist) {}
     virtual ~AbstractBranching() = default;
     virtual Index Branch(Node& parent, DualSimplex& ds) = 0;
 
@@ -29,7 +29,7 @@ class AbstractBranching {
 
    protected:
     const MilpModel& model_;
-    MipState& mip_state_;
+    MipTracker& mip_tracker_;
     History& hist_;
     std::array<Node, 2> children_;
     Index best_child_;
@@ -37,15 +37,15 @@ class AbstractBranching {
 
 class MostInfeasible : public AbstractBranching {
    public:
-    MostInfeasible(const MilpModel& model, MipState& mip_state, History& hist)
-        : AbstractBranching(model, mip_state, hist) {}
+    MostInfeasible(const MilpModel& model, MipTracker& mip_tracker, History& hist)
+        : AbstractBranching(model, mip_tracker, hist) {}
     Index Branch(Node& parent, DualSimplex& ds) override;
 };
 
 class FullStrong : public AbstractBranching {
    public:
-    FullStrong(const MilpModel& model, MipState& mip_state, History& hist)
-        : AbstractBranching(model, mip_state, hist) {}
+    FullStrong(const MilpModel& model, MipTracker& mip_tracker, History& hist)
+        : AbstractBranching(model, mip_tracker, hist) {}
     Index Branch(Node& parent, DualSimplex& ds) override;
 };
 

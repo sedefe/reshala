@@ -7,7 +7,7 @@
 namespace reshala {
 
 Solution Diving::InternalRun(const MilpModel& model, const Solution& relaxed,
-                             const MipState& mip_state) {
+                             const MipTracker& mip_tracker) {
     Solution sol;
 
     MilpModel model_copy = model;

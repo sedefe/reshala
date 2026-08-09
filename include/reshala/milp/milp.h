@@ -15,7 +15,7 @@ class MilpSolver {
 
     MilpModel& model;
     DualSimplex ds;
-    MipState mip_state;
+    MipTracker mip_tracker;
 
     Presolver presolver;
     Cutter cutter;
