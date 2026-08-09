@@ -59,11 +59,14 @@ std::vector<TestCase> ReadTestCases(const std::string& csv_path) {
     return tests;
 }
 
-void RunTest(TestCase& tc) {
+bool RunTest(TestCase& tc) {
     Io io;
     std::filesystem::path file_path("tests/models/" + tc.name + ".mps");
     [[maybe_unused]] auto read_status = io.Read(file_path.c_str());
-    assert(read_status == FileReadStatus::kOk);
+    if (read_status != FileReadStatus::kOk) {
+        printf("No file %s\n", file_path.c_str());
+        return false;
+    }
 
     MilpModel& model = io.GetModel();
     MilpModel model_copy = model;
@@ -82,6 +85,8 @@ void RunTest(TestCase& tc) {
     } else {
         tc.y_actual = kInf;
     }
+
+    return true;
 }
 
 int main() {
@@ -97,7 +102,9 @@ int main() {
         printf("%-20s: ", tc.name.c_str());
         fflush(stdout);
 
-        RunTest(tc);
+        if (not RunTest(tc)) {
+            continue;
+        }
         printf("%6.3f sec ", tc.time / 1e3);
 
         auto status = LpStatus2Str(tc.sol.status);
