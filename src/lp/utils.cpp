@@ -31,7 +31,8 @@ Solution DualSimplex::PrepareSolution() const {
         for (Index iv = 0; iv < n; iv++) {
             Index i_nb = basis.NonBasis()[iv];
             if (i_nb < n) {
-                x[i_nb] = std::ldexp(GetXnValue(iv), -scaling.col[i_nb]);
+                const Bounds& bnd = model_orig_->GetBounds(i_nb);
+                x[i_nb] = (d_n[iv] >= 0) ? bnd.le : bnd.ri;
             }
         }
     }
@@ -50,7 +51,8 @@ DenseVector DualSimplex::GetSlacks() const {
     for (Index iv = 0; iv < n; iv++) {
         Index i_nb = basis.NonBasis()[iv];
         if (i_nb >= n) {
-            res[i_nb - n] = std::ldexp(GetXnValue(iv), scaling.row[i_nb - n]);
+            const Bounds& rhs = model_orig_->GetRhs(i_nb);
+            res[i_nb - n] = (d_n[iv] >= 0) ? -rhs.ri : -rhs.le;
         }
     }
     return res;
