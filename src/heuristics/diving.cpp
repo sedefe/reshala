@@ -35,7 +35,7 @@ Solution Diving::InternalRun(const MilpModel& model, const Solution& relaxed,
         Scalar rb = lb + 1;
 
         const Bounds& bnd = model_copy.GetBounds(cand);
-        if (sol.x[cand] - bnd.le > bnd.ri - sol.x[cand])
+        if (sol.x[cand] - bnd.le < bnd.ri - sol.x[cand])
             bounds_priority = {{{bnd.le, lb}, {rb, bnd.ri}}};
         else
             bounds_priority = {{{rb, bnd.ri}, {bnd.le, lb}}};
@@ -54,13 +54,15 @@ Solution Diving::InternalRun(const MilpModel& model, const Solution& relaxed,
 Index Diving::GetCandidate(const MilpModel& model, const Solution& relaxed, const Solution& sol) {
     // Todo: enhance
     Index candidate = -1;
-    Scalar max_fraction = -kInf;
+    Scalar min_fraction = kInf;
 
     for (Index iv = 0; iv < sol.x.size(); ++iv) {
         if (!model.GetIntegrality(iv)) continue;
         Scalar current_fraction = MinFraction(sol.x[iv]);
-        if (current_fraction > max_fraction) {
-            max_fraction = current_fraction;
+        if (IsZero(current_fraction)) continue;
+
+        if (current_fraction < min_fraction) {
+            min_fraction = current_fraction;
             candidate = iv;
         }
     }

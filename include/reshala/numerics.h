@@ -8,7 +8,7 @@
 
 namespace reshala {
 
-inline bool IsZero(Scalar x) { return x < kEpsZero and x > -kEpsZero; }
+inline bool IsZero(Scalar x) { return x <= kEpsZero and x >= -kEpsZero; }
 
 inline bool WeakGe(Scalar x, Scalar y) { return x - y > -kEpsZero; }
 inline bool StrongGt(Scalar x, Scalar y) { return x - y > kEpsZero; }
