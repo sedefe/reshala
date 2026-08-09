@@ -128,6 +128,8 @@ void MpsReader::ParseColumns(const std::vector<std::string>& tokens) {
     if (var_index >= model_.GetVars().Size()) {
         model_.GetObj().coefficients.push_back(0.0);
         if (int_marker) {
+            // "If no bounds are specified for the variables within markers, bounds of 0 (zero) and
+            // 1 (one) are assumed."
             model_.GetVars().Push({0., 1.}, true);
         } else {
             model_.GetVars().Push({}, false);
@@ -200,7 +202,12 @@ void MpsReader::ParseBounds(const std::vector<std::string>& tokens) {
     Scalar value;
     switch (type) {
         case MpsBoundType::kLI:  // integer kLO
+            value = std::stod(tokens[3]);
             model_.SetIntegrality(var_index, true);
+            if (value == 0.0) {
+                // "To specify general integers with no upper bounds, use LI with the value 0.0."
+                model_.SetBounds(var_index, {0, kInf});
+            }
         case MpsBoundType::kLO:
             value = std::stod(tokens[3]);
             model_.SetBounds(var_index, {value, model_.GetBounds(var_index).ri});
