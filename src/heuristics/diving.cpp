@@ -34,12 +34,11 @@ Solution Diving::InternalRun(const MilpModel& model, const Solution& relaxed,
         Scalar lb = Floor(sol.x[cand]);
         Scalar rb = lb + 1;
 
-        // Todo: enhance logic, don't set constant bounds
         const Bounds& bnd = model_copy.GetBounds(cand);
         if (sol.x[cand] - bnd.le > bnd.ri - sol.x[cand])
-            bounds_priority = {{{lb, lb}, {rb, rb}}};
+            bounds_priority = {{{bnd.le, lb}, {rb, bnd.ri}}};
         else
-            bounds_priority = {{{rb, rb}, {lb, lb}}};
+            bounds_priority = {{{rb, bnd.ri}, {bnd.le, lb}}};
 
         // Todo: choose the best child
         for (Index i = 0; i < 2; ++i) {
