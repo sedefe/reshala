@@ -4,13 +4,13 @@
 
 namespace reshala {
 
-enum class RoundingType {
+enum class FixingType {
     kAll = 0,
     kInts = 1,
     kNone = 2,
 };
-std::string RoundingType2Str(RoundingType type);
+std::string FixingType2Str(FixingType type);
 
-void Fixing(RoundingType type, MilpModel &model, const std::vector<Scalar> &relaxed_x);
+void Fixing(FixingType type, MilpModel &model, const std::vector<Scalar> &relaxed_x);
 
 }  // namespace reshala

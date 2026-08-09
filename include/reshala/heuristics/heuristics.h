@@ -1,6 +1,7 @@
 #pragma once
 
 #include "reshala/heuristics/diving.h"
+#include "reshala/heuristics/rounding.h"
 
 namespace reshala {
 

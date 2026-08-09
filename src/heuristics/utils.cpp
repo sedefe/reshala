@@ -2,13 +2,13 @@
 
 namespace reshala {
 
-std::string RoundingType2Str(RoundingType type) {
+std::string FixingType2Str(FixingType type) {
     switch (type) {
-        case RoundingType::kAll:
+        case FixingType::kAll:
             return "All";
-        case RoundingType::kInts:
+        case FixingType::kInts:
             return "Ints";
-        case RoundingType::kNone:
+        case FixingType::kNone:
             return "None";
         default:
             assert(false && "Unknows rounding type");
@@ -16,13 +16,13 @@ std::string RoundingType2Str(RoundingType type) {
     }
 }
 
-void Fixing(RoundingType type, MilpModel &model, const std::vector<Scalar> &relaxed_x) {
+void Fixing(FixingType type, MilpModel &model, const std::vector<Scalar> &relaxed_x) {
     Index n = model.GetNVars();
 
     Index n_fixed_integers = 0;
     Index n_fixed_continuous = 0;
 
-    if (type != RoundingType::kNone) {
+    if (type != FixingType::kNone) {
         for (Index iv = 0; iv < n; ++iv) {
             if (model.GetIntegrality(iv)) {
                 if (MinFraction(relaxed_x[iv]) <= kEpsZero) {
@@ -31,7 +31,7 @@ void Fixing(RoundingType type, MilpModel &model, const std::vector<Scalar> &rela
                     n_fixed_integers++;
                 }
             } else {
-                if (type == RoundingType::kAll) {
+                if (type == FixingType::kAll) {
                     auto bnd = model.GetBounds(iv);
                     if (WeakLe(relaxed_x[iv], bnd.le)) {
                         model.SetBounds(iv, {bnd.le, bnd.le});

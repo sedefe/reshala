@@ -7,12 +7,12 @@ namespace reshala {
 
 class Diving : public AbstractHeuristic {
    public:
-    Diving(RoundingType type)
-        : AbstractHeuristic("Diving-" + RoundingType2Str(type)), type_(type) {}
+    Diving(FixingType type)
+        : AbstractHeuristic("Diving-" + FixingType2Str(type)), type_(type) {}
 
    protected:
     Solution InternalRun(const MilpModel& model, const Solution& relaxed, const MipTracker& mip_tracker);
-    RoundingType type_;
+    FixingType type_;
 
    private:
     Index GetCandidate(const MilpModel& model, const Solution& relaxed, const Solution& sol);
