@@ -1,5 +1,8 @@
 name,status,obj,used
+22433,Optimal,21477,1
+app2-1,Optimal,19294.25,1
 app2-2,Optimal,212040.5,1
+dcmulti,Optimal,188182,1
 dell,Infeasible,inf,1
 enlight4,Infeasible,inf,1
 f2gap40400,Optimal,20772,1
