@@ -151,7 +151,9 @@ void LpReader::ParseConstraint(const std::vector<std::string>& tokens) {
     SparseVector sv(names_.vars.Size());
     sv.Reserve(lhs.size());
     for (const auto& m : lhs) {
-        sv.Push(m.index, m.coeff);
+        if (m.coeff != 0.0) {
+            sv.Push(m.index, m.coeff);
+        }
     }
     model_.PrepareConstraint(sv, rhs);
 }
