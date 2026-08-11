@@ -347,12 +347,13 @@ Bounds ModelTracker::DeriveBounds(Index ic, Index iv, Activity act, const Bounds
     const Bounds& rhs = model_.GetRhs(ic);
     act.RmTerm(val, bnd);
     auto lhs = act.GetRange();
-    if (val > 0) {
+    if (StrongGt(val, 0.0)) {
         derived.le = (rhs.le - lhs.ri) / val;
         derived.ri = (rhs.ri - lhs.le) / val;
-    } else {
+    } else if (StrongLt(val, 0.0)) {
         derived.le = (rhs.ri - lhs.le) / val;
         derived.ri = (rhs.le - lhs.ri) / val;
+    } else {  // ignore near-zeroes as noise
     }
     if (model_.GetIntegrality(iv)) {
         derived.le = WeakCeil(derived.le);
