@@ -10,11 +10,17 @@ struct Bounder {
     Bounder(const ModelTracker& t)
         : tracker(t),
           activities(t.GetActivities()),
-          var_bounds(t.GetModel().GetDomain().GetBounds()) {}
+          var_bounds(t.GetModel().GetDomain().GetBounds()) {
+        const MilpModel& model = tracker.GetModel();
+        changed_cons.reserve(model.GetNCons());
+        changed_vars.reserve(model.GetNVars());
+    }
 
     std::vector<Activity> activities;
     std::vector<Bounds> var_bounds;
     const ModelTracker& tracker;
+    std::unordered_set<Index> changed_cons;
+    std::unordered_set<Index> changed_vars;
 
     bool Propagate(Index iv_start, const Bounds& new_bnd) {
         const MilpModel& model = tracker.GetModel();
@@ -22,8 +28,9 @@ struct Bounder {
         const Index kMaxIters = 5;
         Index n_iter = 0;
 
-        std::unordered_set<Index> changed_cons;
-        std::unordered_set<Index> changed_vars{iv_start};
+        changed_cons.clear();
+        changed_vars.clear();
+        changed_vars.emplace(iv_start);
 
         std::vector<Bounds> old_bounds = var_bounds;
         var_bounds[iv_start] = new_bnd;
