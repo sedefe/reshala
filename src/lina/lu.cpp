@@ -32,8 +32,16 @@ bool Lina::Refactor() {
         Index pivot_row = k;
         Scalar pivot_val = 0;
         for (Index i = k; i < m; ++i) {
-            Scalar val = Ur.GetRow(i).At(k);
-            if (std::abs(val) > std::abs(pivot_val)) {
+            const auto& row = Ur.GetRow(i);
+            if (row.Empty()) {
+                std::cerr << "Empty row " << i << "\n";
+                exit(0);
+                return false;
+            }
+            Index j = row.indices()[0];
+            Scalar val = row.values()[0];
+            assert(j >= k && "Dirty row");
+            if (j == k and std::abs(val) > std::abs(pivot_val)) {
                 pivot_val = val;
                 pivot_row = i;
                 if (pivot_val > kGoodPivotThd) break;
@@ -61,11 +69,6 @@ bool Lina::Refactor() {
         // Eliminate rows below k
         const auto& row_k = Ur.GetRow(k);
         for (Index i = k + 1; i < m; ++i) {
-            if (Ur.GetRow(i).Empty()) {
-                std::cerr << "Empty row " << i << "\n";
-                exit(0);
-                return false;
-            }
             if (Ur.GetRow(i).indices()[0] != k) continue;  // a_ik is already zero
             Scalar factor = Ur.GetRow(i).values()[0] / pivot_val;
 
