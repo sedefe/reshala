@@ -13,8 +13,8 @@ class SparseRowMatrix {
    public:
     SparseRowMatrix(Index m = 0, Index n = 0) : m_(m), n_(n), rows_(m, SparseVector(n)) {}
 
-    Index GetNRows() const { return m_; }
-    Index GetNCols() const { return n_; }
+    inline Index GetNRows() const { return m_; }
+    inline Index GetNCols() const { return n_; }
     Index GetNnz() const {
         Index nnz = 0;
         for (const auto& row : GetRows()) {
@@ -35,11 +35,11 @@ class SparseRowMatrix {
         for (auto& row : rows_) row.Clear();
     }
 
-    std::vector<SparseVector>& GetRows() { return rows_; }
-    const std::vector<SparseVector>& GetRows() const { return rows_; }
+    inline std::vector<SparseVector>& GetRows() { return rows_; }
+    inline const std::vector<SparseVector>& GetRows() const { return rows_; }
 
-    SparseVector& GetRow(Index i) { return rows_[i]; }
-    const SparseVector& GetRow(Index i) const { return rows_[i]; }
+    inline SparseVector& GetRow(Index i) { return rows_[i]; }
+    inline const SparseVector& GetRow(Index i) const { return rows_[i]; }
 
    private:
     Index m_;
@@ -51,8 +51,8 @@ class SparseColMatrix {
    public:
     SparseColMatrix(Index m = 0, Index n = 0) : m_(m), n_(n), cols_(n, SparseVector(m)) {}
 
-    Index GetNRows() const { return m_; }
-    Index GetNCols() const { return n_; }
+    inline Index GetNRows() const { return m_; }
+    inline Index GetNCols() const { return n_; }
     Index GetNnz() const {
         Index nnz = 0;
         for (const auto& col : GetCols()) {
@@ -73,11 +73,11 @@ class SparseColMatrix {
         for (auto& col : cols_) col.Clear();
     }
 
-    std::vector<SparseVector>& GetCols() { return cols_; }
-    const std::vector<SparseVector>& GetCols() const { return cols_; }
+    inline std::vector<SparseVector>& GetCols() { return cols_; }
+    inline const std::vector<SparseVector>& GetCols() const { return cols_; }
 
-    SparseVector& GetCol(Index i) { return cols_[i]; }
-    const SparseVector& GetCol(Index i) const { return cols_[i]; }
+    inline SparseVector& GetCol(Index i) { return cols_[i]; }
+    inline const SparseVector& GetCol(Index i) const { return cols_[i]; }
 
    private:
     Index m_;
