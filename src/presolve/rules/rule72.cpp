@@ -1,6 +1,4 @@
 #include <array>
-#include <unordered_set>
-#include <utility>
 
 #include "reshala/presolve/rules.h"
 
@@ -10,7 +8,9 @@ struct Bounder {
     Bounder(const ModelTracker& t)
         : tracker(t),
           activities(t.GetActivities()),
-          var_bounds(t.GetModel().GetDomain().GetBounds()) {
+          var_bounds(t.GetModel().GetDomain().GetBounds()),
+          con_mask(t.GetModel().GetNCons()),
+          var_mask(t.GetModel().GetNVars()) {
         const MilpModel& model = tracker.GetModel();
         changed_cons.reserve(model.GetNCons());
         changed_vars.reserve(model.GetNVars());
@@ -19,8 +19,11 @@ struct Bounder {
     std::vector<Activity> activities;
     std::vector<Bounds> var_bounds;
     const ModelTracker& tracker;
-    std::unordered_set<Index> changed_cons;
-    std::unordered_set<Index> changed_vars;
+
+    std::vector<Index> changed_cons;
+    BitMask con_mask;
+    std::vector<Index> changed_vars;
+    BitMask var_mask;
 
     bool Propagate(Index iv_start, const Bounds& new_bnd) {
         const MilpModel& model = tracker.GetModel();
@@ -28,9 +31,7 @@ struct Bounder {
         const Index kMaxIters = 5;
         Index n_iter = 0;
 
-        changed_cons.clear();
-        changed_vars.clear();
-        changed_vars.emplace(iv_start);
+        changed_vars.push_back(iv_start);
 
         std::vector<Bounds> old_bounds = var_bounds;
         var_bounds[iv_start] = new_bnd;
@@ -39,6 +40,7 @@ struct Bounder {
             n_iter++;
 
             changed_cons.clear();
+            con_mask.Clear();
             for (auto iv : changed_vars) {  // var_bounds -> activities
                 for (SvIterator el(model.GetCol(iv)); el; ++el) {
                     Index ic = el.index();
@@ -51,10 +53,13 @@ struct Bounder {
                     act.AddTerm(val, var_bounds[iv]);
                     Bounds new_range = act.GetRange();
 
-                    if (new_range.le != old_range.le or
-                        new_range.ri != old_range.ri) {  // todo weak comparison
+                    if (StrongGt(new_range.le, old_range.le) or
+                        StrongLt(new_range.ri, old_range.ri)) {
                         activities[ic] = act;
-                        changed_cons.emplace(ic);
+                        if (!con_mask.Get(ic)) {
+                            con_mask.Set(ic);
+                            changed_cons.push_back(ic);
+                        }
                     }
                 }
             }
@@ -62,6 +67,7 @@ struct Bounder {
             old_bounds = var_bounds;
 
             changed_vars.clear();
+            var_mask.Clear();
             for (auto ic : changed_cons) {  // activities -> var_bounds
                 for (SvIterator el(model.GetRow(ic)); el; ++el) {
                     Index iv = el.index();
@@ -78,7 +84,10 @@ struct Bounder {
                         if (StrongGt(curr_bnd.le, curr_bnd.ri)) {
                             return false;
                         }
-                        changed_vars.emplace(iv);
+                        if (!var_mask.Get(iv)) {
+                            var_mask.Set(iv);
+                            changed_vars.push_back(iv);
+                        }
                     }
                 }
             }
