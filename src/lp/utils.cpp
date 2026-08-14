@@ -51,7 +51,7 @@ DenseVector DualSimplex::GetSlacks() const {
     for (Index iv = 0; iv < n; iv++) {
         Index i_nb = basis.NonBasis()[iv];
         if (i_nb >= n) {
-            const Bounds& rhs = model_orig_->GetRhs(i_nb);
+            const Bounds& rhs = model_orig_->GetRhs(i_nb - n);
             res[i_nb - n] = (d_n[iv] >= 0) ? -rhs.ri : -rhs.le;
         }
     }
