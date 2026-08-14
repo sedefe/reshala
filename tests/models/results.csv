@@ -19,6 +19,7 @@ mod008inf,Infeasible,inf,1
 mod010,Optimal,6548,1
 neos859080,Infeasible,inf,1
 neos-1425699,Optimal,3179698977,1
+neos-1445532,Optimal,-17041,1
 neos-3048764-nadi,Optimal,-3883988306.37,1
 neos-3116779-oban,Optimal,0,1
 neos-3135526-osun,Infeasible,inf,1
