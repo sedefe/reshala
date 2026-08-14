@@ -6,6 +6,8 @@
 namespace reshala {
 
 bool Lina::Refactor() {
+    const Scalar kGoodPivotThd = 0.1;
+
     stats.n_lus++;
 
     row_perm.resize(m);
@@ -34,6 +36,7 @@ bool Lina::Refactor() {
             if (std::abs(val) > std::abs(pivot_val)) {
                 pivot_val = val;
                 pivot_row = i;
+                if (pivot_val > kGoodPivotThd) break;
             }
         }
         if (IsZero(pivot_val)) {
