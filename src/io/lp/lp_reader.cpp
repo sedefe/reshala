@@ -49,7 +49,7 @@ FileReadStatus LpReader::Read(const std::filesystem::path& path) {
             }
             current_state = LpParseState::kBnd;
             continue;
-        } else if (lower_line == "binaries") {
+        } else if (lower_line == "binaries" or lower_line == "binary") {
             if (!matrix_finalized) {
                 FinalizeMatrix();
             }
@@ -75,10 +75,13 @@ FileReadStatus LpReader::Read(const std::filesystem::path& path) {
                 break;
             case LpParseState::kCon:
                 multiline.insert(multiline.end(), tokens.begin(), tokens.end());
-                con_exp_token = tokens[tokens.size() - 2];
-                if (con_exp_token[0] == '<' or con_exp_token[0] == '>' or con_exp_token[0] == '=') {
-                    ParseConstraint(multiline);
-                    multiline = {};
+                if (multiline.size() >= 3) {  // Full constraint has at least 3 tokens
+                    con_exp_token = multiline[multiline.size() - 2];
+                    if (con_exp_token[0] == '<' or con_exp_token[0] == '>' or
+                        con_exp_token[0] == '=') {
+                        ParseConstraint(multiline);
+                        multiline = {};
+                    }
                 }
                 break;
             case LpParseState::kBnd:
