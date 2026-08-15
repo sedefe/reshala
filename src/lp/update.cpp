@@ -57,8 +57,11 @@ void DualSimplex::RebuildAll() {
                     assert(false);
             }
         }
-        BndType type = model_.GetType(basis.NonBasis()[iv_entering]);
-        d_n[iv_entering] = (type == BndType::kFixed) ? 0 : (s_p > 0 ? -1 : 1);
+        if (iv_entering >= 0) {
+            // If the rebuild caused by simplex, d_n[iv_entering] is defined by s_p
+            BndType type = model_.GetType(basis.NonBasis()[iv_entering]);
+            d_n[iv_entering] = (type == BndType::kFixed) ? 0 : (s_p > 0 ? -1 : 1);
+        }
     }
 
     {  // Updade x_b

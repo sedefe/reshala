@@ -17,6 +17,13 @@ void DualSimplex::SetModel(MilpModel& model) {
     scaling.ScaleModel(model_);
     model_.AddSlacks();
     lina = Lina(model_.GetAc(), model_.GetAr(), &basis);
+
+    iv_leaving = iv_entering = -1;
+}
+
+void DualSimplex::SetBasis(const LpBasis& new_basis) {
+    basis = new_basis;
+    RebuildAll();
 }
 
 void DualSimplex::Init() {

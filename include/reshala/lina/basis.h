@@ -27,6 +27,7 @@ class LpBasis {
             index2nb[iv] = iv;
         }
     }
+    void AddBasicVars(Index n_vars);
 
     inline void Swap(Index iv_leaving, Index iv_entering) {
         index2nb[basis[iv_leaving]] = iv_entering;
