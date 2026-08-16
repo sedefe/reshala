@@ -74,6 +74,8 @@ LpStatus Presolver::Presolve(bool verbose) {
         return LpStatus::kOptimal;
     }
 
+    model_.InitLocks();
+
     return LpStatus::kUnknown;
 }
 

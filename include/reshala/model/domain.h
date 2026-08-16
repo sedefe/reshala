@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <vector>
 
 #include "reshala/constants.h"
@@ -58,6 +59,15 @@ class Domain {
     std::vector<Bounds> bounds_;
     std::vector<BndType> types_;
     std::vector<bool> integrality_;
+};
+
+enum class LockType { kDown = 0, kUp = 1 };
+inline Index LockType2Index(LockType lt) { return static_cast<Index>(lt); }
+
+struct Locks {
+    std::vector<std::array<Scalar, 2>> n_locks;
+
+    inline void Resize(Index n) { n_locks.resize(n, {0, 0}); }
 };
 
 }  // namespace reshala
