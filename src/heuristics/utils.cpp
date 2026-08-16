@@ -45,8 +45,8 @@ void Fixing(FixingType type, MilpModel &model, const std::vector<Scalar> &relaxe
         }
     }
 
-    std::cout << "Fixed " << n_fixed_integers << " integers and " << n_fixed_continuous
-              << " continuous\n";
+    // std::cout << "Fixed " << n_fixed_integers << " integers and " << n_fixed_continuous
+    //           << " continuous\n";
 }
 
 }  // namespace reshala

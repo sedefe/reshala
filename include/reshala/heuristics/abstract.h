@@ -13,19 +13,9 @@ class AbstractHeuristic {
     virtual ~AbstractHeuristic() = default;
     const std::string& GetName() const { return name_; }
 
-    Solution Run(const MilpModel& model, const Solution& relaxed, const MipTracker& mip_tracker,
-                 bool verbose) {
-        if (verbose) std::cout << "Running " << name_ << "\n";
-
+    Solution Run(const MilpModel& model, const Solution& relaxed, const MipTracker& mip_tracker) {
         auto [sol, t_heur] = MEASURE_TIME(InternalRun(model, relaxed, mip_tracker));
-        if (verbose) {
-            std::cout << "Finished in " << t_heur << " ms: ";
-            if (sol.status == LpStatus::kOptimal) {
-                std::cout << "found solution " << FMT(0, 5) << sol.y << "\n";
-            } else {
-                std::cout << "did not find any solution\n";
-            }
-        }
+        // Todo keep time stats
         return sol;
     }
 

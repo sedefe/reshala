@@ -35,6 +35,6 @@ int main(int argc, char** argv) {
         std::cout << "Objective: " << FMT(-10, 5) << y << "\n";
         auto rep = model_copy.GetFeasReport(sol.x);
         std::cout << rep << "\n";
-        io.PrintValues(std::cout, sol.x);
+        // io.PrintValues(std::cout, sol.x);
     }
 }

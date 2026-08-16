@@ -18,11 +18,10 @@ void HeuristicManager::Run(HeuristicTrigger trigger, const MilpModel& model,
     if (relaxed.status != LpStatus::kOptimal) return;
     n_tries_++;
 
-    bool verbose = trigger == HeuristicTrigger::kRoot;
     if (trigger == HeuristicTrigger::kRoot or trigger == HeuristicTrigger::kCut) {
         for (auto& [type, heuristics] : heur_map_) {
             for (auto& h : heuristics) {
-                Solution sol = h->Run(model, relaxed, mip_tracker_, verbose);
+                Solution sol = h->Run(model, relaxed, mip_tracker_);
                 if (mip_tracker_.TestPrimal(sol)) {
                     ReportNewPrimal(h->GetName(), sol.y);
                 }
@@ -33,7 +32,7 @@ void HeuristicManager::Run(HeuristicTrigger trigger, const MilpModel& model,
         }
     } else if (trigger == HeuristicTrigger::kBnb) {
         for (auto& h : heur_map_[HeuristicType::kFast]) {
-            Solution sol = h->Run(model, relaxed, mip_tracker_, verbose);
+            Solution sol = h->Run(model, relaxed, mip_tracker_);
             if (mip_tracker_.TestPrimal(sol)) {
                 ReportNewPrimal(h->GetName(), sol.y);
             }
