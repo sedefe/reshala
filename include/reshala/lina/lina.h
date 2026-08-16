@@ -9,7 +9,13 @@ struct Eta {
     SparseVector eta;
     Index i_col;
     Scalar diag;
-    Eta(SparseVector sv, Index i) : eta{std::move(sv)}, i_col{i} { diag = eta.At(i_col); }
+    Eta(SparseVector sv, Index i) : eta{std::move(sv)}, i_col{i} {
+        diag = eta.At(i_col);
+        if (IsZero(diag)) {
+            std::cerr << "Degenerate eta matrix: diag=" << diag << "\n";
+            exit(0);
+        }
+    }
 };
 
 struct LinaStats {
