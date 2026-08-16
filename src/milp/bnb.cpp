@@ -7,11 +7,15 @@ std::ostream& operator<<(std::ostream& os, const BnbStats& stats) {
     return os;
 }
 
-BnbSolver::BnbSolver(const MilpModel& model, DualSimplex& ds, MipTracker& mip_tracker)
-    : model_(model), ds_(ds), mip_tracker_(mip_tracker), hist_(model.GetNVars()) {
-    root_branching_ = std::make_unique<FullStrong>(model, mip_tracker, hist_);
-    node_branching_ = std::make_unique<FullStrong>(model, mip_tracker, hist_);
-    // node_branching_ = std::make_unique<MostInfeasible>(model, mip_tracker);
+BnbSolver::BnbSolver(const MilpModel& model, DualSimplex& ds, MipTracker& mip_tracker,
+                     HeuristicManager& heur_manager)
+    : model_(model),
+      ds_(ds),
+      mip_tracker_(mip_tracker),
+      heur_manager_(heur_manager),
+      hist_(model.GetNVars()) {
+    root_branching_ = std::make_unique<FullStrong>(model, mip_tracker, heur_manager, hist_);
+    node_branching_ = std::make_unique<FullStrong>(model, mip_tracker, heur_manager, hist_);
 }
 
 void BnbSolver::Solve(const Solution& relaxed) {
@@ -83,7 +87,8 @@ void BnbSolver::DebugPrint(std::unique_ptr<AbstractBranching>& branching) {
               << FormatInteger(ds_.GetStats().n_iter) << " | " << FMT(12, 5)
               << branching->GetChild(0).sol.y << " | " << FMT(12, 5) << branching->GetChild(1).sol.y
               << " | " << FMT(12, 5) << mip_tracker_.GetDual() << " | " << FMT(12, 5)
-              << mip_tracker_.GetPrimal() << " | " << FMT(7, 4) << mip_tracker_.GetGap() * 1e2 << "\n"
+              << mip_tracker_.GetPrimal() << " | " << FMT(7, 4) << mip_tracker_.GetGap() * 1e2
+              << "\n"
               << FMT_DEFAULT;
     n++;
 }

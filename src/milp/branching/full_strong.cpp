@@ -43,6 +43,7 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
                     ds.Restore(parent.ds_state);
                     ds.SetBounds(iv, cand_bounds[i]);
                     sols[i] = ds.Solve(true);
+                    heur_manager_.Run(HeuristicTrigger::kBnb, model_, sols[i]);
                     gains[i] = sols[i].y - parent.sol.y;
 
                     if (sols[i].status == LpStatus::kOptimal) {

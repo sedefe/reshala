@@ -6,9 +6,9 @@ MilpSolver::MilpSolver(MilpModel& model)
     : model(model),
       mip_tracker(model),
       presolver(model),
-      heuristics(model, mip_tracker),
-      cutter(model, presolver, ds, mip_tracker),
-      bnb(model, ds, mip_tracker) {}
+      heur_manager(mip_tracker),
+      cutter(model, presolver, ds, mip_tracker, heur_manager),
+      bnb(model, ds, mip_tracker, heur_manager) {}
 
 Solution MilpSolver::Solve() {
     auto [presolve_status, t_presolve] = MEASURE_TIME(presolver.Presolve(true));
@@ -28,12 +28,12 @@ Solution MilpSolver::Solve() {
         return presolver.Postsolve(mip_tracker.GetBestSol());
     }
 
-    cutter.Run(sol);
+    heur_manager.Run(HeuristicTrigger::kRoot, model, sol);
     if (mip_tracker.Converged()) {
         return presolver.Postsolve(mip_tracker.GetBestSol());
     }
 
-    heuristics.Run(sol);
+    cutter.Run(sol);
     if (mip_tracker.Converged()) {
         return presolver.Postsolve(mip_tracker.GetBestSol());
     }

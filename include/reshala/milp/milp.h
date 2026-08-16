@@ -1,7 +1,7 @@
 #pragma once
 
 #include "reshala/cuts/cutter.h"
-#include "reshala/heuristics/heuristics.h"
+#include "reshala/heuristics/manager.h"
 #include "reshala/milp/bnb.h"
 #include "reshala/presolve/presolve.h"
 
@@ -18,8 +18,8 @@ class MilpSolver {
     MipTracker mip_tracker;
 
     Presolver presolver;
+    HeuristicManager heur_manager;
     Cutter cutter;
-    Heuristics heuristics;
     BnbSolver bnb;
 
     void PrintStats(std::ostream& os) const;

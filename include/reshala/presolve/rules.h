@@ -10,90 +10,82 @@ namespace reshala {
 
 class Rule {
    public:
-    Rule(RuleType t) : type(t) {}
+    Rule(const std::string& name, RuleType t) : name_(name), type(t) {}
     virtual ~Rule() = default;
+    const std::string& GetName() const { return name_; }
 
     virtual RuleResult Apply(ModelTracker& tracker) = 0;
 
-    virtual std::string Name() const = 0;
     RuleType type;
+
+   protected:
+    const std::string name_;
 };
 
 class Rule31 : public Rule {
    public:
-    Rule31(RuleType t) : Rule(t) {}
+    Rule31(RuleType t) : Rule("3.1 RedCon", t) {}
     RuleResult Apply(ModelTracker& tracker);
-    std::string Name() const { return "3.1 RedCon"; }
 };
 
 class Rule32 : public Rule {
    public:
-    Rule32(RuleType t) : Rule(t) {}
+    Rule32(RuleType t) : Rule("3.2 BndStr", t) {}
     RuleResult Apply(ModelTracker& tracker);
-    std::string Name() const { return "3.2 BndStr"; }
 };
 
 class Rule33 : public Rule {
    public:
-    Rule33(RuleType t) : Rule(t) {}
+    Rule33(RuleType t) : Rule("3.3 CoefStr", t) {}
     RuleResult Apply(ModelTracker& tracker);
-    std::string Name() const { return "3.3 CoefStr"; }
 };
 
 class Rule35 : public Rule {
    public:
-    Rule35(RuleType t) : Rule(t) {}
+    Rule35(RuleType t) : Rule("3.5 Scaling", t) {}
     RuleResult Apply(ModelTracker& tracker);
-    std::string Name() const { return "3.5 Scaling"; }
 };
 
 class Rule36 : public Rule {
    public:
-    Rule36(RuleType t) : Rule(t) {}
+    Rule36(RuleType t) : Rule("3.6 SimProb", t) {}
     RuleResult Apply(ModelTracker& tracker);
-    std::string Name() const { return "3.6 SimProb"; }
 };
 
 class Rule41 : public Rule {
    public:
-    Rule41(RuleType t) : Rule(t) {}
+    Rule41(RuleType t) : Rule("4.1 FixVar", t) {}
     RuleResult Apply(ModelTracker& tracker);
-    std::string Name() const { return "4.1 FixVar"; }
 };
 
 class Rule44 : public Rule {
    public:
-    Rule44(RuleType t) : Rule(t) {}
+    Rule44(RuleType t) : Rule("4.4 DualFix", t) {}
     RuleResult Apply(ModelTracker& tracker);
-    std::string Name() const { return "4.4 DualFix"; }
 };
 
 class Rule46 : public Rule {
    public:
-    Rule46(RuleType t) : Rule(t) {}
+    Rule46(RuleType t) : Rule("4.6 SimSub", t) {}
     RuleResult Apply(ModelTracker& tracker);
-    std::string Name() const { return "4.6 SimSub"; }
 };
 
 class Rule47 : public Rule {
    public:
-    Rule47(RuleType t) : Rule(t) {}
+    Rule47(RuleType t) : Rule("4.7 RmSlack", t) {}
     RuleResult Apply(ModelTracker& tracker);
-    std::string Name() const { return "4.7 RmSlack"; }
 };
 
 class Rule48 : public Rule {
    public:
-    Rule48(RuleType t) : Rule(t) {}
+    Rule48(RuleType t) : Rule("4.8 Int2Bin", t) {}
     RuleResult Apply(ModelTracker& tracker);
-    std::string Name() const { return "4.8 Int2Bin"; }
 };
 
 class Rule52 : public Rule {
    public:
-    Rule52(RuleType t) : Rule(t) {}
+    Rule52(RuleType t) : Rule("5.2 ParRows", t) {}
     RuleResult Apply(ModelTracker& tracker);
-    std::string Name() const { return "5.2 ParRows"; }
 
    private:
     std::vector<Scalar> bin_scales;
@@ -104,9 +96,8 @@ class Rule52 : public Rule {
 
 class Rule72 : public Rule {
    public:
-    Rule72(RuleType t) : Rule(t) {}
+    Rule72(RuleType t) : Rule("7.2 Probing", t) {}
     RuleResult Apply(ModelTracker& tracker);
-    std::string Name() const { return "7.2 Probing"; }
 };
 
 }  // namespace reshala

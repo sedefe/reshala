@@ -1,6 +1,6 @@
 target_sources(${PROJECT_NAME}-lib PRIVATE
     diving.cpp
-    heuristics.cpp
+    manager.cpp
     rounding.cpp
     utils.cpp
 )

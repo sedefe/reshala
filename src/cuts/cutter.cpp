@@ -21,8 +21,8 @@ bool CutCompare(const Cut& c1, const Cut& c2) {
 }
 
 Cutter::Cutter(MilpModel& model, const Presolver& presolver, DualSimplex& ds,
-               MipTracker& mip_tracker)
-    : model_(model), presolver_(presolver), ds_(ds), mip_tracker_(mip_tracker) {
+               MipTracker& mip_tracker, HeuristicManager& heur_manager)
+    : model_(model), presolver_(presolver), ds_(ds), mip_tracker_(mip_tracker), heur_manager_(heur_manager) {
     auto m = model.GetNCons();
     auto n = model.GetNVars();
 
@@ -49,6 +49,7 @@ void Cutter::Run(Solution& sol) {
             ds_.SetBasis(basis);
 
             sol = ds_.Solve(true);
+            heur_manager_.Run(HeuristicTrigger::kCut, model_, sol);
             if (sol.y > mip_tracker_.GetDual()) {
                 mip_tracker_.UpdDual(sol.y);
             }

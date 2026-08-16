@@ -4,7 +4,7 @@
 #include "reshala/cuts/cut.h"
 #include "reshala/cuts/generators/cmir.h"
 #include "reshala/cuts/generators/probing.h"
-#include "reshala/milp/mip_tracker.h"
+#include "reshala/heuristics/manager.h"
 
 namespace reshala {
 
@@ -23,7 +23,8 @@ std::ostream& operator<<(std::ostream& os, const CutterStats& stats);
 
 class Cutter {
    public:
-    Cutter(MilpModel& model, const Presolver& presolver, DualSimplex& ds, MipTracker& mip_tracker);
+    Cutter(MilpModel& model, const Presolver& presolver, DualSimplex& ds, MipTracker& mip_tracker,
+           HeuristicManager& heur_manager);
 
     void Run(Solution& sol);
 
@@ -34,6 +35,7 @@ class Cutter {
     const Presolver& presolver_;
     DualSimplex& ds_;
     MipTracker& mip_tracker_;
+    HeuristicManager& heur_manager_;
     Solution sol_;
 
     CutterStats stats;

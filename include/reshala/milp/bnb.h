@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "reshala/heuristics/manager.h"
 #include "reshala/logging.h"
 #include "reshala/lp/dual_simplex.h"
 #include "reshala/milp/branching.h"
@@ -17,7 +18,8 @@ std::ostream& operator<<(std::ostream& os, const BnbStats& stats);
 
 class BnbSolver {
    public:
-    BnbSolver(const MilpModel& model, DualSimplex& ds, MipTracker& mip_tracker);
+    BnbSolver(const MilpModel& model, DualSimplex& ds, MipTracker& mip_tracker,
+              HeuristicManager& heur_manager);
 
     void Solve(const Solution& relaxed);
 
@@ -27,6 +29,7 @@ class BnbSolver {
     const MilpModel& model_;
     DualSimplex& ds_;
     MipTracker& mip_tracker_;
+    HeuristicManager& heur_manager_;
     History hist_;
 
     BnbStats stats;

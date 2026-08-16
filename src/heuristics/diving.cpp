@@ -12,7 +12,7 @@ Solution Diving::InternalRun(const MilpModel& model, const Solution& relaxed,
 
     MilpModel model_copy = model;
 
-    Fixing(type_, model_copy, relaxed.x);
+    Fixing(fixing_type_, model_copy, relaxed.x);
 
     Presolver presolver(model_copy);
     LpStatus presolve_status = presolver.Presolve(false);

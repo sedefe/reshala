@@ -7,7 +7,7 @@ namespace reshala {
 
 class Rounding : public AbstractHeuristic {
    public:
-    Rounding() : AbstractHeuristic("Rounding") {}
+    Rounding(HeuristicType type) : AbstractHeuristic("Rounding", type) {}
 
    protected:
     Solution InternalRun(const MilpModel& model, const Solution& relaxed,

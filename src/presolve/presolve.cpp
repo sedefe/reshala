@@ -101,7 +101,7 @@ void Presolver::PrintHeader() const {
 }
 
 void Presolver::PrintStat(const Rule& rule, const PresolveStat& stat) const {
-    std::cout << std::left << std::setw(12) << rule.Name() << ": " << std::right << std::setw(5)
+    std::cout << std::left << std::setw(12) << rule.GetName() << ": " << std::right << std::setw(5)
               << stat.n_rm_con << " " << std::setw(5) << stat.n_rm_var << " " << std::setw(5)
               << stat.n_ch_bnd << " " << std::setw(5) << stat.n_ch_rhs << " " << std::setw(5)
               << stat.n_ch_coeff << " " << std::setw(6) << model_.GetNnz() << "\n";
