@@ -28,4 +28,8 @@ struct Node {
     DsState ds_state;
 };
 
+inline void ReportNewPrimal(const std::string& src, Scalar y) {
+    std::cout << src << " found solution " << FMT(0, 5) << y << "\n";
+}
+
 }  // namespace reshala

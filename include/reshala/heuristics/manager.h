@@ -16,8 +16,6 @@ class HeuristicManager {
     std::map<HeuristicType, std::vector<std::unique_ptr<AbstractHeuristic>>> heur_map_;
     MipTracker& mip_tracker_;
 
-    Solution best_sol_;
-
     Index n_tries_ = 0;
 };
 

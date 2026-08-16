@@ -21,7 +21,7 @@ class AbstractHeuristic {
         if (verbose) {
             std::cout << "Finished in " << t_heur << " ms: ";
             if (sol.status == LpStatus::kOptimal) {
-                std::cout << "found solution " << FMT(-10, 5) << sol.y << "\n";
+                std::cout << "found solution " << FMT(0, 5) << sol.y << "\n";
             } else {
                 std::cout << "did not find any solution\n";
             }

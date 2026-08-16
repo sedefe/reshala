@@ -56,8 +56,7 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
                         }
 
                         if (mip_tracker_.TestPrimal(sols[i])) {
-                            std::cout << "FSB: New integer solution: " << FMT(10, 5) << sols[i].y
-                                      << "\n";
+                            ReportNewPrimal("FSB", sols[i].y);
                             if (mip_tracker_.Converged()) return 0;
                             // Хорошая была нода, но обрабатывать её дальше незачем
                             sols[i].status = LpStatus::kDropped;
@@ -134,7 +133,7 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
                           i == 0 ? frac_cand : 1 - frac_cand);
 
                 if (mip_tracker_.TestPrimal(sol)) {
-                    std::cout << "FSB: New integer solution: " << FMT(10, 5) << sol.y << "\n";
+                    ReportNewPrimal("FSB", sol.y);
                 }
             }
         }

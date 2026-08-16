@@ -23,11 +23,9 @@ void HeuristicManager::Run(HeuristicTrigger trigger, const MilpModel& model,
         for (auto& [type, heuristics] : heur_map_) {
             for (auto& h : heuristics) {
                 Solution sol = h->Run(model, relaxed, mip_tracker_, verbose);
-                mip_tracker_.TestPrimal(sol);
-                if (best_sol_.y > sol.y) {
-                    best_sol_ = sol;
+                if (mip_tracker_.TestPrimal(sol)) {
+                    ReportNewPrimal(h->GetName(), sol.y);
                 }
-
                 if (mip_tracker_.Converged()) {
                     break;
                 }
@@ -36,11 +34,9 @@ void HeuristicManager::Run(HeuristicTrigger trigger, const MilpModel& model,
     } else if (trigger == HeuristicTrigger::kBnb) {
         for (auto& h : heur_map_[HeuristicType::kFast]) {
             Solution sol = h->Run(model, relaxed, mip_tracker_, verbose);
-            mip_tracker_.TestPrimal(sol);
-            if (best_sol_.y > sol.y) {
-                best_sol_ = sol;
+            if (mip_tracker_.TestPrimal(sol)) {
+                ReportNewPrimal(h->GetName(), sol.y);
             }
-
             if (mip_tracker_.Converged()) {
                 break;
             }
