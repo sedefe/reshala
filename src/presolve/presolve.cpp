@@ -29,9 +29,7 @@ LpStatus Presolver::Presolve(bool verbose) {
 
     tracker_.CalcActivities();
 
-    if (verbose) {
-        PrintHeader();
-    }
+    if (verbose) PrintHeader();
     while (status != RuleResult::kInfeasible) {
         bool changed = false;
         for (auto& rule : rule_map_[curr_level]) {
@@ -41,9 +39,7 @@ LpStatus Presolver::Presolve(bool verbose) {
             if (status != RuleResult::kUnchanged) {
                 changed = true;
                 rule_stat = tracker_.stat - rule_stat;
-                if (verbose) {
-                    PrintStat(*rule, rule_stat);
-                }
+                if (verbose) PrintStat(*rule, rule_stat);
             }
             if (status == RuleResult::kInfeasible) {
                 break;
@@ -60,17 +56,15 @@ LpStatus Presolver::Presolve(bool verbose) {
         }
     }
 
-    if (verbose) {
-        std::cout << "After presolve: " << model_.StatString() << "\n";
-    }
+    if (verbose) std::cout << "After presolve: " << model_.StatString() << "\n";
 
     if (status == RuleResult::kInfeasible) {
-        std::cout << "Presolve proved infeasibility\n";
+        if (verbose) std::cout << "Presolve proved infeasibility\n";
         return LpStatus::kInfeasible;
     }
     if (model_.GetNVars() == 0) {
         assert(model_.GetNCons() == 0);
-        std::cout << "Presolve reduced to empty\n";
+        if (verbose) std::cout << "Presolve reduced to empty\n";
         return LpStatus::kOptimal;
     }
 
