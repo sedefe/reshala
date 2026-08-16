@@ -12,6 +12,8 @@ class HeuristicManager {
     HeuristicManager(MipTracker& mip_tracker);
     void Run(HeuristicTrigger trigger, const MilpModel& model, const Solution& relaxed);
 
+    void PrintStats(std::ostream& os) const;
+
    private:
     std::map<HeuristicType, std::vector<std::unique_ptr<AbstractHeuristic>>> heur_map_;
     MipTracker& mip_tracker_;

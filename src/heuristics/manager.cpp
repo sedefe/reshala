@@ -16,15 +16,13 @@ HeuristicManager::HeuristicManager(MipTracker& mip_tracker) : mip_tracker_(mip_t
 void HeuristicManager::Run(HeuristicTrigger trigger, const MilpModel& model,
                            const Solution& relaxed) {
     if (relaxed.status != LpStatus::kOptimal) return;
+    if (relaxed.y >= mip_tracker_.GetCutoff()) return;
     n_tries_++;
 
     if (trigger == HeuristicTrigger::kRoot or trigger == HeuristicTrigger::kCut) {
         for (auto& [type, heuristics] : heur_map_) {
             for (auto& h : heuristics) {
-                Solution sol = h->Run(model, relaxed, mip_tracker_);
-                if (mip_tracker_.TestPrimal(sol)) {
-                    ReportNewPrimal(h->GetName(), sol.y);
-                }
+                h->Run(model, relaxed, mip_tracker_);
                 if (mip_tracker_.Converged()) {
                     break;
                 }
@@ -32,13 +30,19 @@ void HeuristicManager::Run(HeuristicTrigger trigger, const MilpModel& model,
         }
     } else if (trigger == HeuristicTrigger::kBnb) {
         for (auto& h : heur_map_[HeuristicType::kFast]) {
-            Solution sol = h->Run(model, relaxed, mip_tracker_);
-            if (mip_tracker_.TestPrimal(sol)) {
-                ReportNewPrimal(h->GetName(), sol.y);
-            }
+            h->Run(model, relaxed, mip_tracker_);
             if (mip_tracker_.Converged()) {
                 break;
             }
+        }
+    }
+}
+
+void HeuristicManager::PrintStats(std::ostream& os) const {
+    os << "Heuristics:\n";
+    for (auto& [type, heuristics] : heur_map_) {
+        for (auto& h : heuristics) {
+            os << "\t" << std::setw(12) << h->GetName() << ": " << h->stats << "\n";
         }
     }
 }

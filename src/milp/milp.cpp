@@ -48,6 +48,7 @@ void MilpSolver::PrintStats(std::ostream& os) const {
     os << ds.GetLina().GetStats();
     os << ds.GetStats();
     os << ds.GetScaling().stats;
+    heur_manager.PrintStats(os);
     os << cutter.GetStats();
     os << bnb.GetStats();
 }
