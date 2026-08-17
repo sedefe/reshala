@@ -26,6 +26,10 @@ Solution Diving::InternalRun(const MilpModel& model, const Solution& relaxed,
 
     while (true) {
         if (sol.status == LpStatus::kInfeasible) break;
+        if (sol.y >= mip_tracker.GetCutoff()) {
+            sol.status = LpStatus::kDropped;
+            break;
+        }
         if (model_copy.IsIntegerFeasible(sol.x)) break;
 
         Index cand = GetCandidate(model_copy, relaxed, sol);
