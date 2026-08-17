@@ -5,7 +5,9 @@ namespace reshala {
 HeuristicManager::HeuristicManager(MipTracker& mip_tracker) : mip_tracker_(mip_tracker) {
     std::vector<std::unique_ptr<AbstractHeuristic>> heuristics_;
     heuristics_.push_back(std::make_unique<Rounding>(HeuristicType::kFast));
+    // heuristics_.push_back(std::make_unique<Diving>(HeuristicType::kSlow, FixingType::kAll));
     heuristics_.push_back(std::make_unique<Diving>(HeuristicType::kSlow, FixingType::kInts));
+    // heuristics_.push_back(std::make_unique<Diving>(HeuristicType::kSlow, FixingType::kNone));
 
     for (auto& heur : heuristics_) {
         HeuristicType type = heur->type;

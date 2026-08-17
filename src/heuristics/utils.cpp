@@ -16,7 +16,7 @@ std::string FixingType2Str(FixingType type) {
     }
 }
 
-void Fixing(FixingType type, MilpModel &model, const std::vector<Scalar> &relaxed_x) {
+Index Fixing(FixingType type, MilpModel &model, const std::vector<Scalar> &relaxed_x) {
     Index n = model.GetNVars();
 
     Index n_fixed_integers = 0;
@@ -47,6 +47,7 @@ void Fixing(FixingType type, MilpModel &model, const std::vector<Scalar> &relaxe
 
     // std::cout << "Fixed " << n_fixed_integers << " integers and " << n_fixed_continuous
     //           << " continuous\n";
+    return n_fixed_integers + n_fixed_continuous;
 }
 
 }  // namespace reshala

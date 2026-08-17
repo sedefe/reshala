@@ -11,6 +11,6 @@ enum class FixingType {
 };
 std::string FixingType2Str(FixingType type);
 
-void Fixing(FixingType type, MilpModel &model, const std::vector<Scalar> &relaxed_x);
+Index Fixing(FixingType type, MilpModel &model, const std::vector<Scalar> &relaxed_x);
 
 }  // namespace reshala

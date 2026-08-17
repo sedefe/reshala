@@ -12,12 +12,14 @@ Solution Diving::InternalRun(const MilpModel& model, const Solution& relaxed,
 
     MilpModel model_copy = model;
 
-    Fixing(fixing_type_, model_copy, relaxed.x);
+    auto n_fixed = Fixing(fixing_type_, model_copy, relaxed.x);
 
     Presolver presolver(model_copy);
-    LpStatus presolve_status = presolver.Presolve(false);
-    if (presolve_status != LpStatus::kUnknown) {
-        return presolver.Postsolve({presolve_status, {}, {}});
+    if (n_fixed > 0) {
+        LpStatus presolve_status = presolver.Presolve(false);
+        if (presolve_status != LpStatus::kUnknown) {
+            return presolver.Postsolve({presolve_status, {}, {}});
+        }
     }
 
     DualSimplex ds;
