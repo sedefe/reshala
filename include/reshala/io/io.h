@@ -11,14 +11,31 @@ class Io {
 
     reshala::FileReadStatus Read(const char* path) {
         std::filesystem::path file_path(path);
+        std::ifstream file(path);
+        if (!file.is_open()) {
+            std::cerr << "Can't open file " << std::filesystem::absolute(path) << "\n";
+            return FileReadStatus::kFsError;
+        }
+
         std::string extension = to_lowercase(file_path.extension().string());
 
         if (extension == ".mps") {
-            return mps_reader_.Read(file_path);
+            try {
+                return mps_reader_.Parse(file);
+            } catch (const std::runtime_error& e) {
+                std::cerr << e.what();
+                return FileReadStatus::kParseError;
+            }
         } else if (extension == ".lp") {
-            return lp_reader_.Read(file_path);
+            try {
+                return lp_reader_.Parse(file);
+            } catch (const std::runtime_error& e) {
+                std::cerr << e.what();
+                return FileReadStatus::kParseError;
+            }
         } else {
-            throw std::invalid_argument("Unsupported file format: \"" + extension + "\"");
+            std::cerr << "Unsupported file format: " << extension + "\n";
+            return FileReadStatus::kFsError;
         }
     }
 

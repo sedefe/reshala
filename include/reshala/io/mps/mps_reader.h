@@ -32,7 +32,7 @@ MpsBoundType Str2MpsBoundType(const std::string&);
 class MpsReader {
    public:
     MpsReader(MilpModel& model, Names& names) : model_(model), names_(names) {}
-    FileReadStatus Read(const std::filesystem::path& path);
+    FileReadStatus Parse(std::ifstream& file);
 
    private:
     MilpModel& model_;
@@ -45,7 +45,7 @@ class MpsReader {
     std::unordered_set<std::string> discarded_free_rows;
 
     void ThrowParseError(const std::string& message) {
-        throw std::runtime_error("Line " + std::to_string(line_number) + ": " + message);
+        throw std::runtime_error("Line " + std::to_string(line_number) + ": " + message + "\n");
     }
 
     void ParseRows(const std::vector<std::string>&);

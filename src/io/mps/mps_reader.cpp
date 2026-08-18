@@ -15,12 +15,7 @@ MpsBoundType Str2MpsBoundType(const std::string& s) {
     return MpsBoundType::kNon;
 }
 
-FileReadStatus MpsReader::Read(const std::filesystem::path& path) {
-    std::ifstream file(path);
-    if (!file.is_open()) {
-        return FileReadStatus::kFsError;
-    }
-
+FileReadStatus MpsReader::Parse(std::ifstream& file) {
     std::string line;
     auto current_state = MpsParseState::kNon;
     model_.GetObj().orig_sense = Sense::kMin;
@@ -89,11 +84,12 @@ FileReadStatus MpsReader::Read(const std::filesystem::path& path) {
                 ParseBounds(tokens);
                 break;
             default:
-                break;
+                ThrowParseError("Unexpected line: \"" + line + "\"");
         }
     }
     file.close();
-    return FileReadStatus::kOk;
+    return (current_state == MpsParseState::kDon) ? FileReadStatus::kOk
+                                                  : FileReadStatus::kParseError;
 }
 
 void MpsReader::ParseRows(const std::vector<std::string>& tokens) {

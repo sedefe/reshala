@@ -7,12 +7,7 @@ namespace reshala {
 // знак сравнения (для ограничений) или встретив следующую секцию (для обжектива). В некоторых
 // случаях секция ограничений опциональна, так что и эта логика не без огреха.
 
-FileReadStatus LpReader::Read(const std::filesystem::path& path) {
-    std::ifstream file(path);
-    if (!file.is_open()) {
-        return FileReadStatus::kFsError;
-    }
-
+FileReadStatus LpReader::Parse(std::ifstream& file) {
     std::string line;
     std::string con_exp_token;
     auto current_state = LpParseState::kNon;
@@ -94,11 +89,12 @@ FileReadStatus LpReader::Read(const std::filesystem::path& path) {
                 ParseGenerals(tokens);
                 break;
             default:
-                break;
+                ThrowParseError("Unexpected line: \"" + line + "\"");
         }
     }
     file.close();
-    return FileReadStatus::kOk;
+    return (current_state == LpParseState::kDon) ? FileReadStatus::kOk
+                                                 : FileReadStatus::kParseError;
 }
 
 void LpReader::ParseObjective(const std::vector<std::string>& tokens) {

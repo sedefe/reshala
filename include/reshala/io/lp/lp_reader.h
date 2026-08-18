@@ -32,7 +32,7 @@ struct Monom {
 class LpReader {
    public:
     LpReader(MilpModel& model, Names& names) : model_(model), names_(names) {}
-    FileReadStatus Read(const std::filesystem::path& path);
+    FileReadStatus Parse(std::ifstream& file);
 
    private:
     MilpModel& model_;
@@ -42,7 +42,7 @@ class LpReader {
     std::vector<std::string> multiline;
 
     void ThrowParseError(const std::string& message) {
-        throw std::runtime_error("Line " + std::to_string(line_number) + ": " + message);
+        throw std::runtime_error("Line " + std::to_string(line_number) + ": " + message + "\n");
     }
 
     void ParseObjective(const std::vector<std::string>&);
