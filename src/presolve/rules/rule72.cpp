@@ -56,6 +56,12 @@ struct Bounder {
                     if (StrongGt(new_range.le, old_range.le) or
                         StrongLt(new_range.ri, old_range.ri)) {
                         activities[ic] = act;
+
+                        if (StrongGt(new_range.le, model.GetRhs(ic).ri) or
+                            StrongLt(new_range.ri, model.GetRhs(ic).le)) {
+                            return false;
+                        }
+
                         if (!con_mask.Get(ic)) {
                             con_mask.Set(ic);
                             changed_cons.push_back(ic);
