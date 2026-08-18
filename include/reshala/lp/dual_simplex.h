@@ -85,8 +85,8 @@ class DualSimplex {
     void Chuzr();
     void Chuzc();
     void Ftran();
-    void Update();
-    void RebuildAll();
+    bool Update();
+    bool RebuildAll();
 
     Solution PrepareSolution() const;
 

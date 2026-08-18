@@ -5,7 +5,7 @@
 
 namespace reshala {
 
-bool Lina::Refactor() {
+LinaResult Lina::Refactor() {
     const Scalar kGoodPivotThd = 0.1;
 
     stats.n_lus++;
@@ -35,8 +35,7 @@ bool Lina::Refactor() {
             const auto& row = Ur.GetRow(i);
             if (row.Empty()) {
                 std::cerr << "Empty row " << i << "\n";
-                exit(0);
-                return false;
+                return LinaResult::kDegenerate;
             }
             Index j = row.indices()[0];
             Scalar val = row.values()[0];
@@ -49,8 +48,7 @@ bool Lina::Refactor() {
         }
         if (IsZero(pivot_val)) {
             std::cerr << "Small max_abs @col" << k << ": " << pivot_val << "\n";
-            exit(0);
-            return false;
+            return LinaResult::kDegenerate;
         }
 
         // Swap rows in U, L, and the permutation vector
@@ -87,7 +85,7 @@ bool Lina::Refactor() {
     stats.total_nnz_l += Lr.GetNnz();
     stats.total_nnz_u += Ur.GetNnz() + m;
 
-    return true;
+    return LinaResult::kOk;
 }
 
 }  // namespace reshala

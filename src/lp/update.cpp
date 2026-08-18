@@ -2,8 +2,12 @@
 
 namespace reshala {
 
-void DualSimplex::RebuildAll() {
-    lina.Refactor();
+bool DualSimplex::RebuildAll() {
+    auto res = lina.Refactor();
+    if (res != LinaResult::kOk) {
+        std::cerr << "Rebuild: degenerate basis\n";
+        return false;
+    }
 
     DenseVector c_b(m);
     DenseVector tmp(m);
@@ -71,17 +75,22 @@ void DualSimplex::RebuildAll() {
         lina.Ftran(tmp, x_b);
         for (Scalar& x : x_b) x = -x;
     }
+
+    return true;
 }
 
-void DualSimplex::Update() {
+bool DualSimplex::Update() {
     auto x_q_old = GetXnValue(iv_entering);
     basis.Swap(iv_leaving, iv_entering);
 
     if (lina.GetAge() >= kMaxLinaAge) {
-        RebuildAll();
-        return;
+        return RebuildAll();
     }
-    lina.Update(iv_leaving, iv_entering);  // Update lina
+    auto res = lina.Update(iv_leaving, iv_entering);
+    if (res != LinaResult::kOk) {
+        std::cerr << "Update: degenerate basis\n";
+        return false;
+    }
 
     {  // Update c_n
         for (Index iv = 0; iv < n; iv++) {
@@ -108,6 +117,8 @@ void DualSimplex::Update() {
         }
         x_b[iv_leaving] = theta_p + x_q_old;
     }
+
+    return true;
 }
 
 }  // namespace reshala

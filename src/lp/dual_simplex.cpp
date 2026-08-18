@@ -100,7 +100,13 @@ Solution DualSimplex::Solve(bool warm) {
         //           << "), a_pq: " << a_pq << "\n";
 
         Ftran();
-        Update();
+
+        auto res = Update();
+        if (!res) {
+            std::cerr << "Aborting DS\n";
+            status = LpStatus::kInfeasible;
+            break;
+        }
     }
 
     return PrepareSolution();

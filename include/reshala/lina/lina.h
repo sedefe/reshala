@@ -9,13 +9,7 @@ struct Eta {
     SparseVector eta;
     Index i_col;
     Scalar diag;
-    Eta(SparseVector sv, Index i) : eta{std::move(sv)}, i_col{i} {
-        diag = eta.At(i_col);
-        if (IsZero(diag)) {
-            std::cerr << "Degenerate eta matrix: diag=" << diag << "\n";
-            exit(0);
-        }
-    }
+    Eta(SparseVector sv, Index i) : eta{std::move(sv)}, i_col{i} { diag = eta.At(i_col); }
 };
 
 struct LinaStats {
@@ -28,6 +22,8 @@ struct LinaStats {
 };
 std::ostream& operator<<(std::ostream& os, const LinaStats& stats);
 
+enum class LinaResult { kOk, kDegenerate, kUnknown };
+
 class Lina {
     static LinaStats stats;
 
@@ -36,20 +32,20 @@ class Lina {
     Lina(const SparseColMatrix& Ac, const SparseRowMatrix& Ar, const LpBasis* basis);
     Lina& operator=(const Lina&) = default;
 
-    bool Refactor();
+    LinaResult Refactor();
     inline Index GetAge() const { return etas.size(); }
 
     void Btran(const SparseVector& b, DenseVector& res) const;
     void Btran(DenseVector& x, DenseVector& res) const;   // NB: x is modified!
     void Ftran(const SparseVector& b, DenseVector& res);  // NB: stores the result
     void Ftran(const DenseVector& x, DenseVector& res) const;
-    void Update(Index iv_leaving, Index iv_entering);
+    LinaResult Update(Index iv_leaving, Index iv_entering);
 
     inline const LinaStats& GetStats() const { return stats; }
 
    private:
-    enum class UpdType { kSlu, kSluPf };
-    static const UpdType ut = UpdType::kSluPf;
+    enum class UpdType { kLu, kPf };
+    static const UpdType ut = UpdType::kPf;
 
     SparseColMatrix Ac_;
     SparseRowMatrix Ar_;
@@ -68,7 +64,7 @@ class Lina {
 
     SparseVector ftran_res;
 
-    void ProdForm(Index iv_leaving, Index iv_entering);
+    LinaResult ProdForm(Index iv_leaving, Index iv_entering);
 
     void SolveUt(DenseVector& x) const;
     void SolveLt(DenseVector& x) const;

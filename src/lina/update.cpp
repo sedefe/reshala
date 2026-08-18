@@ -2,23 +2,29 @@
 
 namespace reshala {
 
-void Lina::Update(Index iv_leaving, Index iv_entering) {
+LinaResult Lina::Update(Index iv_leaving, Index iv_entering) {
     // Тут мы считаем, что базис уже обновлён
     switch (ut) {
-        case UpdType::kSlu:
-            Refactor();
+        case UpdType::kLu:
+            return Refactor();
             break;
-        case UpdType::kSluPf:
-            ProdForm(iv_leaving, iv_entering);
+        case UpdType::kPf:
+            return ProdForm(iv_leaving, iv_entering);
             break;
         default:
             break;
     }
+    return LinaResult::kUnknown;
 }
 
-void Lina::ProdForm(Index iv_leaving, Index iv_entering) {
+LinaResult Lina::ProdForm(Index iv_leaving, Index iv_entering) {
     stats.n_updates++;
-    etas.push_back(Eta(ftran_res, iv_leaving));
+    Eta eta(ftran_res, iv_leaving);
+    etas.push_back(eta);
+    if (IsZero(eta.diag)) {
+        return LinaResult::kDegenerate;
+    }
+    return LinaResult::kOk;
 }
 
 }  // namespace reshala
