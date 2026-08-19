@@ -15,6 +15,7 @@ void DualSimplex::Chuzc() {
             threshold = std::min(threshold, ratio);
         }
     }
+    threshold = std::max(kEpsZero, threshold);  // Must be non-negative
 
     a_pq = kPivotTolerance;  // Чтобы ниже не сравнивать a_pj с kPivotTolerance
     for (Index iv = 0; iv < n; iv++) {
@@ -31,6 +32,15 @@ void DualSimplex::Chuzc() {
     }
 
     if (iv_entering >= 0) {
+        // Shifting
+        // if (c_q < 0) {
+        //     Scalar delta_c = -c_q;
+        //     c_q = 0;
+        //     c_n[iv_entering] += d_n[iv_entering] * delta_c;
+        //     // model_.GetObj().coefficients[basis.NonBasis()[iv_entering]] +=
+        //     //     d_n[iv_entering] * delta_c;
+        // }
+
         theta_p = d_n[iv_entering] * primal_infeasibility / a_pq;
         theta_d = s_p * c_q / a_pq;
     }
