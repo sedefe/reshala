@@ -5,7 +5,7 @@ namespace reshala {
 bool DualSimplex::RebuildAll() {
     auto res = lina.Refactor();
     if (res != LinaResult::kOk) {
-        std::cerr << "Rebuild: degenerate basis\n";
+        // std::cerr << "Rebuild: degenerate basis\n";
         return false;
     }
 
@@ -88,7 +88,7 @@ bool DualSimplex::Update() {
     }
     auto res = lina.Update(iv_leaving, iv_entering);
     if (res != LinaResult::kOk) {
-        std::cerr << "Update: degenerate basis\n";
+        // std::cerr << "Update: degenerate basis\n";
         return false;
     }
 
@@ -99,7 +99,8 @@ bool DualSimplex::Update() {
             if (old * c_n[iv] < -0.1 and iv != iv_entering and
                 model_.GetType(basis.NonBasis()[iv]) != BndType::kFixed) {
                 // Might make us dual infeasible
-                std::cerr << "Abnormal c_n update: " << old << " -> " << c_n[iv] << "\n";
+                // std::cerr << "Abnormal c_n update: " << old << " -> " << c_n[iv] << "\n";
+                stats.num_issues[NumIssue::kAbnormalCn]++;
             }
         }
         c_n[iv_entering] = -theta_d;

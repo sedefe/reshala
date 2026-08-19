@@ -7,6 +7,12 @@
 
 namespace reshala {
 
+#define COLOR_GREEN "\033[32m"
+#define COLOR_RED "\033[31m"
+#define COLOR_RESET "\033[0m"
+#define MARK_SUCCESS COLOR_GREEN "√" COLOR_RESET
+#define MARK_FAILURE COLOR_RED "X" COLOR_RESET
+
 #define MEASURE_TIME(expr)                                                                  \
     [&]() {                                                                                 \
         auto start = std::chrono::high_resolution_clock::now();                             \
@@ -38,11 +44,11 @@ static std::string FormatInteger(Index num) {
 }
 
 #if defined(NDEBUG)
-    const std::string kBuildType = "release";
+const std::string kBuildType = "release";
 #elif defined(DEBUG)
-    const std::string kBuildType = "debug";
+const std::string kBuildType = "debug";
 #else
-    const std::string kBuildType = "X3";
+const std::string kBuildType = "X3";
 #endif
 
 }  // namespace reshala

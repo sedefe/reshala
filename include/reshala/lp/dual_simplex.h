@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+
 #include "reshala/lina/lina.h"
 #include "reshala/lp/scaling.h"
 #include "reshala/model/milp_model.h"
@@ -16,8 +18,12 @@ struct DsState {
     Lina lina;
 };
 
+enum class NumIssue { kDegenBasis, kAbnormalCn, kUnknown };
+std::string NumIssue2Str(NumIssue ni);
 struct DsStats {
     Index n_iter = 0;
+    Index n_aborted = 0;
+    std::unordered_map<NumIssue, Index> num_issues;
 };
 std::ostream& operator<<(std::ostream& os, const DsStats& stats);
 

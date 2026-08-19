@@ -34,7 +34,7 @@ LinaResult Lina::Refactor() {
         for (Index i = k; i < m; ++i) {
             const auto& row = Ur.GetRow(i);
             if (row.Empty()) {
-                std::cerr << "Empty row " << i << "\n";
+                // std::cerr << "Empty row " << i << "\n";
                 return LinaResult::kDegenerate;
             }
             Index j = row.indices()[0];
@@ -47,7 +47,7 @@ LinaResult Lina::Refactor() {
             }
         }
         if (IsZero(pivot_val)) {
-            std::cerr << "Small max_abs @col" << k << ": " << pivot_val << "\n";
+            // std::cerr << "Small max_abs @col" << k << ": " << pivot_val << "\n";
             return LinaResult::kDegenerate;
         }
 

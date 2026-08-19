@@ -4,12 +4,6 @@
 #include "reshala/milp/milp.h"
 #include "utils.h"
 
-#define COLOR_GREEN "\033[32m"
-#define COLOR_RED "\033[31m"
-#define COLOR_RESET "\033[0m"
-#define MARK_SUCCESS COLOR_GREEN "√" COLOR_RESET
-#define MARK_FAILURE COLOR_RED "X" COLOR_RESET
-
 using namespace reshala;
 
 struct TestCase {

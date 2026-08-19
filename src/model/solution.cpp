@@ -17,7 +17,7 @@ std::string LpStatus2Str(LpStatus status) {
         case LpStatus::kUnbounded:
             return "Unbounded";
         default:
-            assert(false && "Unknows status");
+            assert(false && "Unknown status");
             return "";
     }
 }

@@ -103,7 +103,9 @@ Solution DualSimplex::Solve(bool warm) {
 
         auto res = Update();
         if (!res) {
-            std::cerr << "Aborting DS\n";
+            // std::cerr << "Aborting DS\n";
+            stats.num_issues[NumIssue::kDegenBasis]++;
+            stats.n_aborted++;
             status = LpStatus::kInfeasible;
             break;
         }

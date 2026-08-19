@@ -2,9 +2,31 @@
 
 namespace reshala {
 
+std::string NumIssue2Str(NumIssue ni) {
+    switch (ni) {
+        case NumIssue::kDegenBasis:
+            return "Degenerate basis";
+        case NumIssue::kAbnormalCn:
+            return "Abnormal c_n update";
+        case NumIssue::kUnknown:
+            return "Unknown";
+        default:
+            assert(false && "Unknown LinaResult");
+            return "";
+    }
+}
+
 std::ostream& operator<<(std::ostream& os, const DsStats& stats) {
     os << "DS: \n"
        << "\tLp iters: " << stats.n_iter << "\n";
+    if (stats.n_aborted > 0) {
+        os << "\t" << COLOR_RED << stats.n_aborted << " aborted\n" COLOR_RESET;
+    }
+    for (auto& [k, v] : stats.num_issues) {
+        if (v == 0) continue;
+        os << "\t" << COLOR_RED << NumIssue2Str(k) << ": " << v << COLOR_RESET << "\n";
+    }
+
     return os;
 }
 
