@@ -22,6 +22,7 @@ LinaResult Lina::ProdForm(Index iv_leaving, Index iv_entering) {
     Eta eta(ftran_res, iv_leaving);
     etas.push_back(eta);
     if (IsZero(eta.diag)) {
+        // std::cerr << "Small eta diag: " << eta.diag << "\n";
         return LinaResult::kDegenerate;
     }
     return LinaResult::kOk;

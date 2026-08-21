@@ -14,15 +14,6 @@ RuleResult Rule35::Apply(ModelTracker& tracker) {
         auto obj_gcd = GetGcd(model.GetObj().coefficients, kGcdDenominator);
         if (obj_gcd != 0 and obj_gcd != kGcdDenominator) {
             tracker.ScaleObj(Scalar(kGcdDenominator) / obj_gcd);  // Todo rational scaling
-        } else if (!model.ObjIsInteger()) {
-            Index min_exp, max_exp;
-            Index scale = 0;
-            GetExpRange(model.GetObj().coefficients, min_exp, max_exp);
-            scale = std::max(scale, min_exp);
-            scale = std::min(scale, max_exp);
-            if (abs(scale) > kFpExpScalingLim) {
-                tracker.ScaleObjExp(-scale);
-            }
         }
     }
 
