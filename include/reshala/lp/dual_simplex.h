@@ -18,7 +18,7 @@ struct DsState {
     Lina lina;
 };
 
-enum class NumIssue { kDegenBasis, kAbnormalCn, kUnknown };
+enum class NumIssue { kDegenBasis, kAbnormalCn, kApq, kUnknown };
 std::string NumIssue2Str(NumIssue ni);
 struct DsStats {
     Index n_iter = 0;

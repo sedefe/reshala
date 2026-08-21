@@ -101,6 +101,15 @@ Solution DualSimplex::Solve(bool warm) {
 
         Ftran();
 
+        {
+            auto a_pq_bt = a_p[iv_entering];
+            auto a_pq_ft = a_q[iv_leaving];
+            if (!IsZero(a_pq_bt - a_pq_ft)) {
+                // std::cerr << "a_pq diverged: " << a_pq_bt << " vs " << a_pq_ft << "\n";
+                stats.num_issues[NumIssue::kApq]++;
+            }
+        }
+
         auto res = Update();
         if (!res) {
             // std::cerr << "Aborting DS\n";

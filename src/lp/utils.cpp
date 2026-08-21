@@ -8,6 +8,8 @@ std::string NumIssue2Str(NumIssue ni) {
             return "Degenerate basis";
         case NumIssue::kAbnormalCn:
             return "Abnormal c_n update";
+        case NumIssue::kApq:
+            return "A_pq diverged";
         case NumIssue::kUnknown:
             return "Unknown";
         default:
