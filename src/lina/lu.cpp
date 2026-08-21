@@ -43,7 +43,7 @@ LinaResult Lina::Refactor() {
             if (j == k and std::abs(val) > std::abs(pivot_val)) {
                 pivot_val = val;
                 pivot_row = i;
-                if (pivot_val > kGoodPivotThd) break;
+                if (std::abs(pivot_val) > kGoodPivotThd) break;
             }
         }
         if (IsZero(pivot_val)) {
