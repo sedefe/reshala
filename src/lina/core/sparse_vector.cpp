@@ -37,8 +37,7 @@ void SparseVector::Sort() {
     values_.swap(sorted_values);
 }
 
-template <typename Operation>
-SparseVector combine(const SparseVector& sv1, const SparseVector& sv2, Operation op) {
+SparseVector axpy(Scalar a, const SparseVector& sv1, const SparseVector& sv2) {
     assert(sv1.dim() == sv2.dim() && "SparseVector combine: vectors are of different dimensions");
 
     SparseVector res(sv1.dim());
@@ -74,27 +73,19 @@ SparseVector combine(const SparseVector& sv1, const SparseVector& sv2, Operation
             i2++;
         }
 
-        Scalar val = op(v1, v2);
+        Scalar val = a * v1 + v2;
         if (!IsZero(val)) {
             res.Push(ind, val);
         }
     }
     for (; i1 < n1; i1++) {
-        res.Push(ind1[i1], val1[i1]);
+        res.Push(ind1[i1], a * val1[i1]);
     }
     for (; i2 < n2; i2++) {
-        res.Push(ind2[i2], op(0, val2[i2]));
+        res.Push(ind2[i2], val2[i2]);
     }
 
     return res;
-}
-
-SparseVector operator+(const SparseVector& sv1, const SparseVector& sv2) {
-    return combine(sv1, sv2, [](Scalar x, Scalar y) { return x + y; });
-}
-
-SparseVector operator-(const SparseVector& sv1, const SparseVector& sv2) {
-    return combine(sv1, sv2, [](Scalar x, Scalar y) { return x - y; });
 }
 
 SparseVector operator*(SparseVector sv, Scalar x) {
@@ -108,13 +99,13 @@ SparseVector operator*(Scalar x, SparseVector sv) {
 }
 
 std::ostream& operator<<(std::ostream& os, const SparseVector& sv) {
-    if (sv.indices_.empty()) {
+    if (sv.Empty()) {
         os << "0";
         return os;
     }
 
-    for (Index i = 0; i < sv.indices_.size(); ++i) {
-        Scalar v = sv.values_[i];
+    for (Index i = 0; i < sv.Size(); ++i) {
+        Scalar v = sv.values()[i];
         if (i == 0) {
             os << (v >= 0 ? "" : "- ");
         } else {
@@ -122,9 +113,9 @@ std::ostream& operator<<(std::ostream& os, const SparseVector& sv) {
         }
         v = std::abs(v);
         if (v == 1) {
-            os << "x" << sv.indices_[i];
+            os << "x" << sv.indices()[i];
         } else {
-            os << v << " x" << sv.indices_[i];
+            os << v << " x" << sv.indices()[i];
         }
     }
 

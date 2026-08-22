@@ -115,7 +115,6 @@ class SparseVector {
         for (Scalar &v : values_) v *= x;
         return *this;
     }
-    friend std::ostream &operator<<(std::ostream &os, const SparseVector &sv);
 
    private:
     Index dim_;
@@ -123,8 +122,8 @@ class SparseVector {
     std::vector<Scalar> values_;
 };
 
-SparseVector operator+(const SparseVector &sv1, const SparseVector &sv2);
-SparseVector operator-(const SparseVector &sv1, const SparseVector &sv2);
+std::ostream &operator<<(std::ostream &os, const SparseVector &sv);
+SparseVector axpy(Scalar a, const SparseVector &sv1, const SparseVector &sv2);
 SparseVector operator*(SparseVector sv, Scalar x);
 SparseVector operator*(Scalar x, SparseVector sv);
 

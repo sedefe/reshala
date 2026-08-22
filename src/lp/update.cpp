@@ -68,7 +68,7 @@ bool DualSimplex::RebuildAll() {
         }
     }
 
-    {  // Updade x_b
+    {  // Update x_b
         DenseVector x_n(n, 0.0);
         for (Index iv = 0; iv < n; iv++) x_n[iv] = GetXnValue(iv);
         MulNRight(x_n, tmp);

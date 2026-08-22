@@ -81,8 +81,7 @@ LinaResult Lina::Refactor() {
             Lr.GetRow(i).Push(k, factor);  // Store multiplier in L
 
             // row_i = row_i - factor * row_k
-            SparseVector scaled = row_k * factor;  // Todo: combine to daxpy
-            Ur.GetRow(i) = Ur.GetRow(i) - scaled;
+            Ur.GetRow(i) = axpy(-factor, row_k, Ur.GetRow(i));
             Ur.GetRow(i).EraseOffset(0);
             if (Ur.GetRow(i).Empty()) {
                 // std::cerr << "Empty row " << i << "\n";

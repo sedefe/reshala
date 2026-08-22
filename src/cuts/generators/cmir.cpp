@@ -131,7 +131,7 @@ void CmirCg::DoCut(std::vector<Cut>& dst) {
     {
         for (SvIterator el(lhs); el; ++el) {
             if (el.index() >= n) {
-                lhs_copy = lhs_copy - el.value() * model_.GetRow(el.index() - n);
+                lhs_copy = axpy(-el.value(), model_.GetRow(el.index() - n), lhs_copy);
                 lhs_copy.EraseIndex(el.index());  // Todo use EraseOffset()
             }
         }
