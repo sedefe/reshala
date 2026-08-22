@@ -71,7 +71,7 @@ bool RunTest(TestCase& tc) {
         CoutSuppressor suppressor;
         tc.sol = solver.Solve();
     });
-    tc.time = time;
+    tc.time = time / 1e3;
 
     if (tc.sol.status == LpStatus::kOptimal) {
         tc.report = model_copy.GetFeasReport(tc.sol.x);
@@ -90,6 +90,7 @@ int main() {
 
     size_t n_tests = test_cases.size();
     size_t n_good = 0;
+    Scalar sum_log = 0.0, t_shift = 1.0;
 
     for (auto& tc : test_cases) {
         bool is_good = true;
@@ -99,7 +100,7 @@ int main() {
         if (not RunTest(tc)) {
             continue;
         }
-        printf("%6.3f sec ", tc.time / 1e3);
+        printf("%6.3f sec ", tc.time);
 
         auto status = LpStatus2Str(tc.sol.status);
         printf("%12s ", status.c_str());
@@ -143,7 +144,9 @@ int main() {
         printf("\n");
 
         n_good += is_good;
+        sum_log += std::log(tc.time + t_shift);
     }
+    Scalar sgm = std::exp(sum_log / n_good) - t_shift;
 
-    printf("%lu/%lu tests passed\n", n_good, n_tests);
+    printf("%lu/%lu tests passed, SGM=%.3f sec\n", n_good, n_tests, sgm);
 }

@@ -13,6 +13,7 @@ namespace reshala {
 #define MARK_SUCCESS COLOR_GREEN "√" COLOR_RESET
 #define MARK_FAILURE COLOR_RED "X" COLOR_RESET
 
+// Measures in milliseconds
 #define MEASURE_TIME(expr)                                                                  \
     [&]() {                                                                                 \
         auto start = std::chrono::high_resolution_clock::now();                             \
