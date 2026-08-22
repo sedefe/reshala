@@ -9,7 +9,7 @@ std::string CutType2Str(CutType type) {
         case CutType::kCmir:
             return "c-Mir";
         default:
-            assert(false && "Unknows cut type");
+            assert(false && "Unknown cut type");
             return "";
     }
 }

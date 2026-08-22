@@ -13,7 +13,7 @@ std::string FileReadStatus2Str(FileReadStatus status) {
         case FileReadStatus::kParseError:
             return "Parsing error";
         default:
-            assert(false && "Unknows status");
+            assert(false && "Unknown status");
             return "";
     }
 }

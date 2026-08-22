@@ -5,7 +5,7 @@
 
 namespace reshala {
 
-enum class HeuristicTrigger { kRoot, kCut, kBnb };
+enum class HeuristicTrigger { kRoot, kCut, kFsb, kNode };
 
 class HeuristicManager {
    public:

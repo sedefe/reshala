@@ -11,7 +11,7 @@ std::string FixingType2Str(FixingType type) {
         case FixingType::kNone:
             return "None";
         default:
-            assert(false && "Unknows rounding type");
+            assert(false && "Unknown rounding type");
             return "";
     }
 }
