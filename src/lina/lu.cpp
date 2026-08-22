@@ -6,8 +6,6 @@
 namespace reshala {
 
 LinaResult Lina::Refactor() {
-    const Scalar kGoodPivotThd = 0.1;
-
     stats.n_lus++;
 
     row_perm.resize(m);
@@ -27,23 +25,32 @@ LinaResult Lina::Refactor() {
     }
     stats.total_nnz_b += Ur.GetNnz();
 
+    row_front.resize(m);
+    for (Index i = 0; i < m; ++i) row_front[i].clear();
+    for (Index i = 0; i < m; ++i) {
+        if (Ur.GetRow(i).Empty()) {
+            // std::cerr << "Empty row " << i << "\n";
+            return LinaResult::kDegenerate;
+        }
+        row_front[Ur.GetRow(i).indices()[0]].push_back(i);
+    }
+
     for (Index k = 0; k < m; ++k) {
         // Partial pivoting
         Index pivot_row = k;
         Scalar pivot_val = 0;
-        for (Index i = k; i < m; ++i) {
+
+        for (auto& j : row_front[k]) j = row_perm_inv[j];
+        std::sort(row_front[k].begin(), row_front[k].end());
+
+        for (Index i : row_front[k]) {
             const auto& row = Ur.GetRow(i);
-            if (row.Empty()) {
-                // std::cerr << "Empty row " << i << "\n";
-                return LinaResult::kDegenerate;
-            }
             Index j = row.indices()[0];
             Scalar val = row.values()[0];
             assert(j >= k && "Dirty row");
             if (j == k and std::abs(val) > std::abs(pivot_val)) {
                 pivot_val = val;
                 pivot_row = i;
-                if (std::abs(pivot_val) > kGoodPivotThd) break;
             }
         }
         if (IsZero(pivot_val)) {
@@ -56,17 +63,18 @@ LinaResult Lina::Refactor() {
             std::swap(Ur.GetRow(k), Ur.GetRow(pivot_row));
             std::swap(Lr.GetRow(k), Lr.GetRow(pivot_row));
 
-            Index row_k = row_perm[k];
-            Index row_pivot = row_perm[pivot_row];
+            Index k_perm = row_perm[k];
+            Index pivot_perm = row_perm[pivot_row];
             std::swap(row_perm[k], row_perm[pivot_row]);
-            std::swap(row_perm_inv[row_k], row_perm_inv[row_pivot]);
+            std::swap(row_perm_inv[k_perm], row_perm_inv[pivot_perm]);
         }
         u_diag[k] = pivot_val;
         Ur.GetRow(k).EraseOffset(0);
 
         // Eliminate rows below k
         const auto& row_k = Ur.GetRow(k);
-        for (Index i = k + 1; i < m; ++i) {
+        for (Index i : row_front[k]) {
+            if (i == k) continue;
             if (Ur.GetRow(i).indices()[0] != k) continue;  // a_ik is already zero
             Scalar factor = Ur.GetRow(i).values()[0] / pivot_val;
 
@@ -76,6 +84,11 @@ LinaResult Lina::Refactor() {
             SparseVector scaled = row_k * factor;  // Todo: combine to daxpy
             Ur.GetRow(i) = Ur.GetRow(i) - scaled;
             Ur.GetRow(i).EraseOffset(0);
+            if (Ur.GetRow(i).Empty()) {
+                // std::cerr << "Empty row " << i << "\n";
+                return LinaResult::kDegenerate;
+            }
+            row_front[Ur.GetRow(i).indices()[0]].push_back(row_perm[i]);
         }
     }
 

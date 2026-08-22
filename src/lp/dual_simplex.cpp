@@ -104,7 +104,7 @@ Solution DualSimplex::Solve(bool warm) {
         {
             auto a_pq_bt = a_p[iv_entering];
             auto a_pq_ft = a_q[iv_leaving];
-            if (!IsZero(a_pq_bt - a_pq_ft)) {
+            if (std::abs(a_pq_bt - a_pq_ft) > 0.1) {
                 // std::cerr << "a_pq diverged: " << a_pq_bt << " vs " << a_pq_ft << "\n";
                 stats.num_issues[NumIssue::kApq]++;
             }

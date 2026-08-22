@@ -62,6 +62,8 @@ class Lina {
     std::vector<Index> row_perm_inv;
     std::vector<Eta> etas;
 
+    std::vector<std::vector<Index>> row_front;
+
     SparseVector ftran_res;
 
     LinaResult ProdForm(Index iv_leaving, Index iv_entering);
