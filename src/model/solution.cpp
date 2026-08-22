@@ -16,6 +16,8 @@ std::string LpStatus2Str(LpStatus status) {
             return "Dropped";
         case LpStatus::kUnbounded:
             return "Unbounded";
+        case LpStatus::kError:
+            return "Error";
         default:
             assert(false && "Unknown status");
             return "";

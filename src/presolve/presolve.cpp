@@ -70,13 +70,34 @@ LpStatus Presolver::Presolve(bool verbose) {
 
     model_.InitLocks();
 
+    {  // Check if there are free vars
+        Index n_free = 0;
+        for (Index iv = 0; iv < model_.GetNVars(); iv++)
+            n_free += model_.GetType(iv) == BndType::kFree;
+        if (n_free > 0) {
+            std::cerr << "No support for free variables yet, but there are " << n_free
+                      << " of them\n";
+            return LpStatus::kError;
+        }
+    }
+
     return LpStatus::kUnknown;
 }
 
 Solution Presolver::Postsolve(const Solution& sol) {
-    if (sol.status != LpStatus::kOptimal) {
-        return InfeasibleSolution();
+    switch (sol.status) {
+        case LpStatus::kInfeasible:
+        case LpStatus::kDropped:
+            return InfeasibleSolution();
+            break;
+        case LpStatus::kError:
+            return {sol.status, kNan, {}};
+            break;
+        default:
+            break;
     }
+
+    assert(sol.status == LpStatus::kOptimal);
 
     Solution res = sol;
     res.y = model_.GetObj().evaluate(sol.x);
