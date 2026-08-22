@@ -6,19 +6,19 @@ namespace reshala {
 
 struct Bounder {
     Bounder(const ModelTracker& t)
-        : tracker(t),
-          activities(t.GetActivities()),
-          var_bounds(t.GetModel().GetDomain().GetBounds()),
-          con_mask(t.GetModel().GetNCons()),
-          var_mask(t.GetModel().GetNVars()) {
-        const MilpModel& model = tracker.GetModel();
-        changed_cons.reserve(model.GetNCons());
-        changed_vars.reserve(model.GetNVars());
+        : tracker(t), con_mask(t.GetModel().GetNCons()), var_mask(t.GetModel().GetNVars()) {
+        changed_cons.reserve(t.GetModel().GetNCons());
+        changed_vars.reserve(t.GetModel().GetNVars());
     }
+    void Reset() {
+        activities = tracker.GetActivities();
+        var_bounds = tracker.GetModel().GetDomain().GetBounds();
+    }
+
+    const ModelTracker& tracker;
 
     std::vector<Activity> activities;
     std::vector<Bounds> var_bounds;
-    const ModelTracker& tracker;
 
     std::vector<Index> changed_cons;
     BitMask con_mask;
@@ -31,6 +31,8 @@ struct Bounder {
         const Index kMaxIters = 5;
         Index n_iter = 0;
 
+        changed_vars.clear();
+        var_mask.Clear();
         changed_vars.push_back(iv_start);
 
         std::vector<Bounds> old_bounds = var_bounds;
@@ -107,14 +109,15 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
     Index n_reduced = 0;
     tracker.GetImplications().clear();
 
+    std::array<Bounder, 2> bounders = {Bounder{tracker}, Bounder{tracker}};
+    std::array<bool, 2> results;
+
     for (Index iv = 0; iv < model.GetNVars(); iv++) {
         if (tracker.GetVarMask(iv)) continue;
         if (!model.IsBinary(iv)) continue;
 
-        std::array<Bounder, 2> bounders = {Bounder{tracker}, Bounder{tracker}};
-        std::array<bool, 2> results;
-
         for (Index i = 0; i < 2; i++) {
+            bounders[i].Reset();
             results[i] = bounders[i].Propagate(iv, {Scalar(i), Scalar(i)});
         }
 
