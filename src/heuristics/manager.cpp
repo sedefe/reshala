@@ -41,6 +41,7 @@ void HeuristicManager::Run(HeuristicTrigger trigger, const MilpModel& model,
                     break;
                 }
             }
+            break;
         default:
             assert(false && "Unknown heuristic trigger");
     }
