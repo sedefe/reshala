@@ -37,18 +37,21 @@ LinaResult Lina::Refactor() {
 
     for (Index k = 0; k < m; ++k) {
         // Partial pivoting
-        Index pivot_row = k;
+        Index pivot_row = -1;
         Scalar pivot_val = 0;
 
         for (auto& j : row_front[k]) j = row_perm_inv[j];
-        std::sort(row_front[k].begin(), row_front[k].end());
+        std::sort(row_front[k].begin(), row_front[k].end());  // Todo avoid
 
+        bool k_is_in_front = false;
         for (Index i : row_front[k]) {
-            const auto& row = Ur.GetRow(i);
-            Index j = row.indices()[0];
-            Scalar val = row.values()[0];
-            assert(j >= k && "Dirty row");
-            if (j == k and std::abs(val) > std::abs(pivot_val)) {
+            k_is_in_front |= (i == k);
+
+            const auto& row_i = Ur.GetRow(i);
+            assert(row_i.indices()[0] == k && "Row front is broken");
+
+            Scalar val = row_i.values()[0];
+            if (std::abs(val) > std::abs(pivot_val)) {
                 pivot_val = val;
                 pivot_row = i;
             }
@@ -73,21 +76,28 @@ LinaResult Lina::Refactor() {
 
         // Eliminate rows below k
         const auto& row_k = Ur.GetRow(k);
+        // Индекс строки из фронта, соответствующий выбранной строке. Без пол-литры не разберёшься:
+        // - Если k была во фронте, то вне зависимости от того, был ли свап, пропускать будем строку номер k.
+        // - Если не была, то выбрана строка номер pivot_row, и пропускаем её.
+        Index skip_row = k_is_in_front ? k : pivot_row;
         for (Index i : row_front[k]) {
-            if (i == k) continue;
-            if (Ur.GetRow(i).indices()[0] != k) continue;  // a_ik is already zero
-            Scalar factor = Ur.GetRow(i).values()[0] / pivot_val;
+            if (i == skip_row) continue;
+
+            auto& row_i = Ur.GetRow(i);
+            assert(row_i.indices()[0] == k && "Row front is broken");
+
+            Scalar factor = row_i.values()[0] / pivot_val;
 
             Lr.GetRow(i).Push(k, factor);  // Store multiplier in L
 
             // row_i = row_i - factor * row_k
-            Ur.GetRow(i) = axpy(-factor, row_k, Ur.GetRow(i));
-            Ur.GetRow(i).EraseOffset(0);
-            if (Ur.GetRow(i).Empty()) {
+            row_i = axpy(-factor, row_k, row_i);
+            row_i.EraseOffset(0);
+            if (row_i.Empty()) {
                 // std::cerr << "Empty row " << i << "\n";
                 return LinaResult::kDegenerate;
             }
-            row_front[Ur.GetRow(i).indices()[0]].push_back(row_perm[i]);
+            row_front[row_i.indices()[0]].push_back(row_perm[i]);
         }
     }
 
