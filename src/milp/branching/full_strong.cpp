@@ -21,6 +21,12 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
         best_score = -kInf;
         n_implied_bounds = 0;
 
+        // Родитель мог ухудшиться из-за подтягивания границ детьми
+        if (parent.sol.y >= mip_tracker_.GetCutoff()) {
+            parent.sol.status = LpStatus::kDropped;
+            break;
+        }
+
         for (Index iv = 0; iv < model_.GetNVars(); ++iv) {
             if (!model_.GetIntegrality(iv)) continue;
             const Scalar x_val = parent.sol.x[iv];
@@ -43,7 +49,6 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
                     ds.Restore(parent.ds_state);
                     ds.SetBounds(iv, cand_bounds[i]);
                     sols[i] = ds.Solve(true);
-                    heur_manager_.Run(HeuristicTrigger::kFsb, model_, sols[i]);
                     gains[i] = sols[i].y - parent.sol.y;
 
                     if (sols[i].status == LpStatus::kOptimal) {
@@ -62,6 +67,7 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
                             sols[i].status = LpStatus::kDropped;
                         } else {
                             ds_states[i] = ds.Store();
+                            heur_manager_.Run(HeuristicTrigger::kFsb, model_, sols[i]);
                         }
                     }
                 }
