@@ -7,6 +7,11 @@ namespace reshala {
 
 enum class HeuristicTrigger { kRoot, kCut, kFsb, kNode };
 
+struct HeurFreq {
+    std::unique_ptr<AbstractHeuristic> h;
+    Index freq;
+};
+
 class HeuristicManager {
    public:
     HeuristicManager(MipTracker& mip_tracker);
@@ -15,10 +20,11 @@ class HeuristicManager {
     void PrintStats(std::ostream& os) const;
 
    private:
-    std::map<HeuristicType, std::vector<std::unique_ptr<AbstractHeuristic>>> heur_map_;
+    std::vector<HeurFreq> heuristics_;
+    Rounding rounding;
     MipTracker& mip_tracker_;
 
-    Index n_tries_ = 0;
+    Index n_nodes_ = 0;
 };
 
 }  // namespace reshala

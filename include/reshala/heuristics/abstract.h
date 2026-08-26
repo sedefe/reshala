@@ -5,8 +5,6 @@
 
 namespace reshala {
 
-enum class HeuristicType { kFast, kSlow };
-
 struct HeurStats {
     Index n_called = 0;
     Index n_found = 0;
@@ -21,7 +19,7 @@ inline std::ostream& operator<<(std::ostream& os, const HeurStats& stats) {
 
 class AbstractHeuristic {
    public:
-    AbstractHeuristic(const std::string& name, HeuristicType t) : name_(name), type(t) {}
+    AbstractHeuristic(const std::string& name) : name_(name) {}
     virtual ~AbstractHeuristic() = default;
     const std::string& GetName() const { return name_; }
 
@@ -40,7 +38,6 @@ class AbstractHeuristic {
         }
     }
 
-    HeuristicType type;
     HeurStats stats;
 
    protected:

@@ -7,9 +7,8 @@ namespace reshala {
 
 class Diving : public AbstractHeuristic {
    public:
-    Diving(HeuristicType type, FixingType fixing_type)
-        : AbstractHeuristic("Diving-" + FixingType2Str(fixing_type), type),
-          fixing_type_(fixing_type) {}
+    Diving(FixingType fixing_type)
+        : AbstractHeuristic("Diving-" + FixingType2Str(fixing_type)), fixing_type_(fixing_type) {}
 
    protected:
     Solution InternalRun(const MilpModel& model, const Solution& relaxed,
