@@ -76,11 +76,14 @@ bool DualSimplex::RebuildAll() {
         for (Scalar& x : x_b) x = -x;
     }
 
+    EvalObj();
+
     return true;
 }
 
 bool DualSimplex::Update() {
     auto x_q_old = GetXnValue(iv_entering);
+    auto c_q_old = c_n[iv_entering];
     basis.Swap(iv_leaving, iv_entering);
 
     if (lina.GetAge() >= kMaxLinaAge) {
@@ -118,6 +121,8 @@ bool DualSimplex::Update() {
         }
         x_b[iv_leaving] = theta_p + x_q_old;
     }
+
+    y += c_q_old * theta_p * model_.GetObj().mult;
 
     return true;
 }

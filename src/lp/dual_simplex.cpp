@@ -70,6 +70,8 @@ void DualSimplex::Init() {
 
     MulNRight(x_n, x_b);
     for (Scalar& x : x_b) x = -x;
+
+    EvalObj();
 }
 
 Solution DualSimplex::Solve(bool warm, Scalar cutoff) {
@@ -119,7 +121,6 @@ Solution DualSimplex::Solve(bool warm, Scalar cutoff) {
             break;
         }
 
-        EvalObj();  // Sync with Update logic
         if (y >= cutoff) {
             status = LpStatus::kDropped;
             break;

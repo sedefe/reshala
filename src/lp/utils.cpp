@@ -32,7 +32,7 @@ std::ostream& operator<<(std::ostream& os, const DsStats& stats) {
     return os;
 }
 
-DsState DualSimplex::Store() const { return {c_n, x_b, d_n, basis, lina}; }
+DsState DualSimplex::Store() const { return {c_n, x_b, d_n, basis, lina, y}; }
 
 void DualSimplex::Restore(const DsState& state) {
     c_n = state.c_n;
@@ -40,6 +40,7 @@ void DualSimplex::Restore(const DsState& state) {
     d_n = state.d_n;
     basis = state.basis;
     lina = state.lina;
+    y = state.y;
 }
 
 void DualSimplex::PrepareX() {

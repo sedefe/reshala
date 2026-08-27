@@ -16,6 +16,7 @@ struct DsState {
 
     LpBasis basis;
     Lina lina;
+    Scalar y;
 };
 
 enum class NumIssue { kDegenBasis, kAbnormalCn, kApq, kUnknown };
