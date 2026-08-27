@@ -72,7 +72,7 @@ void DualSimplex::Init() {
     for (Scalar& x : x_b) x = -x;
 }
 
-Solution DualSimplex::Solve(bool warm) {
+Solution DualSimplex::Solve(bool warm, Scalar cutoff) {
     if (!warm) {
         Init();
     }
@@ -116,6 +116,12 @@ Solution DualSimplex::Solve(bool warm) {
             stats.num_issues[NumIssue::kDegenBasis]++;
             stats.n_aborted++;
             status = LpStatus::kInfeasible;
+            break;
+        }
+
+        EvalObj();  // Sync with Update logic
+        if (y >= cutoff) {
+            status = LpStatus::kDropped;
             break;
         }
     }

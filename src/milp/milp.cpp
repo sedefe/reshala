@@ -18,7 +18,7 @@ Solution MilpSolver::Solve() {
     }
 
     ds.SetModel(model);
-    auto [sol, t_root] = MEASURE_TIME(ds.Solve(false));
+    auto [sol, t_root] = MEASURE_TIME(ds.Solve(false, kInf));
     std::cout << "Root LP: " << sol.y << ", " << t_root << " ms, " << ds.GetStats().n_iter
               << " iterations\n";
 

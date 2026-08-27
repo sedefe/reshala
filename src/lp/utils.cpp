@@ -42,25 +42,32 @@ void DualSimplex::Restore(const DsState& state) {
     lina = state.lina;
 }
 
-Solution DualSimplex::PrepareSolution() const {
-    DenseVector x;  // Fill & unscale
-    if (status == LpStatus::kOptimal) {
-        x.resize(n);
-        for (Index ic = 0; ic < m; ic++) {
-            Index i_b = basis.Basis()[ic];
-            if (i_b < n) {
-                x[i_b] = std::ldexp(x_b[ic], -scaling.col[i_b]);
-            }
-        }
-        for (Index iv = 0; iv < n; iv++) {
-            Index i_nb = basis.NonBasis()[iv];
-            if (i_nb < n) {
-                const Bounds& bnd = model_orig_->GetBounds(i_nb);
-                x[i_nb] = (d_n[iv] >= 0) ? bnd.le : bnd.ri;
-            }
+void DualSimplex::PrepareX() {
+    x.resize(n);
+    for (Index ic = 0; ic < m; ic++) {
+        Index i_b = basis.Basis()[ic];
+        if (i_b < n) {
+            x[i_b] = std::ldexp(x_b[ic], -scaling.col[i_b]);
         }
     }
+    for (Index iv = 0; iv < n; iv++) {
+        Index i_nb = basis.NonBasis()[iv];
+        if (i_nb < n) {
+            const Bounds& bnd = model_orig_->GetBounds(i_nb);
+            x[i_nb] = (d_n[iv] >= 0) ? bnd.le : bnd.ri;
+        }
+    }
+}
 
+void DualSimplex::EvalObj() {
+    PrepareX();
+    y = model_orig_->GetObj().evaluate(x);
+}
+
+Solution DualSimplex::PrepareSolution() {
+    if (status == LpStatus::kOptimal) {
+        PrepareX();
+    }
     return model_orig_->PrepareSolution(status, x);
 }
 

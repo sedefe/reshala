@@ -35,7 +35,7 @@ class DualSimplex {
     DualSimplex() {}
     void SetModel(MilpModel& model);
     void SetBasis(const LpBasis& basis);
-    Solution Solve(bool warm);
+    Solution Solve(bool warm, Scalar cutoff);
 
     inline const DsStats& GetStats() const { return stats; }
     inline const LpBasis& GetBasis() const { return basis; }
@@ -71,6 +71,9 @@ class DualSimplex {
     LpStatus status;
     LpBasis basis;
 
+    DenseVector x;
+    Scalar y;
+
     DenseVector c_n;
     DenseVector x_b;
     DenseVector a_p;
@@ -94,7 +97,9 @@ class DualSimplex {
     bool Update();
     bool RebuildAll();
 
-    Solution PrepareSolution() const;
+    void PrepareX();
+    void EvalObj();
+    Solution PrepareSolution();
 
     Scalar GetXnValue(Index iv) const;
     void MulNLeft(const DenseVector& x, DenseVector& res) const;

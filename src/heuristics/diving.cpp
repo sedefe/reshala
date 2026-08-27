@@ -24,7 +24,7 @@ Solution Diving::InternalRun(const MilpModel& model, const Solution& relaxed,
 
     DualSimplex ds;
     ds.SetModel(model_copy);
-    sol = ds.Solve(false);
+    sol = ds.Solve(false, mip_tracker.GetCutoff());
 
     while (true) {
         if (sol.status == LpStatus::kInfeasible) break;
@@ -49,7 +49,7 @@ Solution Diving::InternalRun(const MilpModel& model, const Solution& relaxed,
         // Todo: choose the best child
         for (Index i = 0; i < 2; ++i) {
             ds.SetBounds(cand, bounds_priority[i]);
-            sol = ds.Solve(true);
+            sol = ds.Solve(true, kInf);  // Todo: add cutoff
             if (sol.status == LpStatus::kOptimal) break;
         }
     }

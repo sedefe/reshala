@@ -48,7 +48,7 @@ void Cutter::Run(Solution& sol) {
             basis.AddBasicVars(n_added);
             ds_.SetBasis(basis);
 
-            sol = ds_.Solve(true);
+            sol = ds_.Solve(true, mip_tracker_.GetCutoff());
             heur_manager_.Run(HeuristicTrigger::kCut, model_, sol);
             if (sol.y > mip_tracker_.GetDual()) {
                 mip_tracker_.UpdDual(sol.y);
