@@ -123,6 +123,7 @@ Solution DualSimplex::Solve(bool warm, Scalar cutoff) {
         }
 
         if (y >= cutoff) {
+            stats.n_dropped++;
             status = LpStatus::kDropped;
             break;
         }

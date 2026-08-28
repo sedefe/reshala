@@ -23,6 +23,7 @@ enum class NumIssue { kDegenBasis, kAbnormalCn, kApq, kUnknown };
 std::string NumIssue2Str(NumIssue ni);
 struct DsStats {
     Index n_iter = 0;
+    Index n_dropped = 0;
     Index n_aborted = 0;
     std::unordered_map<NumIssue, Index> num_issues;
 };

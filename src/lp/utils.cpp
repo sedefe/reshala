@@ -20,7 +20,8 @@ std::string NumIssue2Str(NumIssue ni) {
 
 std::ostream& operator<<(std::ostream& os, const DsStats& stats) {
     os << "DS: \n"
-       << "\tLp iters: " << stats.n_iter << "\n";
+       << "\tLp iters: " << stats.n_iter << "\n"
+       << "\tDropped : " << stats.n_dropped << "\n";
     if (stats.n_aborted > 0) {
         os << "\t" << COLOR_RED << stats.n_aborted << " aborted\n" COLOR_RESET;
     }
