@@ -27,7 +27,7 @@ Solution Diving::InternalRun(const MilpModel& model, const Solution& relaxed,
     sol = ds.Solve(false, mip_tracker.GetCutoff());
 
     while (true) {
-        if (sol.status == LpStatus::kInfeasible) break;
+        if (sol.status != LpStatus::kOptimal) break;
         if (sol.y >= mip_tracker.GetCutoff()) {
             sol.status = LpStatus::kDropped;
             break;
@@ -36,22 +36,16 @@ Solution Diving::InternalRun(const MilpModel& model, const Solution& relaxed,
 
         Index cand = GetCandidate(model_copy, relaxed, sol);
 
-        std::array<Bounds, 2> bounds_priority;
         Scalar lb = Floor(sol.x[cand]);
         Scalar rb = lb + 1;
 
-        const Bounds& bnd = model_copy.GetBounds(cand);
+        Bounds bnd = model_copy.GetBounds(cand);
         if (sol.x[cand] - bnd.le < bnd.ri - sol.x[cand])
-            bounds_priority = {{{bnd.le, lb}, {rb, bnd.ri}}};
+            bnd.ri = lb;
         else
-            bounds_priority = {{{rb, bnd.ri}, {bnd.le, lb}}};
-
-        // Todo: choose the best child
-        for (Index i = 0; i < 2; ++i) {
-            ds.SetBounds(cand, bounds_priority[i]);
-            sol = ds.Solve(true, kInf);  // Todo: add cutoff
-            if (sol.status == LpStatus::kOptimal) break;
-        }
+            bnd.le = rb;
+        ds.SetBounds(cand, bnd);
+        sol = ds.Solve(true, mip_tracker.GetCutoff());
     }
 
     return presolver.Postsolve(sol);

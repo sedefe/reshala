@@ -79,6 +79,7 @@ Solution DualSimplex::Solve(bool warm, Scalar cutoff) {
         Init();
     }
 
+    status = LpStatus::kUnknown;
     while (true) {
         stats.n_iter += 1;
         // DebugPrint();
