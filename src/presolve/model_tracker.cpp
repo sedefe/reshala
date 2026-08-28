@@ -308,6 +308,10 @@ void ModelTracker::UpdCoeff(Index ic, Index iv, Scalar val) {
     // Coeffs
     model_.GetCol(iv).AtRef(ic) = val;
     value_ref = val;
+    if (IsZero(val)) {
+        model_.GetRow(ic).EraseIndex(iv);
+        model_.GetCol(iv).EraseIndex(ic);
+    }
     stat.n_ch_coeff++;
 }
 

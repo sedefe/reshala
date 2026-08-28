@@ -5,7 +5,7 @@ namespace reshala {
 Presolver::Presolver(MilpModel& model) : model_(model), tracker_(model) {
     std::vector<std::unique_ptr<Rule>> rules_;
     rules_.push_back(std::make_unique<Rule31>(RuleType::kFast));
-    rules_.push_back(std::make_unique<Rule32>(RuleType::kMedium));
+    rules_.push_back(std::make_unique<Rule32>(RuleType::kFast));
     rules_.push_back(std::make_unique<Rule33>(RuleType::kFast));
     rules_.push_back(std::make_unique<Rule35>(RuleType::kFast));
     rules_.push_back(std::make_unique<Rule36>(RuleType::kFast));
