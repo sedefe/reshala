@@ -21,6 +21,9 @@ RuleResult Rule31::Apply(ModelTracker& tracker) {
             }
         }
 
+        if (StrongGt(rhs.le, rhs.ri)) {
+            return RuleResult::kInfeasible;
+        }
         if (StrongGt(lhs.le, rhs.ri) or StrongLt(lhs.ri, rhs.le)) {
             return RuleResult::kInfeasible;
         }

@@ -3,7 +3,9 @@
 namespace reshala {
 
 enum class RuleType { kTrivial, kFast, kMedium, kExhaustive, kUnknown };
-inline RuleType NextLevel(RuleType type) {
+inline RuleType NextLevel(RuleType type, RuleType max_level) {
+    if (type == max_level) return RuleType::kUnknown;
+
     switch (type) {
         case RuleType::kFast:
             return RuleType::kMedium;

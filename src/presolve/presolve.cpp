@@ -23,7 +23,7 @@ Presolver::Presolver(MilpModel& model) : model_(model), tracker_(model) {
     }
 }
 
-LpStatus Presolver::Presolve(bool verbose) {
+LpStatus Presolver::Presolve(bool verbose, RuleType max_level) {
     RuleType curr_level = RuleType::kFast;
     RuleResult status = RuleResult::kUnknown;
 
@@ -49,7 +49,7 @@ LpStatus Presolver::Presolve(bool verbose) {
         if (tracker_.GetNDeletedVars() > 0) tracker_.CompressVars();
 
         if (!changed) {
-            curr_level = NextLevel(curr_level);
+            curr_level = NextLevel(curr_level, max_level);
             if (curr_level == RuleType::kUnknown) break;
         } else {
             curr_level = RuleType::kFast;

@@ -11,7 +11,8 @@ MilpSolver::MilpSolver(MilpModel& model)
       bnb(model, ds, mip_tracker, heur_manager) {}
 
 Solution MilpSolver::Solve() {
-    auto [presolve_status, t_presolve] = MEASURE_TIME(presolver.Presolve(true));
+    auto [presolve_status, t_presolve] =
+        MEASURE_TIME(presolver.Presolve(true, RuleType::kExhaustive));
     std::cout << "Presolve finished in " << t_presolve << " ms\n";
     if (presolve_status != LpStatus::kUnknown) {
         return presolver.Postsolve({presolve_status, {}, {}});

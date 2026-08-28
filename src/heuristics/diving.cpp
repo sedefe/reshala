@@ -8,6 +8,10 @@ namespace reshala {
 
 Solution Diving::InternalRun(const MilpModel& model, const Solution& relaxed,
                              const MipTracker& mip_tracker) {
+    if (relaxed.y >= mip_tracker.GetCutoff()) {
+        return InfeasibleSolution();
+    }
+
     Solution sol;
 
     MilpModel model_copy = model;
@@ -16,7 +20,7 @@ Solution Diving::InternalRun(const MilpModel& model, const Solution& relaxed,
 
     Presolver presolver(model_copy);
     if (n_fixed > 0) {
-        LpStatus presolve_status = presolver.Presolve(false);
+        LpStatus presolve_status = presolver.Presolve(false, RuleType::kFast);
         if (presolve_status != LpStatus::kUnknown) {
             return presolver.Postsolve({presolve_status, {}, {}});
         }
