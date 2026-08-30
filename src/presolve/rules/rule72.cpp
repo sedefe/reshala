@@ -136,20 +136,25 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
         }
 
         for (Index iv1 = 0; iv1 < model.GetNVars(); iv1++) {
-            if (model.GetDomain().GetType(iv1) == BndType::kFixed) continue;
+            if (tracker.GetVarMask(iv1)) continue;
             if (iv == iv1) continue;
             const Bounds& bnd = model.GetBounds(iv1);
+            const Bounds& bnd0 = bounders[0].var_bounds[iv1];
+            const Bounds& bnd1 = bounders[1].var_bounds[iv1];
             Bounds derived = {
-                std::min(bounders[0].var_bounds[iv1].le, bounders[1].var_bounds[iv1].le),
-                std::max(bounders[0].var_bounds[iv1].ri, bounders[1].var_bounds[iv1].ri),
+                std::min(bnd0.le, bnd1.le),
+                std::max(bnd0.ri, bnd1.ri),
             };
 
-            // Check if we can substitute x <- a*y + b
-            if (WeakEq(bounders[0].var_bounds[iv1].le, bounders[0].var_bounds[iv1].ri) and
-                WeakEq(bounders[1].var_bounds[iv1].le, bounders[1].var_bounds[iv1].ri)) {
-                Scalar y0 = (bounders[0].var_bounds[iv1].le + bounders[0].var_bounds[iv1].ri) / 2;
-                Scalar y1 = (bounders[1].var_bounds[iv1].le + bounders[1].var_bounds[iv1].ri) / 2;
-                tracker.SimpleSub(iv1, y1 - y0, iv, y0);
+            // Check if we can fix or substitute x <- a*y + b
+            if (WeakEq(bnd0.le, bnd0.ri) and WeakEq(bnd1.le, bnd1.ri)) {
+                Scalar y0 = (bnd0.le + bnd0.ri) / 2;
+                Scalar y1 = (bnd1.le + bnd1.ri) / 2;
+                if (WeakEq(y0, y1)) {
+                    tracker.FixVar(iv1, (y0 + y1) / 2);
+                } else {
+                    tracker.SimpleSub(iv1, y1 - y0, iv, y0);
+                }
                 n_reduced++;
                 continue;
             }
@@ -165,21 +170,17 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
                 continue;
             }
 
-            if (StrongGt(bounders[0].var_bounds[iv1].le, bnd.le)) {  // x = 0 => y >= b
-                tracker.GetImplications().push_back(
-                    {iv, false, iv1, true, bounders[0].var_bounds[iv1].le});
+            if (StrongGt(bnd0.le, bnd.le)) {  // x = 0 => y >= b
+                tracker.GetImplications().push_back({iv, false, iv1, true, bnd0.le});
             }
-            if (StrongLt(bounders[0].var_bounds[iv1].ri, bnd.ri)) {  // x = 0 => y <= b
-                tracker.GetImplications().push_back(
-                    {iv, false, iv1, false, bounders[0].var_bounds[iv1].ri});
+            if (StrongLt(bnd0.ri, bnd.ri)) {  // x = 0 => y <= b
+                tracker.GetImplications().push_back({iv, false, iv1, false, bnd0.ri});
             }
-            if (StrongGt(bounders[1].var_bounds[iv1].le, bnd.le)) {  // x = 1 => y >= b
-                tracker.GetImplications().push_back(
-                    {iv, true, iv1, true, bounders[1].var_bounds[iv1].le});
+            if (StrongGt(bnd1.le, bnd.le)) {  // x = 1 => y >= b
+                tracker.GetImplications().push_back({iv, true, iv1, true, bnd1.le});
             }
-            if (StrongLt(bounders[1].var_bounds[iv1].ri, bnd.ri)) {  // x = 1 => y <= b
-                tracker.GetImplications().push_back(
-                    {iv, true, iv1, false, bounders[1].var_bounds[iv1].ri});
+            if (StrongLt(bnd1.ri, bnd.ri)) {  // x = 1 => y <= b
+                tracker.GetImplications().push_back({iv, true, iv1, false, bnd1.ri});
             }
         }
     }
