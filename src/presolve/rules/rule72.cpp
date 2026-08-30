@@ -136,6 +136,7 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
         }
 
         for (Index iv1 = 0; iv1 < model.GetNVars(); iv1++) {
+            if (model.GetDomain().GetType(iv1) == BndType::kFixed) continue;
             if (iv == iv1) continue;
             const Bounds& bnd = model.GetBounds(iv1);
             Bounds derived = {
@@ -143,6 +144,17 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
                 std::max(bounders[0].var_bounds[iv1].ri, bounders[1].var_bounds[iv1].ri),
             };
 
+            // Check if we can substitute x <- a*y + b
+            if (WeakEq(bounders[0].var_bounds[iv1].le, bounders[0].var_bounds[iv1].ri) and
+                WeakEq(bounders[1].var_bounds[iv1].le, bounders[1].var_bounds[iv1].ri)) {
+                Scalar y0 = (bounders[0].var_bounds[iv1].le + bounders[0].var_bounds[iv1].ri) / 2;
+                Scalar y1 = (bounders[1].var_bounds[iv1].le + bounders[1].var_bounds[iv1].ri) / 2;
+                tracker.SimpleSub(iv1, y1 - y0, iv, y0);
+                n_reduced++;
+                continue;
+            }
+
+            // Check if we can strengthen the bounds
             if (StrongGt(derived.le, bnd.le) or StrongLt(derived.ri, bnd.ri)) {
                 Bounds new_bnd = {std::max(bnd.le, derived.le), std::min(bnd.ri, derived.ri)};
                 if (StrongGt(new_bnd.le, new_bnd.ri)) {
