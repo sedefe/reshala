@@ -26,9 +26,9 @@ RuleResult Rule47::Apply(ModelTracker& tracker) {
         }
         if (ic < 0) continue;
         const auto& rhs = model.GetRhs(ic);
-        if (!IsZero(rhs.ri - rhs.le)) continue;
+        if (!WeakEq(rhs.ri, rhs.le)) continue;
         if (model.GetIntegrality(iv)) {  // Handle integer-row slacks with |a|=1
-            if (!IsZero(std::abs(a) - 1)) continue;
+            if (!WeakEq(std::abs(a), 1)) continue;
             if (!model.RowIsInteger(ic)) continue;
             candidates[ic].push_back({iv, a});
         } else {

@@ -10,7 +10,7 @@ RuleResult Rule46::Apply(ModelTracker& tracker) {
         if (tracker.GetConMask(ic)) continue;
 
         auto rhs = model.GetRhs(ic);
-        if (!IsZero(rhs.ri - rhs.le)) continue;
+        if (!WeakEq(rhs.ri, rhs.le)) continue;
         Scalar b = (rhs.ri + rhs.le) / 2;
 
         const auto& row = model.GetRow(ic);

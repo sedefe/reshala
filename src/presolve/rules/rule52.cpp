@@ -107,7 +107,7 @@ bool Rule52::Parallel(const SparseVector& sv1, Scalar scale1, const SparseVector
     }
 
     for (Index i = 0; i < n; i++) {
-        if (!IsZero(p1[i] * mul - p2[i])) return false;
+        if (!WeakEq(p1[i] * mul, p2[i])) return false;
     }
 
     return true;

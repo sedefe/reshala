@@ -16,7 +16,7 @@ BndType Bounds2Type(const Bounds &bounds) {
         return BndType::kBoxed;
     } else if ((-kInf == l) && (u == kInf)) {
         return BndType::kFree;
-    } else if ((-kInf < l) && IsZero(u - l) && (u < kInf)) {
+    } else if ((-kInf < l) && WeakEq(l, u) && (u < kInf)) {
         return BndType::kFixed;
     }
     // std::cerr << "Strange bounds for variable: " << l << " .. " << u << "\n";

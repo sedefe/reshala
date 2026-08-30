@@ -9,7 +9,7 @@ RuleResult Rule36::Apply(ModelTracker& tracker) {
         if (tracker.GetConMask(ic)) continue;
 
         auto rhs = model.GetRhs(ic);
-        if (!IsZero(rhs.ri - rhs.le)) continue;
+        if (!WeakEq(rhs.ri, rhs.le)) continue;
         Scalar b = (rhs.ri + rhs.le) / 2;
         auto range = tracker.GetActivity(ic).GetRange();
         if (IsZero(range.le + range.ri - 2 * b)) {
