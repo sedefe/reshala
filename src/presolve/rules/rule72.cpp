@@ -112,7 +112,21 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
     std::array<Bounder, 2> bounders = {Bounder{tracker}, Bounder{tracker}};
     std::array<bool, 2> results;
 
+    std::vector<std::pair<Index, Index>> scored_binaries;
+    scored_binaries.reserve(model.GetNVars());
     for (Index iv = 0; iv < model.GetNVars(); iv++) {
+        if (tracker.GetVarMask(iv)) continue;
+        if (!model.IsBinary(iv)) continue;
+        Index score = 0;
+        for (SvIterator el(model.GetCol(iv)); el; ++el) {
+            score += model.GetRow(el.index()).Size() == 2;  // likely an implication
+        }
+        scored_binaries.push_back({-score, iv});
+    }
+    std::sort(scored_binaries.begin(), scored_binaries.end());
+
+    for (const auto& pair : scored_binaries) {
+        Index iv = pair.second;
         if (tracker.GetVarMask(iv)) continue;
         if (!model.IsBinary(iv)) continue;
 
