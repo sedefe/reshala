@@ -18,7 +18,7 @@ void Bounder::Reset() {
 bool Bounder::Propagate(Index iv_start, const Bounds& new_bnd) {
     const MilpModel& model = tracker.GetModel();
 
-    const Index kMaxIters = 5;
+    const Index kMaxIters = 15;
     Index n_iter = 0;
 
     changed_vars.clear();

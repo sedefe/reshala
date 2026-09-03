@@ -39,12 +39,12 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
             return RuleResult::kInfeasible;
         }
         if (!results[0]) {
-            tracker.UpdVarBounds(iv, {Scalar(1), Scalar(1)});
+            tracker.ImportBounder(bounders[1]);
             n_reduced++;
             continue;
         }
         if (!results[1]) {
-            tracker.UpdVarBounds(iv, {Scalar(0), Scalar(0)});
+            tracker.ImportBounder(bounders[0]);
             n_reduced++;
             continue;
         }
