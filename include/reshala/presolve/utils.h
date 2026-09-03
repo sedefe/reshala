@@ -36,4 +36,15 @@ struct PresolveStat {
     }
 };
 
+class BitMask {
+    std::vector<uint64_t> data;
+
+   public:
+    explicit BitMask(Index size) : data((size + 63) / 64, 0) {}
+    void Set(Index pos) { data[pos / 64] |= (1ULL << (pos % 64)); }
+    bool Get(Index pos) const { return (data[pos / 64] >> (pos % 64)) & 1; }
+
+    void Clear() { std::fill(data.begin(), data.end(), 0); }
+};
+
 }  // namespace reshala

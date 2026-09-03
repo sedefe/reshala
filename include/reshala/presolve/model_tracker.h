@@ -6,21 +6,11 @@
 #include "reshala/model/implication.h"
 #include "reshala/model/milp_model.h"
 #include "reshala/presolve/activity.h"
+#include "reshala/presolve/bounder.h"
 #include "reshala/presolve/transforms.h"
 #include "reshala/presolve/utils.h"
 
 namespace reshala {
-
-class BitMask {
-    std::vector<uint64_t> data;
-
-   public:
-    explicit BitMask(Index size) : data((size + 63) / 64, 0) {}
-    void Set(Index pos) { data[pos / 64] |= (1ULL << (pos % 64)); }
-    bool Get(Index pos) const { return (data[pos / 64] >> (pos % 64)) & 1; }
-
-    void Clear() { std::fill(data.begin(), data.end(), 0); }
-};
 
 class ModelTracker {
    public:
@@ -71,6 +61,10 @@ class ModelTracker {
     void ScaleObj(Scalar x);
     void ScaleObjExp(Index e);
     void ScaleRow(Index ic, Scalar x);
+    void ImportBounder(const Bounder& bounder) {
+        activities_ = bounder.activities;
+        model_.SetDomain(bounder.domain);
+    }
 
     inline Index GetOrigNVars() const { return orig_n_vars_; }
     inline const std::vector<Index>& GetOrigVarIdx() const { return orig_var_idx_; }
