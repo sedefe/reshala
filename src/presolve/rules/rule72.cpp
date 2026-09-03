@@ -12,13 +12,13 @@ struct Bounder {
     }
     void Reset() {
         activities = tracker.GetActivities();
-        var_bounds = tracker.GetModel().GetDomain().GetBounds();
+        domain = tracker.GetModel().GetDomain();
     }
 
     const ModelTracker& tracker;
 
     std::vector<Activity> activities;
-    std::vector<Bounds> var_bounds;
+    Domain domain;
 
     std::vector<Index> changed_cons;
     BitMask con_mask;
@@ -35,15 +35,15 @@ struct Bounder {
         var_mask.Clear();
         changed_vars.push_back(iv_start);
 
-        std::vector<Bounds> old_bounds = var_bounds;
-        var_bounds[iv_start] = new_bnd;
+        Domain old_domain = domain;
+        domain.SetBounds(iv_start, new_bnd);
 
         while (!changed_vars.empty() and n_iter < kMaxIters) {
             n_iter++;
 
             changed_cons.clear();
             con_mask.Clear();
-            for (auto iv : changed_vars) {  // var_bounds -> activities
+            for (auto iv : changed_vars) {  // domain -> activities
                 for (SvIterator el(model.GetCol(iv)); el; ++el) {
                     Index ic = el.index();
                     Scalar val = el.value();
@@ -51,8 +51,8 @@ struct Bounder {
 
                     Activity act = activities[ic];
                     Bounds old_range = act.GetRange();
-                    act.RmTerm(val, old_bounds[iv]);
-                    act.AddTerm(val, var_bounds[iv]);
+                    act.RmTerm(val, old_domain.GetBounds(iv));
+                    act.AddTerm(val, domain.GetBounds(iv));
                     Bounds new_range = act.GetRange();
 
                     if (StrongGt(new_range.le, old_range.le) or
@@ -72,23 +72,23 @@ struct Bounder {
                 }
             }
 
-            old_bounds = var_bounds;
+            old_domain = domain;
 
             changed_vars.clear();
             var_mask.Clear();
-            for (auto ic : changed_cons) {  // activities -> var_bounds
+            for (auto ic : changed_cons) {  // activities -> domain
                 for (SvIterator el(model.GetRow(ic)); el; ++el) {
                     Index iv = el.index();
                     if (tracker.GetVarMask(iv)) continue;
 
                     Scalar val = el.value();
-                    const Bounds& old_bnd = old_bounds[iv];
-                    Bounds& curr_bnd = var_bounds[iv];
+                    const Bounds& old_bnd = old_domain.GetBounds(iv);
+                    Bounds curr_bnd = domain.GetBounds(iv);
                     Bounds derived = tracker.DeriveBounds(ic, iv, activities[ic], old_bnd, val);
 
                     if (StrongGt(derived.le, curr_bnd.le) or StrongLt(derived.ri, curr_bnd.ri)) {
-                        curr_bnd = {std::max(curr_bnd.le, derived.le),
-                                    std::min(curr_bnd.ri, derived.ri)};
+                        domain.SetBounds(iv, {std::max(curr_bnd.le, derived.le),
+                                              std::min(curr_bnd.ri, derived.ri)});
                         if (StrongGt(curr_bnd.le, curr_bnd.ri)) {
                             return false;
                         }
@@ -153,8 +153,8 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
             if (tracker.GetVarMask(iv1)) continue;
             if (iv == iv1) continue;
             const Bounds& bnd = model.GetBounds(iv1);
-            const Bounds& bnd0 = bounders[0].var_bounds[iv1];
-            const Bounds& bnd1 = bounders[1].var_bounds[iv1];
+            const Bounds& bnd0 = bounders[0].domain.GetBounds(iv1);
+            const Bounds& bnd1 = bounders[1].domain.GetBounds(iv1);
             Bounds derived = {
                 std::min(bnd0.le, bnd1.le),
                 std::max(bnd0.ri, bnd1.ri),
