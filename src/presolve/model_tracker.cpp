@@ -3,7 +3,7 @@
 namespace reshala {
 
 ModelTracker::ModelTracker(MilpModel& model)
-    : model_(model), con_mask_(model.GetNCons()), var_mask_(model.GetNVars()) {
+    : model_(model), deleted_cons_(model.GetNCons()), deleted_vars_(model.GetNVars()) {
     orig_n_vars_ = model.GetNVars();
     orig_var_idx_.resize(orig_n_vars_);
     for (Index iv = 0; iv < orig_n_vars_; ++iv) {
@@ -21,7 +21,7 @@ void ModelTracker::CompressCons() {
     Index i_write = 0;
     // Todo: use (sorted) deleted_cons_
     for (Index i_read = 0; i_read < m; ++i_read) {
-        if (!con_mask_.Get(i_read)) {
+        if (!deleted_cons_.Get(i_read)) {
             if (i_write != i_read) {
                 model_.GetRow(i_write) = std::move(model_.GetRow(i_read));
                 rhs[i_write] = std::move(rhs[i_read]);
@@ -36,7 +36,7 @@ void ModelTracker::CompressCons() {
     Index next_new_index = 0;
     // Todo: use (sorted) deleted_cons_
     for (Index ic = 0; ic < m; ++ic) {
-        if (!con_mask_.Get(ic)) {
+        if (!deleted_cons_.Get(ic)) {
             new_index_map[ic] = next_new_index++;
         }
     }
@@ -59,11 +59,10 @@ void ModelTracker::CompressCons() {
         col.Resize(i_write);
     }
 
-    model_.Resize(m - deleted_cons_.size(), n);
-    activities_.resize(m - deleted_cons_.size());
+    model_.Resize(m - deleted_cons_.GetNValues(), n);
+    activities_.resize(m - deleted_cons_.GetNValues());
 
-    con_mask_.Clear();
-    deleted_cons_.clear();
+    deleted_cons_.Clear();
 }
 
 void ModelTracker::CompressVars() {
@@ -122,10 +121,9 @@ void ModelTracker::CompressVars() {
     }
     implications_.resize(new_n_impl);
 
-    model_.Resize(m, n - deleted_vars_.size());
+    model_.Resize(m, n - deleted_vars_.GetNValues());
 
-    var_mask_.Clear();
-    deleted_vars_.clear();
+    deleted_vars_.Clear();
 }
 
 void ModelTracker::CalcActivities() {
@@ -347,12 +345,10 @@ void ModelTracker::ScaleRow(Index ic, Scalar x) {
 void ModelTracker::ImportBounder(Bounder& bounder) {
     std::swap(activities_, bounder.activities);
     std::swap(model_.GetDomain(), bounder.domain);
-    for (auto ic : bounder.all_changed_cons) {  // Mini 3.1
-        if (bounder.redundant_con_mask.Get(ic)) {
-            MaskCon(ic);
-        }
+    for (auto ic : bounder.redundant_con_mask.GetValues()) {  // Mini 3.1
+        MaskCon(ic);
     }
-    for (auto iv : bounder.all_changed_vars) {  // Mini 4.1
+    for (auto iv : bounder.all_changed_vars.GetValues()) {  // Mini 4.1
         if (model_.GetType(iv) == BndType::kFixed) {
             FixVar(iv, (model_.GetBounds(iv).le + model_.GetBounds(iv).ri) / 2);
         }

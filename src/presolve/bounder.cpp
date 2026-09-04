@@ -6,29 +6,21 @@ namespace reshala {
 
 Bounder::Bounder(const ModelTracker& t)
     : tracker(t),
-      changed_con_mask(t.GetModel().GetNCons()),
-      changed_var_mask(t.GetModel().GetNVars()),
-      all_changed_con_mask(t.GetModel().GetNCons()),
-      all_changed_var_mask(t.GetModel().GetNVars()),
-      redundant_con_mask(t.GetModel().GetNCons()) {
-    changed_cons.reserve(t.GetModel().GetNCons());
-    changed_vars.reserve(t.GetModel().GetNVars());
-}
+      changed_cons(t.GetModel().GetNCons()),
+      changed_vars(t.GetModel().GetNVars()),
+      all_changed_vars(t.GetModel().GetNVars()),
+      redundant_con_mask(t.GetModel().GetNCons()) {}
 
 void Bounder::Reset() {
     activities = tracker.GetActivities();
     domain = tracker.GetModel().GetDomain();
-    redundant_con_mask = tracker.GetConMask();
 
-    changed_vars.clear();
-    changed_var_mask = tracker.GetVarMask();
-    changed_cons.clear();
-    changed_con_mask = tracker.GetConMask();
+    changed_vars.Clear();
+    changed_cons.Clear();
 
-    all_changed_vars.clear();
-    all_changed_var_mask = tracker.GetVarMask();
-    all_changed_cons.clear();
-    all_changed_con_mask = tracker.GetConMask();
+    all_changed_vars.Clear();
+    redundant_con_mask.Clear();
+    redundant_con_mask.SetMask(tracker.GetDeletedCons().GetMask());
 }
 
 bool Bounder::Propagate(Index iv_start, const Bounds& new_bnd) {
@@ -37,17 +29,17 @@ bool Bounder::Propagate(Index iv_start, const Bounds& new_bnd) {
     const Index kMaxIters = 15;
     Index n_iter = 0;
 
-    changed_vars.push_back(iv_start);
+    changed_vars.Add(iv_start);
 
     Domain old_domain = domain;
     domain.SetBounds(iv_start, new_bnd);
 
-    while (!changed_vars.empty() and n_iter < kMaxIters) {
+    while (!changed_vars.Empty() and n_iter < kMaxIters) {
         n_iter++;
 
-        changed_cons.clear();
-        changed_con_mask = tracker.GetConMask();
-        for (auto iv : changed_vars) {  // domain -> activities
+        changed_cons.Clear();
+        changed_cons.SetMask(tracker.GetDeletedCons().GetMask());
+        for (auto iv : changed_vars.GetValues()) {  // domain -> activities
             for (SvIterator el(model.GetCol(iv)); el; ++el) {
                 Index ic = el.index();
                 Scalar val = el.value();
@@ -61,11 +53,7 @@ bool Bounder::Propagate(Index iv_start, const Bounds& new_bnd) {
 
                 if (WeakGe(new_range.le, model.GetRhs(ic).le) and
                     WeakLe(new_range.ri, model.GetRhs(ic).ri)) {
-                    redundant_con_mask.Set(ic);
-                    if (!all_changed_con_mask.Get(ic)) {
-                        all_changed_con_mask.Set(ic);
-                        all_changed_cons.push_back(ic);
-                    }
+                    redundant_con_mask.Add(ic);
                     continue;
                 }
 
@@ -77,23 +65,15 @@ bool Bounder::Propagate(Index iv_start, const Bounds& new_bnd) {
                         return false;
                     }
 
-                    if (!changed_con_mask.Get(ic)) {
-                        changed_con_mask.Set(ic);
-                        changed_cons.push_back(ic);
-                        if (!all_changed_con_mask.Get(ic)) {
-                            all_changed_con_mask.Set(ic);
-                            all_changed_cons.push_back(ic);
-                        }
-                    }
+                    changed_cons.Add(ic);
                 }
             }
         }
 
         old_domain = domain;
 
-        changed_vars.clear();
-        changed_var_mask.Clear();
-        for (auto ic : changed_cons) {  // activities -> domain
+        changed_vars.Clear();
+        for (auto ic : changed_cons.GetValues()) {  // activities -> domain
             for (SvIterator el(model.GetRow(ic)); el; ++el) {
                 Index iv = el.index();
                 if (tracker.GetVarMask(iv)) continue;
@@ -109,13 +89,8 @@ bool Bounder::Propagate(Index iv_start, const Bounds& new_bnd) {
                     if (StrongGt(curr_bnd.le, curr_bnd.ri)) {
                         return false;
                     }
-                    if (!changed_var_mask.Get(iv)) {
-                        changed_var_mask.Set(iv);
-                        changed_vars.push_back(iv);
-                        if (!all_changed_var_mask.Get(iv)) {
-                            all_changed_var_mask.Set(iv);
-                            all_changed_vars.push_back(iv);
-                        }
+                    if (!changed_vars.Add(iv)) {
+                        all_changed_vars.Add(iv);
                     }
                 }
             }

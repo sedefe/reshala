@@ -47,4 +47,38 @@ class BitMask {
     void Clear() { std::fill(data.begin(), data.end(), 0); }
 };
 
+class MaskedVector {
+   public:
+    MaskedVector(Index n) : mask_(n) { values_.reserve(n); }
+
+    inline bool Empty() const { return values_.empty(); }
+
+    inline void Clear() {
+        mask_.Clear();
+        values_.clear();
+    }
+
+    inline Index GetNValues() const { return values_.size(); }
+
+    inline void SetMask(const BitMask& mask) { mask_ = mask; }
+
+    inline bool Get(Index i) const { return mask_.Get(i); }
+
+    inline bool Add(Index i) {
+        if (!mask_.Get(i)) {
+            mask_.Set(i);
+            values_.push_back(i);
+            return true;
+        }
+        return false;
+    }
+
+    inline const BitMask& GetMask() const { return mask_; }
+    inline const std::vector<Index>& GetValues() const { return values_; }
+
+   private:
+    BitMask mask_;
+    std::vector<Index> values_;
+};
+
 }  // namespace reshala

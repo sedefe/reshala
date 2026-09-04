@@ -18,17 +18,11 @@ struct Bounder {
     std::vector<Activity> activities;
     Domain domain;
 
-    std::vector<Index> changed_cons;
-    BitMask changed_con_mask;
-    std::vector<Index> changed_vars;
-    BitMask changed_var_mask;
+    MaskedVector changed_cons;
+    MaskedVector changed_vars;
 
-    std::vector<Index> all_changed_cons;
-    BitMask all_changed_con_mask;
-    std::vector<Index> all_changed_vars;
-    BitMask all_changed_var_mask;
-
-    BitMask redundant_con_mask;
+    MaskedVector all_changed_vars;
+    MaskedVector redundant_con_mask;
 };
 
 }  // namespace reshala

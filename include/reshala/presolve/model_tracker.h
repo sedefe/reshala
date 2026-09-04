@@ -20,19 +20,15 @@ class ModelTracker {
     const MilpModel& GetModel() const { return model_; }
 
     void MaskCon(Index ic) {
-        con_mask_.Set(ic);
-        deleted_cons_.push_back(ic);
+        deleted_cons_.Add(ic);
         stat.n_rm_con++;
     }
     void MaskVar(Index iv) {
-        var_mask_.Set(iv);
-        deleted_vars_.push_back(iv);
+        deleted_vars_.Add(iv);
         stat.n_rm_var++;
     }
-    inline BitMask GetConMask() const { return con_mask_; }
-    inline bool GetConMask(Index ic) const { return con_mask_.Get(ic); }
-    inline BitMask GetVarMask() const { return var_mask_; }
-    inline bool GetVarMask(Index ic) const { return var_mask_.Get(ic); }
+    inline bool GetConMask(Index ic) const { return deleted_cons_.Get(ic); }
+    inline bool GetVarMask(Index ic) const { return deleted_vars_.Get(ic); }
 
     void CompressCons();
     void CompressVars();
@@ -46,10 +42,10 @@ class ModelTracker {
     inline std::vector<Implication>& GetImplications() { return implications_; }
     inline const std::vector<Implication>& GetImplications() const { return implications_; }
 
-    inline Index GetNDeletedCons() const { return deleted_cons_.size(); }
-    inline Index GetNDeletedVars() const { return deleted_vars_.size(); }
-    inline const std::vector<Index>& GetDeletedCons() const { return deleted_cons_; }
-    inline const std::vector<Index>& GetDeletedVars() const { return deleted_vars_; }
+    inline Index GetNDeletedCons() const { return deleted_cons_.GetNValues(); }
+    inline Index GetNDeletedVars() const { return deleted_vars_.GetNValues(); }
+    inline const MaskedVector& GetDeletedCons() const { return deleted_cons_; }
+    inline const MaskedVector& GetDeletedVars() const { return deleted_vars_; }
 
     // Model transformations
     void FixVar(Index iv, Scalar val);
@@ -80,10 +76,8 @@ class ModelTracker {
     Index orig_n_vars_;
     std::vector<Index> orig_var_idx_;
 
-    BitMask con_mask_;
-    BitMask var_mask_;
-    std::vector<Index> deleted_cons_;
-    std::vector<Index> deleted_vars_;
+    MaskedVector deleted_cons_;
+    MaskedVector deleted_vars_;
 
     std::vector<Activity> activities_;
 
