@@ -74,12 +74,10 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
                 std::min(bnd0.le, bnd1.le),
                 std::max(bnd0.ri, bnd1.ri),
             };
-            if (StrongGt(derived.le, bnd.le) or StrongLt(derived.ri, bnd.ri)) {
-                Bounds new_bnd = {std::max(bnd.le, derived.le), std::min(bnd.ri, derived.ri)};
-                if (StrongGt(new_bnd.le, new_bnd.ri)) {
-                    return RuleResult::kInfeasible;
-                }
-                tracker.UpdVarBounds(iv1, std::move(new_bnd));
+            assert(StrongLt(derived.le, derived.ri));
+            Scalar ratio = (derived.ri - derived.le) / (bnd.ri - bnd.le);
+            if (StrongLt(ratio, 1.0)) {
+                tracker.UpdVarBounds(iv1, std::move(derived));
                 n_reduced++;
                 continue;
             }

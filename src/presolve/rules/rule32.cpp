@@ -15,15 +15,19 @@ RuleResult Rule32::Apply(ModelTracker& tracker) {
             if (IsZero(el.value())) continue;
 
             Scalar val = el.value();
-            const Bounds& bnd = model.GetBounds(el.index());
+            Bounds bnd = model.GetBounds(el.index());
             Bounds derived =
                 tracker.DeriveBounds(ic, el.index(), tracker.GetActivity(ic), bnd, val);
 
             if (StrongGt(derived.le, bnd.le) or StrongLt(derived.ri, bnd.ri)) {
                 Bounds new_bnd = {std::max(bnd.le, derived.le), std::min(bnd.ri, derived.ri)};
                 if (StrongGt(new_bnd.le, new_bnd.ri)) return RuleResult::kInfeasible;
-                tracker.UpdVarBounds(el.index(), std::move(new_bnd));
-                n_reduced++;
+
+                Scalar ratio = (new_bnd.ri - new_bnd.le) / (bnd.ri - bnd.le);
+                if (StrongLt(ratio, 1.0)) {
+                    tracker.UpdVarBounds(el.index(), std::move(new_bnd));
+                    n_reduced++;
+                }
             }
         }
     }

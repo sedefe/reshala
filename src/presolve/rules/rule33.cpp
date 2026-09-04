@@ -9,16 +9,15 @@ RuleResult Rule33::Apply(ModelTracker& tracker) {
     for (Index ic = 0; ic < model.GetNCons(); ic++) {
         if (tracker.GetConMask(ic)) continue;
         const Bounds& rhs = model.GetRhs(ic);
-        // if (rhs.le != -kInf && rhs.ri != kInf) continue;
-        if (std::isinf(rhs.le) + std::isinf(rhs.ri) != 1) continue;
+        if (std::isinf(rhs.le) == std::isinf(rhs.ri)) continue;
         const Activity& act = tracker.GetActivity(ic);
 
         for (SvIterator el(model.GetRow(ic)); el; ++el) {
             Index iv = el.index();
-            if (!model.GetIntegrality(iv)) continue;
             if (tracker.GetVarMask(iv)) continue;
+            if (!model.IsBinary(iv)) continue;
+
             const Bounds& bnd = model.GetBounds(iv);
-            if (bnd.le != 0.0 or bnd.ri != 1) continue;  // Todo handle general integers
             Scalar val = el.value();
             Activity act1 = act;
             act1.RmTerm(val, bnd);
@@ -28,29 +27,33 @@ RuleResult Rule33::Apply(ModelTracker& tracker) {
             if (rhs.le == -kInf) {  // Todo вынести из цикла
                 if (val > 0) {
                     d = (rhs.ri - lhs.ri);
-                    if (val >= d and StrongGt(d, 0)) {
-                        tracker.UpdCoeff(ic, iv, val - d);
+                    Scalar new_val = val - d;
+                    if (val >= d and StrongGt(d, 0) and StrongGt(val / new_val, 1.)) {
+                        tracker.UpdCoeff(ic, iv, new_val);
                         tracker.UpdRhs(ic, {-kInf, lhs.ri});
                         n_reduced++;
                     }
                 } else {
                     d = (rhs.ri - val - lhs.ri);
-                    if (-val >= d and StrongGt(d, 0)) {
-                        tracker.UpdCoeff(ic, iv, val + d);
+                    Scalar new_val = val + d;
+                    if (-val >= d and StrongGt(d, 0) and StrongGt(-val / -new_val, 1.)) {
+                        tracker.UpdCoeff(ic, iv, new_val);
                         n_reduced++;
                     }
                 }
             } else {
                 if (val > 0) {
                     d = (lhs.le + val - rhs.le);
-                    if (val >= d and StrongGt(d, 0)) {
-                        tracker.UpdCoeff(ic, iv, val - d);
+                    Scalar new_val = val - d;
+                    if (val >= d and StrongGt(d, 0) and StrongGt(val / new_val, 1.)) {
+                        tracker.UpdCoeff(ic, iv, new_val);
                         n_reduced++;
                     }
                 } else {
                     d = (lhs.le - rhs.le);
-                    if (-val >= d and StrongGt(d, 0)) {
-                        tracker.UpdCoeff(ic, iv, val + d);
+                    Scalar new_val = val + d;
+                    if (-val >= d and StrongGt(d, 0) and StrongGt(-val / -new_val, 1.)) {
+                        tracker.UpdCoeff(ic, iv, new_val);
                         tracker.UpdRhs(ic, {lhs.le, kInf});
                         n_reduced++;
                     }

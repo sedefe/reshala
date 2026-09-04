@@ -232,7 +232,7 @@ bool ModelTracker::SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b) {
     model_.GetCol(iv2) = axpy(a, model_.GetCol(iv1), model_.GetCol(iv2));
 
     if (StrongGt(new_bnd2.le, bnd2.le) or StrongLt(new_bnd2.ri, bnd2.ri)) {
-        UpdVarBounds(iv2, new_bnd2);
+        UpdVarBounds(iv2, std::move(new_bnd2));
     }
 
     transforms_.push_back(std::make_unique<SimpleSubTransform>(

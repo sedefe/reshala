@@ -3,6 +3,7 @@
 #include <cmath>
 #include <fstream>
 
+#include "reshala/numerics.h"
 #include "reshala/types.h"
 
 namespace reshala {
@@ -30,6 +31,7 @@ bool CompareScalars(Scalar x_desired, Scalar x_real) {
         ((x_desired > 0 && x_real > 0) || (x_desired < 0 && x_real < 0))) {
         return true;
     }
+    if (IsZero(x_desired) && IsZero(x_real)) return true;
 
     constexpr Scalar kRelTol = 1e-4;
 
