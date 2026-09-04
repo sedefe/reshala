@@ -359,6 +359,7 @@ Bounds ModelTracker::DeriveBounds(Index ic, Index iv, Activity act, const Bounds
         derived.le = (rhs.ri - lhs.le) / val;
         derived.ri = (rhs.le - lhs.ri) / val;
     } else {  // ignore near-zeroes as noise
+        return bnd;
     }
     if (model_.GetIntegrality(iv)) {
         derived.le = WeakCeil(derived.le);
