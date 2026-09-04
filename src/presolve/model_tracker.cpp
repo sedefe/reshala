@@ -147,9 +147,10 @@ Activity ModelTracker::CalcActivity(Index ic) const {
 void ModelTracker::FixVar(Index iv, Scalar val) {
     model_.GetObj().c0 += model_.GetObj().coefficients[iv] * val;
 
-    UpdVarBounds(iv, {0, 0});  // Убираем эту переменную из активити
-
+    const Bounds& old_bnd = model_.GetBounds(iv);
     for (SvIterator el(model_.GetCol(iv)); el; ++el) {
+        activities_[el.index()].RmTerm(el.value(), old_bnd);
+
         const Bounds& rhs = model_.GetRhs(el.index());
         model_.GetRhs(el.index()) = {rhs.le - el.value() * val, rhs.ri - el.value() * val};
     }
