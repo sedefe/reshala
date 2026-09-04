@@ -29,7 +29,9 @@ class ModelTracker {
         deleted_vars_.push_back(iv);
         stat.n_rm_var++;
     }
+    inline BitMask GetConMask() const { return con_mask_; }
     inline bool GetConMask(Index ic) const { return con_mask_.Get(ic); }
+    inline BitMask GetVarMask() const { return var_mask_; }
     inline bool GetVarMask(Index ic) const { return var_mask_.Get(ic); }
 
     void CompressCons();
@@ -61,10 +63,7 @@ class ModelTracker {
     void ScaleObj(Scalar x);
     void ScaleObjExp(Index e);
     void ScaleRow(Index ic, Scalar x);
-    void ImportBounder(const Bounder& bounder) {
-        activities_ = bounder.activities;
-        model_.SetDomain(bounder.domain);
-    }
+    void ImportBounder(Bounder& bounder);
 
     inline Index GetOrigNVars() const { return orig_n_vars_; }
     inline const std::vector<Index>& GetOrigVarIdx() const { return orig_var_idx_; }

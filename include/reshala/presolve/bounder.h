@@ -11,6 +11,7 @@ struct Bounder {
     Bounder(const ModelTracker& t);
 
     void Reset();
+    bool Propagate(Index iv_start, const Bounds& new_bnd);
 
     const ModelTracker& tracker;
 
@@ -18,11 +19,16 @@ struct Bounder {
     Domain domain;
 
     std::vector<Index> changed_cons;
-    BitMask con_mask;
+    BitMask changed_con_mask;
     std::vector<Index> changed_vars;
-    BitMask var_mask;
+    BitMask changed_var_mask;
 
-    bool Propagate(Index iv_start, const Bounds& new_bnd);
+    std::vector<Index> all_changed_cons;
+    BitMask all_changed_con_mask;
+    std::vector<Index> all_changed_vars;
+    BitMask all_changed_var_mask;
+
+    BitMask redundant_con_mask;
 };
 
 }  // namespace reshala

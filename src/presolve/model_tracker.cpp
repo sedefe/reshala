@@ -344,6 +344,21 @@ void ModelTracker::ScaleRow(Index ic, Scalar x) {
     stat.n_ch_coeff++;
 }
 
+void ModelTracker::ImportBounder(Bounder& bounder) {
+    std::swap(activities_, bounder.activities);
+    std::swap(model_.GetDomain(), bounder.domain);
+    for (auto ic : bounder.all_changed_cons) {  // Mini 3.1
+        if (bounder.redundant_con_mask.Get(ic)) {
+            MaskCon(ic);
+        }
+    }
+    for (auto iv : bounder.all_changed_vars) {  // Mini 4.1
+        if (model_.GetType(iv) == BndType::kFixed) {
+            FixVar(iv, (model_.GetBounds(iv).le + model_.GetBounds(iv).ri) / 2);
+        }
+    }
+}
+
 Bounds ModelTracker::DeriveBounds(Index ic, Index iv, Activity act, const Bounds& bnd,
                                   Scalar val) const {
     // Todo: pass non-const bounds and modify them
