@@ -55,10 +55,6 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
             const Bounds& bnd = model.GetBounds(iv1);
             const Bounds& bnd0 = bounders[0].domain.GetBounds(iv1);
             const Bounds& bnd1 = bounders[1].domain.GetBounds(iv1);
-            Bounds derived = {
-                std::min(bnd0.le, bnd1.le),
-                std::max(bnd0.ri, bnd1.ri),
-            };
 
             // Check if we can fix or substitute x <- a*y + b
             if (WeakEq(bnd0.le, bnd0.ri) and WeakEq(bnd1.le, bnd1.ri)) {
@@ -74,6 +70,10 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
             }
 
             // Check if we can strengthen the bounds
+            Bounds derived = {
+                std::min(bnd0.le, bnd1.le),
+                std::max(bnd0.ri, bnd1.ri),
+            };
             if (StrongGt(derived.le, bnd.le) or StrongLt(derived.ri, bnd.ri)) {
                 Bounds new_bnd = {std::max(bnd.le, derived.le), std::min(bnd.ri, derived.ri)};
                 if (StrongGt(new_bnd.le, new_bnd.ri)) {
