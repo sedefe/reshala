@@ -19,9 +19,11 @@ void ModelTracker::CompressCons() {
     auto& rhs = model_.GetRhs();
 
     Index i_write = 0;
-    // Todo: use (sorted) deleted_cons_
+    std::vector<Index> new_index_map(m, -1);
     for (Index i_read = 0; i_read < m; ++i_read) {
         if (!deleted_cons_.Get(i_read)) {
+            new_index_map[i_read] = i_write;
+
             if (i_write != i_read) {
                 model_.GetRow(i_write) = std::move(model_.GetRow(i_read));
                 rhs[i_write] = std::move(rhs[i_read]);
@@ -32,15 +34,6 @@ void ModelTracker::CompressCons() {
     }
 
     // Ac
-    std::vector<Index> new_index_map(m, -1);
-    Index next_new_index = 0;
-    // Todo: use (sorted) deleted_cons_
-    for (Index ic = 0; ic < m; ++ic) {
-        if (!deleted_cons_.Get(ic)) {
-            new_index_map[ic] = next_new_index++;
-        }
-    }
-
     for (SparseVector& col : model_.GetAc().GetCols()) {
         Index i_write = 0;
         for (Index i_read = 0; i_read < col.indices().size(); ++i_read) {
@@ -75,7 +68,6 @@ void ModelTracker::CompressVars() {
 
     Index i_write = 0;
     std::vector<Index> new_index_map(n, -1);
-    // Todo: use (sorted) deleted_vars_
     for (Index i_read = 0; i_read < n; ++i_read) {
         if (!GetVarMask(i_read)) {
             if (i_write != i_read) {
