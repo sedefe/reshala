@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "reshala/constants.h"
+#include "reshala/lina/core/masked_vector.h"
 
 namespace reshala {
 
@@ -35,30 +36,30 @@ class Domain {
     }
     inline const BndType &GetType(Index iv) const { return types_[iv]; }
 
-    inline bool GetIntegrality(Index iv) const { return integrality_[iv]; }
-    inline void SetIntegrality(Index iv, bool b) { integrality_[iv] = b; }
+    inline bool GetIntegrality(Index iv) const { return integrality_.Get(iv); }
+    inline void SetIntegrality(Index iv, bool b) { integrality_.Set(iv, b); }
 
     inline size_t Size() const { return bounds_.size(); }
     inline void Resize(Index n) {
         bounds_.resize(n);
         types_.resize(n);
-        integrality_.resize(n);
+        integrality_.Resize(n);
     }
-    inline void Push(const Bounds &b, bool i) {
-        bounds_.push_back(b);
-        types_.push_back(Bounds2Type(b));
-        integrality_.push_back(i);
+    inline void Push(const Bounds &bnd, bool is_int) {
+        bounds_.push_back(bnd);
+        types_.push_back(Bounds2Type(bnd));
+        integrality_.Push(is_int);
     }
     inline void Move(Index i_read, Index i_write) {
         bounds_[i_write] = std::move(bounds_[i_read]);
         types_[i_write] = std::move(types_[i_read]);
-        integrality_[i_write] = std::move(integrality_[i_read]);
+        integrality_.Set(i_write, integrality_.Get(i_read));
     }
 
    private:
     std::vector<Bounds> bounds_;
     std::vector<BndType> types_;
-    std::vector<bool> integrality_;
+    BitMask integrality_;
 };
 
 enum class LockType { kDown = 0, kUp = 1 };
