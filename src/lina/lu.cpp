@@ -41,12 +41,7 @@ LinaResult Lina::Refactor() {
         Scalar pivot_val = 0;
 
         for (auto& j : row_front[k]) j = row_perm_inv[j];
-        std::sort(row_front[k].begin(), row_front[k].end());  // Todo avoid
-
-        bool k_is_in_front = false;
         for (Index i : row_front[k]) {
-            k_is_in_front |= (i == k);
-
             const auto& row_i = Ur.GetRow(i);
             assert(row_i.indices()[0] == k && "Row front is broken");
 
@@ -61,27 +56,13 @@ LinaResult Lina::Refactor() {
             return LinaResult::kDegenerate;
         }
 
-        // Swap rows in U, L, and the permutation vector
-        if (pivot_row != k) {
-            std::swap(Ur.GetRow(k), Ur.GetRow(pivot_row));
-            std::swap(Lr.GetRow(k), Lr.GetRow(pivot_row));
-
-            Index k_perm = row_perm[k];
-            Index pivot_perm = row_perm[pivot_row];
-            std::swap(row_perm[k], row_perm[pivot_row]);
-            std::swap(row_perm_inv[k_perm], row_perm_inv[pivot_perm]);
-        }
         u_diag[k] = pivot_val;
-        Ur.GetRow(k).EraseOffset(0);
+        Ur.GetRow(pivot_row).EraseOffset(0);
 
         // Eliminate rows below k
-        const auto& row_k = Ur.GetRow(k);
-        // Индекс строки из фронта, соответствующий выбранной строке. Без пол-литры не разберёшься:
-        // - Если k была во фронте, то вне зависимости от того, был ли свап, пропускать будем строку номер k.
-        // - Если не была, то выбрана строка номер pivot_row, и пропускаем её.
-        Index skip_row = k_is_in_front ? k : pivot_row;
+        const auto& row_k = Ur.GetRow(pivot_row);
         for (Index i : row_front[k]) {
-            if (i == skip_row) continue;
+            if (i == pivot_row) continue;
 
             auto& row_i = Ur.GetRow(i);
             assert(row_i.indices()[0] == k && "Row front is broken");
@@ -98,6 +79,17 @@ LinaResult Lina::Refactor() {
                 return LinaResult::kDegenerate;
             }
             row_front[row_i.indices()[0]].push_back(row_perm[i]);
+        }
+
+        // Swap rows in U, L, and the permutation vector
+        if (pivot_row != k) {
+            std::swap(Ur.GetRow(k), Ur.GetRow(pivot_row));
+            std::swap(Lr.GetRow(k), Lr.GetRow(pivot_row));
+
+            Index k_perm = row_perm[k];
+            Index pivot_perm = row_perm[pivot_row];
+            std::swap(row_perm[k], row_perm[pivot_row]);
+            std::swap(row_perm_inv[k_perm], row_perm_inv[pivot_perm]);
         }
     }
 
