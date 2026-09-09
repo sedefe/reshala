@@ -32,6 +32,8 @@ class Cutter {
 
    private:
     MilpModel& model_;
+    Index orig_n_cons_;
+
     const Presolver& presolver_;
     DualSimplex& ds_;
     MipTracker& mip_tracker_;

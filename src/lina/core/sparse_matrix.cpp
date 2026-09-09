@@ -11,7 +11,7 @@ void Srm2Scm(const SparseRowMatrix& srm, SparseColMatrix& scm) {
         const auto& indices = row.indices();
         const auto& values = row.values();
 
-        for (size_t j = 0; j < indices.size(); ++j) {
+        for (Index j = 0; j < indices.size(); ++j) {
             auto col = indices[j];
             auto value = values[j];
 

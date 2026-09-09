@@ -22,15 +22,21 @@ bool CutCompare(const Cut& c1, const Cut& c2) {
 
 Cutter::Cutter(MilpModel& model, const Presolver& presolver, DualSimplex& ds,
                MipTracker& mip_tracker, HeuristicManager& heur_manager)
-    : model_(model), presolver_(presolver), ds_(ds), mip_tracker_(mip_tracker), heur_manager_(heur_manager) {
-    auto m = model.GetNCons();
-    auto n = model.GetNVars();
+    : model_(model),
+      presolver_(presolver),
+      ds_(ds),
+      mip_tracker_(mip_tracker),
+      heur_manager_(heur_manager) {}
+
+void Cutter::Run(Solution& sol) {
+    auto m = model_.GetNCons();
+    auto n = model_.GetNVars();
+    orig_n_cons_ = m;
+    auto orig_basis = ds_.GetBasis();
 
     max_cuts_ = Index(kMaxCutsFactor * m);
     max_support_ = std::max(2, Index(kMaxRelSupport * n));  // To guarantee probing is allowed
-}
 
-void Cutter::Run(Solution& sol) {
     for (n_round_ = 0; n_round_ < kMaxRounds; n_round_++) {
         sol_ = sol;
 
@@ -43,7 +49,7 @@ void Cutter::Run(Solution& sol) {
         auto n_added = Add();
 
         if (n_added > 0) {
-            LpBasis basis = ds_.GetBasis();
+            LpBasis basis = orig_basis;
             ds_.SetModel(model_);
             basis.AddBasicVars(n_added);
             ds_.SetBasis(basis);
@@ -164,6 +170,8 @@ Index Cutter::Select() {
 }
 
 Index Cutter::Add() {
+    model_.Resize(orig_n_cons_, model_.GetNVars());
+
     Index m = model_.GetNCons();
     Index n = model_.GetNVars();
 

@@ -8,7 +8,7 @@ namespace reshala {
 
 class AbstractCg {
    public:
-    AbstractCg(const std::string& name, MilpModel& model, DualSimplex& ds)
+    AbstractCg(const std::string& name, MilpModel& model, const DualSimplex& ds)
         : name_(name), model_(model), ds_(ds) {}
     virtual ~AbstractCg() = default;
 
