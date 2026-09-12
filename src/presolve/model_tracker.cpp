@@ -139,10 +139,11 @@ void ModelTracker::FixVar(Index iv, Scalar val) {
 
     const Bounds& old_bnd = model_.GetBounds(iv);
     for (SvIterator el(model_.GetCol(iv)); el; ++el) {
-        activities_[el.index()].RmTerm(el.value(), old_bnd);
+        Index ic = el.index();
+        activities_[ic].RmTerm(el.value(), old_bnd);
 
-        const Bounds& rhs = model_.GetRhs(el.index());
-        model_.GetRhs(el.index()) = {rhs.le - el.value() * val, rhs.ri - el.value() * val};
+        const Bounds& rhs = model_.GetRhs(ic);
+        model_.GetRhs(ic) = {rhs.le - el.value() * val, rhs.ri - el.value() * val};
     }
 
     transforms_.push_back(
@@ -190,7 +191,7 @@ bool ModelTracker::SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b) {
 
         Scalar val_iv1 = el.value();
         Scalar val_iv2 = a * val_iv1;
-        SparseVector& row = model_.GetRow(el.index());
+        SparseVector& row = model_.GetRow(ic);
         row.EraseIndex(iv1);
 
         Activity& act = activities_[ic];
@@ -217,8 +218,8 @@ bool ModelTracker::SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b) {
         }
 
         // Rhs
-        const Bounds& rhs = model_.GetRhs(el.index());
-        model_.GetRhs(el.index()) = {rhs.le - val_iv1 * b, rhs.ri - val_iv1 * b};
+        const Bounds& rhs = model_.GetRhs(ic);
+        model_.GetRhs(ic) = {rhs.le - val_iv1 * b, rhs.ri - val_iv1 * b};
     }
     // Ac
     model_.GetCol(iv2) = axpy(a, model_.GetCol(iv1), model_.GetCol(iv2));
