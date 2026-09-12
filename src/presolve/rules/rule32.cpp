@@ -14,10 +14,10 @@ RuleResult Rule32::Apply(ModelTracker& tracker) {
         for (SvIterator el(model.GetRow(ic)); el; ++el) {
             if (IsZero(el.value())) continue;
 
+            Index iv = el.index();
             Scalar val = el.value();
-            Bounds bnd = model.GetBounds(el.index());
-            Bounds derived =
-                tracker.DeriveBounds(ic, el.index(), tracker.GetActivity(ic), bnd, val);
+            Bounds bnd = model.GetBounds(iv);
+            Bounds derived = tracker.DeriveBounds(ic, iv, tracker.GetActivity(ic), bnd, val);
 
             if (StrongGt(derived.le, bnd.le) or StrongLt(derived.ri, bnd.ri)) {
                 Bounds new_bnd = {std::max(bnd.le, derived.le), std::min(bnd.ri, derived.ri)};
@@ -25,7 +25,7 @@ RuleResult Rule32::Apply(ModelTracker& tracker) {
 
                 Scalar ratio = (new_bnd.ri - new_bnd.le) / (bnd.ri - bnd.le);
                 if (StrongLt(ratio, 1.0)) {
-                    tracker.UpdVarBounds(el.index(), std::move(new_bnd));
+                    tracker.UpdVarBounds(iv, std::move(new_bnd));
                     n_reduced++;
                 }
             }

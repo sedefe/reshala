@@ -76,6 +76,9 @@ class ModelTracker {
     Index orig_n_vars_;
     std::vector<Index> orig_var_idx_;
 
+    MaskedVector changed_cons_;
+    MaskedVector changed_vars_;
+
     MaskedVector deleted_cons_;
     MaskedVector deleted_vars_;
 

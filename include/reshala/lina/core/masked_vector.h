@@ -1,5 +1,6 @@
 #pragma once
 
+#include <numeric>
 #include <vector>
 
 #include "reshala/types.h"
@@ -19,6 +20,7 @@ class BitMask {
     }
 
     void Clear() { std::fill(data.begin(), data.end(), 0); }
+    void SetAll() { std::fill(data.begin(), data.end(), 1); }
 
     bool Get(Index pos) const { return (data[pos / 64] >> (pos % 64)) & 1; }
 
@@ -50,6 +52,10 @@ class MaskedVector {
     inline void Clear() {
         mask_.Clear();
         values_.clear();
+    }
+    void SetAll() {
+        mask_.SetAll();
+        std::iota(values_.begin(), values_.end(), 0);
     }
 
     inline Index GetNValues() const { return values_.size(); }
