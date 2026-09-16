@@ -75,8 +75,7 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
                 std::max(bnd0.ri, bnd1.ri),
             };
             assert(StrongLt(derived.le, derived.ri));
-            Scalar ratio = (derived.ri - derived.le) / (bnd.ri - bnd.le);
-            if (StrongLt(ratio, 1.0)) {
+            if (GoodBndChange(bnd, derived)) {
                 tracker.UpdVarBounds(iv1, std::move(derived));
                 n_reduced++;
                 continue;

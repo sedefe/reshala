@@ -23,8 +23,7 @@ RuleResult Rule32::Apply(ModelTracker& tracker) {
                 Bounds new_bnd = {std::max(bnd.le, derived.le), std::min(bnd.ri, derived.ri)};
                 if (StrongGt(new_bnd.le, new_bnd.ri)) return RuleResult::kInfeasible;
 
-                Scalar ratio = (new_bnd.ri - new_bnd.le) / (bnd.ri - bnd.le);
-                if (StrongLt(ratio, 1.0)) {
+                if (GoodBndChange(bnd, new_bnd)) {
                     tracker.UpdVarBounds(iv, std::move(new_bnd));
                     n_reduced++;
                 }

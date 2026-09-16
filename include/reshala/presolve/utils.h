@@ -36,4 +36,11 @@ struct PresolveStat {
     }
 };
 
+inline bool GoodBndChange(const Bounds& old_bnd, const Bounds& new_bnd) {
+    if (std::isinf(old_bnd.le) > std::isinf(new_bnd.le)) return true;
+    if (std::isinf(old_bnd.ri) > std::isinf(new_bnd.ri)) return true;
+    Scalar ratio = (new_bnd.ri - new_bnd.le) / (old_bnd.ri - old_bnd.le);
+    return StrongLt(ratio, 1.0);
+}
+
 }  // namespace reshala
