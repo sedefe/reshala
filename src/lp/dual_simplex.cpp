@@ -31,7 +31,7 @@ void DualSimplex::Init() {
     basis.Reset();
     lina.Refactor();
 
-    c_n = model_.GetObj().coefficients;
+    std::copy_n(model_.GetObj().coefficients.begin(), n, c_n.begin());
 
     DenseVector x_n(n, 0);
     for (Index iv = 0; iv < n; iv++) {
