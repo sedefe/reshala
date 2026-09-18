@@ -33,13 +33,11 @@ bool DualSimplex::RebuildAll() {
         for (Index iv = 0; iv < n; iv++) {
             Index i_nb = basis.NonBasis()[iv];
             const Bounds& bnd = model_.GetBounds(i_nb);
-            Scalar d_obj;
             switch (model_.GetType(i_nb)) {
                 case BndType::kBoxed:
-                    d_obj = (bnd.ri - bnd.le) * c_n[iv];
-                    if (StrongGt(c_n[iv], 0.0) or StrongGt(d_obj, 0.0)) {
+                    if (StrongGt(c_n[iv], 0.0)) {
                         d_n[iv] = 1;
-                    } else if (StrongLt(c_n[iv], 0.0) or StrongLt(d_obj, 0.0)) {
+                    } else if (StrongLt(c_n[iv], 0.0)) {
                         d_n[iv] = -1;
                     } else if (d_n[iv] == 0) {
                         // Мог остаться артефакт после изменения модели (новых катов)
@@ -48,8 +46,8 @@ bool DualSimplex::RebuildAll() {
                         } else {
                             d_n[iv] = -1;
                         }
-                    } else {  // Если и кост маленький, и флип ни на что не влияет, оставляем как
-                              // есть, чтобы лишний раз не флипать
+                    } else {  // Если кост маленький, оставляем как есть, чтобы лишний раз не
+                              // флипать
                     }
                     break;
                 case BndType::kLower:

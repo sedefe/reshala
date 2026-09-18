@@ -121,16 +121,10 @@ void DualSimplex::MulNRight(const DenseVector& x, DenseVector& res) const {
 }
 
 void DualSimplex::DebugPrint() {
-    DenseVector x(n);
-    for (Index iv = 0; iv < m; iv++) {
-        if (basis.Basis()[iv] < n) x[basis.Basis()[iv]] = x_b[iv];
-    }
-    for (Index iv = 0; iv < n; iv++) {
-        if (basis.NonBasis()[iv] < n) x[basis.NonBasis()[iv]] = GetXnValue(iv);
-    }
-    auto res = model_.PrepareSolution(LpStatus::kOptimal, x);
+    PrepareX();
+    Scalar y_ = model_orig_->GetObj().evaluate(x);
+    std::cout << "===== " << stats.n_iter << " y=" << y_ << " =====\n";
 
-    std::cout << "===== " << stats.n_iter << " y=" << res.y << " =====\n";
     std::cout << basis;
     std::cout << "c_n: ";
     for (auto x : c_n) std::cout << x << " ";
