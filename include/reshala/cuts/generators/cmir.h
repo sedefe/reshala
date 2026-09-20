@@ -14,7 +14,7 @@ class CmirCg : public AbstractCg {
 
    private:
     bool PrepareRow(Index ic);
-    void DoCut(std::vector<Cut>& dst);
+    void DoCut();
     SparseVector lhs;
     Scalar rhs;
     DenseVector x;

@@ -14,7 +14,7 @@ void CmirCg::Generate(const Solution& sol, std::vector<Cut>& dst) {
 
     for (Index ic = 0; ic < m; ic++) {
         if (!PrepareRow(ic)) continue;
-        DoCut(dst);
+        DoCut();
 
         Cut cut(CutType::kCmir, lhs, rhs);
         // std::cout << "\tcut at row" << ic << ": " << cut;
@@ -63,7 +63,7 @@ bool CmirCg::PrepareRow(Index ic) {
     return true;
 }
 
-void CmirCg::DoCut(std::vector<Cut>& dst) {
+void CmirCg::DoCut() {
     Index m = model_.GetNCons();
     Index n = model_.GetNVars();
     std::vector<bool> sides(lhs.Size());
