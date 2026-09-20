@@ -12,9 +12,12 @@ void CmirCg::Generate(const Solution& sol, std::vector<Cut>& dst) {
     auto slacks = ds_.GetSlacks();
     std::copy(slacks.begin(), slacks.end(), x.begin() + n);
 
+    SparseVector lhs(n);
+    Scalar rhs;
+
     for (Index ic = 0; ic < m; ic++) {
-        if (!PrepareRow(ic)) continue;
-        DoCut();
+        if (!PrepareRow(ic, lhs)) continue;
+        DoCut(lhs, rhs);
 
         Cut cut(CutType::kCmir, lhs, rhs);
         // std::cout << "\tcut at row" << ic << ": " << cut;
@@ -24,7 +27,7 @@ void CmirCg::Generate(const Solution& sol, std::vector<Cut>& dst) {
     }
 }
 
-bool CmirCg::PrepareRow(Index ic) {
+bool CmirCg::PrepareRow(Index ic, SparseVector& lhs) {
     Index m = model_.GetNCons();
     Index n = model_.GetNVars();
 
@@ -58,16 +61,15 @@ bool CmirCg::PrepareRow(Index ic) {
     lhs.Push(ib, 1.0);
     lhs.Sort();
 
-    rhs = 0;
-
     return true;
 }
 
-void CmirCg::DoCut() {
+void CmirCg::DoCut(SparseVector& lhs, Scalar& rhs) {
     Index m = model_.GetNCons();
     Index n = model_.GetNVars();
     std::vector<bool> sides(lhs.Size());
 
+    rhs = 0;
     // Displacement: x <- l+d or x <- u-d
     for (Index i = 0; i < lhs.Size(); i++) {
         Index iv = lhs.indices()[i];

@@ -133,9 +133,9 @@ void Cutter::Filter() {
 
     {  // Filter parallel cuts
         Index n_filtered = 0;
-        for (Index ic1 = 0; ic1 < Index(pool_.size()); ic1++) {
+        for (Index ic1 = 0; ic1 < pool_.size(); ic1++) {
             if (pool_[ic1].removed) continue;
-            for (Index ic2 = ic1 + 1; ic2 < Index(pool_.size()); ic2++) {
+            for (Index ic2 = ic1 + 1; ic2 < pool_.size(); ic2++) {
                 if (pool_[ic2].removed) continue;
                 auto cosine2 = Cos2(pool_[ic1].lhs, pool_[ic2].lhs);
                 if (cosine2 > kThdCos2) {
