@@ -9,6 +9,8 @@ ModelTracker::ModelTracker(MilpModel& model)
     for (Index iv = 0; iv < orig_n_vars_; ++iv) {
         orig_var_idx_[iv] = iv;
     }
+
+    CalcActivities();
 }
 
 void ModelTracker::CompressCons() {
@@ -122,16 +124,15 @@ void ModelTracker::CalcActivities() {
     auto m = model_.GetNCons();
     activities_.resize(m);
     for (Index ic = 0; ic < m; ic++) {
-        activities_[ic] = CalcActivity(ic);
+        CalcActivity(ic);
     }
 }
 
-Activity ModelTracker::CalcActivity(Index ic) const {
-    Activity act;
+void ModelTracker::CalcActivity(Index ic) {
+    activities_[ic] = Activity();
     for (SvIterator el(model_.GetRow(ic)); el; ++el) {
-        act.AddTerm(el.value(), model_.GetBounds(el.index()));
+        activities_[ic].AddTerm(el.value(), model_.GetBounds(el.index()));
     }
-    return act;
 }
 
 void ModelTracker::FixVar(Index iv, Scalar val) {

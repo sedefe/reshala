@@ -27,8 +27,6 @@ LpStatus Presolver::Presolve(bool verbose, RuleType max_level) {
     RuleType curr_level = RuleType::kFast;
     RuleResult status = RuleResult::kUnknown;
 
-    tracker_.CalcActivities();
-
     if (verbose) PrintHeader();
     while (status != RuleResult::kInfeasible) {
         bool changed = false;
