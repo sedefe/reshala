@@ -19,8 +19,8 @@ inline Bounds BoundsIntersection(const Bounds &bnd1, const Bounds &bnd2) {
     return Bounds{std::max(bnd1.le, bnd2.le), std::min(bnd1.ri, bnd2.ri)};
 }
 
-inline bool InBounds(Scalar val, const Bounds &bounds, Scalar eps) {
-    return val + eps >= bounds.le && val - eps <= bounds.ri;
+inline bool InBounds(Scalar val, const Bounds &bounds) {
+    return val + kEpsZero >= bounds.le && val - kEpsZero <= bounds.ri;
 }
 
 enum class BndType { kLower, kFree, kFixed, kUpper, kBoxed, kInfeasible };
