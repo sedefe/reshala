@@ -9,6 +9,7 @@
 namespace reshala {
 
 inline bool IsZero(Scalar x) { return x <= kEpsZero and x >= -kEpsZero; }
+inline int8_t Sign(Scalar x) { return (0. < x) - (x < 0.); }
 
 inline bool WeakGe(Scalar x, Scalar y) { return x - y > -kEpsZero; }
 inline bool StrongGt(Scalar x, Scalar y) { return x - y > kEpsZero; }
