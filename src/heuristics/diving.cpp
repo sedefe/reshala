@@ -9,7 +9,7 @@ namespace reshala {
 Solution Diving::InternalRun(const MilpModel& model, const Solution& relaxed,
                              const MipTracker& mip_tracker) {
     if (relaxed.y >= mip_tracker.GetCutoff()) {
-        return InfeasibleSolution();
+        return Solution::Infeasible();
     }
 
     Solution sol;

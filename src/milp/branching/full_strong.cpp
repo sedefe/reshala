@@ -74,7 +74,7 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
 
                 // Если у кандидата нет детей, дропаем всю ноду
                 if (sols[0].status != LpStatus::kOptimal and sols[1].status != LpStatus::kOptimal) {
-                    parent.sol = InfeasibleSolution();
+                    parent.sol = Solution::Infeasible();
                     return 0;
                 }
 

@@ -86,7 +86,7 @@ Solution Presolver::Postsolve(const Solution& sol) {
     switch (sol.status) {
         case LpStatus::kInfeasible:
         case LpStatus::kDropped:
-            return InfeasibleSolution();
+            return Solution::Infeasible();
             break;
         case LpStatus::kError:
             return {sol.status, kNan, {}};

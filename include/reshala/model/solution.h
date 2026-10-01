@@ -14,8 +14,9 @@ struct Solution {
     LpStatus status = LpStatus::kUnknown;
     Scalar y = kInf;
     std::vector<Scalar> x;
-};
+    std::vector<Scalar> slacks;
 
-inline Solution InfeasibleSolution() { return {LpStatus::kInfeasible, kInf, {}}; }
+    static const Solution Infeasible() { return {LpStatus::kInfeasible, kInf, {}, {}}; }
+};
 
 }  // namespace reshala

@@ -125,7 +125,7 @@ void MilpModel::InitLocks() {
 
 Solution MilpModel::PrepareSolution(const LpStatus status, const std::vector<Scalar>& x) const {
     if (status != LpStatus::kOptimal) {
-        return InfeasibleSolution();
+        return Solution::Infeasible();
     }
 
     auto res_x = x;

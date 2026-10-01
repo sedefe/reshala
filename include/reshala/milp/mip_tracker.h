@@ -11,7 +11,7 @@ namespace reshala {
 
 class MipTracker {
    public:
-    MipTracker(const MilpModel& model, const Solution best_sol = InfeasibleSolution(),
+    MipTracker(const MilpModel& model, const Solution best_sol = Solution::Infeasible(),
                Scalar dual = -kInf)
         : model_(model), best_sol_(best_sol), dual_(dual) {
         int_obj_ = model_.ObjIsInteger();
