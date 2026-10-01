@@ -81,7 +81,7 @@ bool DualSimplex::RebuildAll() {
         for (Scalar& x : x_b) x = -x;
     }
 
-    EvalObj();
+    RefreshSolution();
 
     return true;
 }
@@ -127,7 +127,7 @@ bool DualSimplex::Update() {
         x_b[iv_leaving] = theta_p + x_q_old;
     }
 
-    y += c_q_old * theta_p * model_.GetObj().mult;
+    sol.y += c_q_old * theta_p * model_.GetObj().mult;
 
     return true;
 }

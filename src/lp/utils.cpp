@@ -33,7 +33,7 @@ std::ostream& operator<<(std::ostream& os, const DsStats& stats) {
     return os;
 }
 
-DsState DualSimplex::Store() const { return {c_n, x_b, d_n, basis, lina, y}; }
+DsState DualSimplex::Store() const { return {c_n, x_b, d_n, basis, lina, sol.y}; }
 
 void DualSimplex::Restore(const DsState& state) {
     c_n = state.c_n;
@@ -41,47 +41,33 @@ void DualSimplex::Restore(const DsState& state) {
     d_n = state.d_n;
     basis = state.basis;
     lina = state.lina;
-    y = state.y;
+    sol.y = state.y;
 }
 
-void DualSimplex::PrepareX() {
-    x.resize(n);
-    slacks.resize(m);
+void DualSimplex::RefreshSolution() {
+    sol.x.resize(n);
+    sol.slacks.resize(m);
+
     for (Index ic = 0; ic < m; ic++) {
         Index i_b = basis.Basis()[ic];
         if (i_b < n) {
-            x[i_b] = std::ldexp(x_b[ic], -scaling.col[i_b]);
+            sol.x[i_b] = std::ldexp(x_b[ic], -scaling.col[i_b]);
         } else {
-            slacks[i_b - n] = std::ldexp(x_b[ic], scaling.row[i_b - n]);
+            sol.slacks[i_b - n] = std::ldexp(x_b[ic], scaling.row[i_b - n]);
         }
     }
     for (Index iv = 0; iv < n; iv++) {
         Index i_nb = basis.NonBasis()[iv];
         if (i_nb < n) {
             const Bounds& bnd = model_orig_->GetBounds(i_nb);
-            x[i_nb] = (d_n[iv] >= 0) ? bnd.le : bnd.ri;
+            sol.x[i_nb] = (d_n[iv] >= 0) ? bnd.le : bnd.ri;
         } else {
             const Bounds& rhs = model_orig_->GetRhs(i_nb - n);
-            slacks[i_nb - n] = (d_n[iv] >= 0) ? -rhs.ri : -rhs.le;
+            sol.slacks[i_nb - n] = (d_n[iv] >= 0) ? -rhs.ri : -rhs.le;
         }
     }
-}
 
-void DualSimplex::EvalObj() {
-    PrepareX();
-    y = model_orig_->GetObj().evaluate(x);
-}
-
-Solution DualSimplex::PrepareSolution() {
-    Solution sol = Solution::Infeasible();
-    if (status == LpStatus::kOptimal) {
-        PrepareX();
-        sol.status = status;
-        sol.x = x;
-        sol.slacks = slacks;
-        model_orig_->PrepareSolution(sol);
-    }
-    return sol;
+    sol.y = model_orig_->GetObj().evaluate(sol.x);
 }
 
 Scalar DualSimplex::GetXnValue(Index iv) const {
@@ -114,9 +100,8 @@ void DualSimplex::MulNRight(const DenseVector& x, DenseVector& res) const {
 }
 
 void DualSimplex::DebugPrint() {
-    PrepareX();
-    Scalar y_ = model_orig_->GetObj().evaluate(x);
-    std::cout << "===== " << stats.n_iter << " y=" << y_ << " =====\n";
+    RefreshSolution();
+    std::cout << "===== " << stats.n_iter << " y=" << sol.y << " =====\n";
 
     std::cout << basis;
     std::cout << "c_n: ";

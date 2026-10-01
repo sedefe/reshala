@@ -71,7 +71,7 @@ void DualSimplex::Init() {
     MulNRight(x_n, x_b);
     for (Scalar& x : x_b) x = -x;
 
-    EvalObj();
+    RefreshSolution();
 }
 
 Solution DualSimplex::Solve(bool warm, Scalar cutoff) {
@@ -79,14 +79,14 @@ Solution DualSimplex::Solve(bool warm, Scalar cutoff) {
         Init();
     }
 
-    status = LpStatus::kUnknown;
+    sol.status = LpStatus::kUnknown;
     while (true) {
         stats.n_iter += 1;
         // DebugPrint();
 
         Chuzr();
         if (iv_leaving < 0) {
-            status = LpStatus::kOptimal;
+            sol.status = LpStatus::kOptimal;
             break;
         }
         // std::cout << "Leaving: " << iv_leaving << " (" << basis.Basis()[iv_leaving]
@@ -96,7 +96,7 @@ Solution DualSimplex::Solve(bool warm, Scalar cutoff) {
 
         Chuzc();
         if (iv_entering < 0) {
-            status = LpStatus::kInfeasible;
+            sol.status = LpStatus::kInfeasible;
             break;
         }
         // std::cout << "Entering: " << iv_entering << " (" << basis.NonBasis()[iv_entering]
@@ -118,18 +118,23 @@ Solution DualSimplex::Solve(bool warm, Scalar cutoff) {
             // std::cerr << "Aborting DS\n";
             stats.num_issues[NumIssue::kDegenBasis]++;
             stats.n_aborted++;
-            status = LpStatus::kInfeasible;
+            sol.status = LpStatus::kInfeasible;
             break;
         }
 
-        if (y >= cutoff) {
+        if (sol.y >= cutoff) {
             stats.n_dropped++;
-            status = LpStatus::kDropped;
+            sol.status = LpStatus::kDropped;
             break;
         }
     }
 
-    return PrepareSolution();
+    if (sol.status == LpStatus::kOptimal) {
+        RefreshSolution();
+        model_orig_->PrepareSolution(sol);
+    }
+
+    return sol;
 }
 
 void DualSimplex::Ftran() { lina.Ftran(model_.GetCol(basis.NonBasis()[iv_entering]), a_q); }

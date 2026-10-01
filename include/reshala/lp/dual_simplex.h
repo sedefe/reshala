@@ -69,11 +69,9 @@ class DualSimplex {
     DsStats stats;
 
     Index m, n;
-    LpStatus status;
     LpBasis basis;
 
-    DenseVector x, slacks;
-    Scalar y;
+    Solution sol;
 
     DenseVector c_n;
     DenseVector x_b;
@@ -98,9 +96,7 @@ class DualSimplex {
     bool Update();
     bool RebuildAll();
 
-    void PrepareX();
-    void EvalObj();
-    Solution PrepareSolution();
+    void RefreshSolution();
 
     Scalar GetXnValue(Index iv) const;
     void MulNLeft(const DenseVector& x, DenseVector& res) const;
