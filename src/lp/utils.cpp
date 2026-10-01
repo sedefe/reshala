@@ -46,10 +46,13 @@ void DualSimplex::Restore(const DsState& state) {
 
 void DualSimplex::PrepareX() {
     x.resize(n);
+    slacks.resize(m);
     for (Index ic = 0; ic < m; ic++) {
         Index i_b = basis.Basis()[ic];
         if (i_b < n) {
             x[i_b] = std::ldexp(x_b[ic], -scaling.col[i_b]);
+        } else {
+            slacks[i_b - n] = std::ldexp(x_b[ic], scaling.row[i_b - n]);
         }
     }
     for (Index iv = 0; iv < n; iv++) {
@@ -57,6 +60,9 @@ void DualSimplex::PrepareX() {
         if (i_nb < n) {
             const Bounds& bnd = model_orig_->GetBounds(i_nb);
             x[i_nb] = (d_n[iv] >= 0) ? bnd.le : bnd.ri;
+        } else {
+            const Bounds& rhs = model_orig_->GetRhs(i_nb - n);
+            slacks[i_nb - n] = (d_n[iv] >= 0) ? -rhs.ri : -rhs.le;
         }
     }
 }
@@ -67,28 +73,15 @@ void DualSimplex::EvalObj() {
 }
 
 Solution DualSimplex::PrepareSolution() {
+    Solution sol = Solution::Infeasible();
     if (status == LpStatus::kOptimal) {
         PrepareX();
+        sol.status = status;
+        sol.x = x;
+        sol.slacks = slacks;
+        model_orig_->PrepareSolution(sol);
     }
-    return model_orig_->PrepareSolution(status, x);
-}
-
-DenseVector DualSimplex::GetSlacks() const {
-    DenseVector res(m, kNan);
-    for (Index ic = 0; ic < m; ic++) {
-        Index i_b = basis.Basis()[ic];
-        if (i_b >= n) {
-            res[i_b - n] = std::ldexp(x_b[ic], scaling.row[i_b - n]);
-        }
-    }
-    for (Index iv = 0; iv < n; iv++) {
-        Index i_nb = basis.NonBasis()[iv];
-        if (i_nb >= n) {
-            const Bounds& rhs = model_orig_->GetRhs(i_nb - n);
-            res[i_nb - n] = (d_n[iv] >= 0) ? -rhs.ri : -rhs.le;
-        }
-    }
-    return res;
+    return sol;
 }
 
 Scalar DualSimplex::GetXnValue(Index iv) const {

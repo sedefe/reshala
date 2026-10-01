@@ -9,7 +9,7 @@ void CmirCg::Generate(const Solution& sol, std::vector<Cut>& dst) {
 
     x = sol.x;
     x.resize(m + n);
-    auto slacks = ds_.GetSlacks();
+    auto slacks = sol.slacks;
     std::copy(slacks.begin(), slacks.end(), x.begin() + n);
 
     SparseVector lhs(n);

@@ -123,19 +123,19 @@ void MilpModel::InitLocks() {
     }
 }
 
-Solution MilpModel::PrepareSolution(const LpStatus status, const std::vector<Scalar>& x) const {
-    if (status != LpStatus::kOptimal) {
-        return Solution::Infeasible();
+void MilpModel::PrepareSolution(Solution& sol) const {
+    if (sol.status != LpStatus::kOptimal) {
+        sol = Solution::Infeasible();
+        return;
     }
 
-    auto res_x = x;
-    for (auto&& element : res_x) {
+    for (auto& element : sol.x) {
         if (IsZero(element)) {
             element = 0.0;
         }
     }
 
-    return {status, obj_.evaluate(res_x), res_x};
+    sol.y = obj_.evaluate(sol.x);
 }
 
 std::ostream& operator<<(std::ostream& os, const MilpModel& model) {

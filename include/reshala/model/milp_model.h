@@ -79,9 +79,11 @@ class MilpModel {
     }
     void FinalizeAc();
     void InitLocks();
-    inline Index GetNLocks(Index iv, LockType lt) const { return locks_.n_locks[iv][LockType2Index(lt)]; }
+    inline Index GetNLocks(Index iv, LockType lt) const {
+        return locks_.n_locks[iv][LockType2Index(lt)];
+    }
 
-    Solution PrepareSolution(const LpStatus status, const std::vector<Scalar>& x) const;
+    void PrepareSolution(Solution& sol) const;
 
     friend std::ostream& operator<<(std::ostream& os, const MilpModel& model);
     const std::string StatString() const {
