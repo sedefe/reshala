@@ -344,7 +344,9 @@ void ModelTracker::ScaleVar(Index iv, Scalar scale) {
     }
 
     const auto& bnd = model_.GetBounds(iv);
-    UpdVarBounds(iv, {bnd.le / scale, bnd.ri / scale});
+    model_.SetBounds(iv, {bnd.le / scale, bnd.ri / scale});
+
+    model_.GetObj().coefficients[iv] *= scale;
 
     stat.n_ch_coeff += col.Size();
     stat.n_ch_bnd++;
@@ -352,7 +354,11 @@ void ModelTracker::ScaleVar(Index iv, Scalar scale) {
     transforms_.push_back(std::make_unique<ScaleTransform>(orig_var_idx_[iv], scale));
 }
 
-void ModelTracker::SetVarInt(Index iv) { model_.SetIntegrality(iv, true); }
+void ModelTracker::SetVarInt(Index iv) {
+    const Bounds& bnd = model_.GetBounds(iv);
+    model_.SetIntegrality(iv, true);
+    model_.SetBounds(iv, {WeakCeil(bnd.le), WeakFloor(bnd.ri)});
+}
 
 void ModelTracker::ImportBounder(Bounder& bounder) {
     std::swap(activities_, bounder.activities);

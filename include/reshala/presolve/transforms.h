@@ -60,7 +60,7 @@ class LinCombTransform : public Transform {  // iv <- Sum(a_k * x_k) + b
     Scalar b_;
 };
 
-class ScaleTransform : public Transform {  // iv <- iv / x
+class ScaleTransform : public Transform {  // iv <- iv / scale
    public:
     ScaleTransform(Index iv, Scalar scale) : iv_(iv), scale_(scale) {}
 
