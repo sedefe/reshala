@@ -100,4 +100,10 @@ class Rule72 : public Rule {
     RuleResult Apply(ModelTracker& tracker);
 };
 
+class Rule76 : public Rule {
+   public:
+    Rule76(RuleType t) : Rule("7.6 ImplInt", t) {}
+    RuleResult Apply(ModelTracker& tracker);
+};
+
 }  // namespace reshala

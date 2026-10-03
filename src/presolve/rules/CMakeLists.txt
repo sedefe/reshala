@@ -11,4 +11,5 @@ target_sources(${PROJECT_NAME}-lib PRIVATE
     rule48.cpp
     rule52.cpp
     rule72.cpp
+    rule76.cpp
 )

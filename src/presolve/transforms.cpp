@@ -15,4 +15,6 @@ void LinCombTransform::Undo(Solution& sol) {
     }
 }
 
+void ScaleTransform::Undo(Solution& sol) { sol.x[iv_] *= scale_; }
+
 }  // namespace reshala

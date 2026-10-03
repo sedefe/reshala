@@ -147,8 +147,7 @@ void ModelTracker::FixVar(Index iv, Scalar val) {
         model_.GetRhs(ic) = {rhs.le - el.value() * val, rhs.ri - el.value() * val};
     }
 
-    transforms_.push_back(
-        std::make_unique<FixVariableTransform>(FixVariableTransform(orig_var_idx_[iv], val)));
+    transforms_.push_back(std::make_unique<FixVariableTransform>(orig_var_idx_[iv], val));
     MaskVar(iv);
 }
 
@@ -163,8 +162,7 @@ void ModelTracker::ConstShiftVar(Index iv, Scalar val) {
         model_.GetRhs(el.index()) = {rhs.le + el.value() * val, rhs.ri + el.value() * val};
     }
 
-    transforms_.push_back(
-        std::make_unique<ConstShiftTransform>(ConstShiftTransform(orig_var_idx_[iv], val)));
+    transforms_.push_back(std::make_unique<ConstShiftTransform>(orig_var_idx_[iv], val));
 }
 
 bool ModelTracker::SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b) {
@@ -229,8 +227,8 @@ bool ModelTracker::SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b) {
         UpdVarBounds(iv2, std::move(new_bnd2));
     }
 
-    transforms_.push_back(std::make_unique<SimpleSubTransform>(
-        SimpleSubTransform(orig_var_idx_[iv1], a, orig_var_idx_[iv2], b)));
+    transforms_.push_back(
+        std::make_unique<SimpleSubTransform>(orig_var_idx_[iv1], a, orig_var_idx_[iv2], b));
     MaskVar(iv1);
 
     return true;
@@ -262,8 +260,7 @@ void ModelTracker::SlackSub(Index ic, Index iv, Scalar a) {
 
     UpdVarBounds(iv, {0., 0.});
 
-    transforms_.push_back(
-        std::make_unique<LinCombTransform>(LinCombTransform(orig_var_idx_[iv], sv, b / a)));
+    transforms_.push_back(std::make_unique<LinCombTransform>(orig_var_idx_[iv], sv, b / a));
     MaskVar(iv);
 }
 
@@ -320,21 +317,42 @@ void ModelTracker::ScaleObjExp(Index e) {
     model_.GetObj().mult = std::ldexp(model_.GetObj().mult, -e);
 }
 
-void ModelTracker::ScaleRow(Index ic, Scalar x) {
+void ModelTracker::ScaleCon(Index ic, Scalar scale) {
     SparseVector& row = model_.GetRow(ic);
-    row *= x;
+    row *= scale;
     for (SvIterator el(row); el; ++el) {
         auto iv = el.index();
         if (GetVarMask(iv)) continue;
-        model_.GetCol(iv).AtRef(ic) *= x;
+        model_.GetCol(iv).AtRef(ic) *= scale;
     }
-    activities_[ic].Scale(x);
+    activities_[ic].Scale(scale);
 
     const auto& rhs = model_.GetRhs(ic);
-    UpdRhs(ic, {rhs.le * x, rhs.ri * x});
+    UpdRhs(ic, {rhs.le * scale, rhs.ri * scale});
 
-    stat.n_ch_coeff++;
+    stat.n_ch_coeff += row.Size();
+    stat.n_ch_rhs++;
 }
+
+void ModelTracker::ScaleVar(Index iv, Scalar scale) {
+    SparseVector& col = model_.GetCol(iv);
+    col *= scale;
+    for (SvIterator el(col); el; ++el) {
+        auto ic = el.index();
+        if (GetConMask(ic)) continue;
+        model_.GetRow(ic).AtRef(iv) *= scale;
+    }
+
+    const auto& bnd = model_.GetBounds(iv);
+    UpdVarBounds(iv, {bnd.le / scale, bnd.ri / scale});
+
+    stat.n_ch_coeff += col.Size();
+    stat.n_ch_bnd++;
+
+    transforms_.push_back(std::make_unique<ScaleTransform>(orig_var_idx_[iv], scale));
+}
+
+void ModelTracker::SetVarInt(Index iv) { model_.SetIntegrality(iv, true); }
 
 void ModelTracker::ImportBounder(Bounder& bounder) {
     std::swap(activities_, bounder.activities);

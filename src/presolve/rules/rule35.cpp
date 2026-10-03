@@ -24,7 +24,7 @@ RuleResult Rule35::Apply(ModelTracker& tracker) {
             const SparseVector& row = model.GetRow(ic);
             auto gcd = GetGcd(row.values());
             if (gcd > 1) {
-                tracker.ScaleRow(ic, 1. / gcd);
+                tracker.ScaleCon(ic, 1. / gcd);
                 n_reduced++;
             }
         }

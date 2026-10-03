@@ -12,7 +12,7 @@ class Transform {
     virtual void Undo(Solution& sol) = 0;
 };
 
-class FixVariableTransform : public Transform {// iv1 <= val
+class FixVariableTransform : public Transform {  // iv1 <= val
    public:
     FixVariableTransform(Index iv, Scalar val) : iv_(iv), val_(val) {}
 
@@ -23,7 +23,7 @@ class FixVariableTransform : public Transform {// iv1 <= val
     Scalar val_;
 };
 
-class ConstShiftTransform : public Transform { // iv1 <= iv1 + val
+class ConstShiftTransform : public Transform {  // iv1 <= iv1 + val
    public:
     ConstShiftTransform(Index iv, Scalar val) : iv_(iv), val_(val) {}
 
@@ -58,6 +58,17 @@ class LinCombTransform : public Transform {  // iv <- Sum(a_k * x_k) + b
     Index iv_;
     SparseVector sv_;
     Scalar b_;
+};
+
+class ScaleTransform : public Transform {  // iv <- iv / x
+   public:
+    ScaleTransform(Index iv, Scalar scale) : iv_(iv), scale_(scale) {}
+
+    void Undo(Solution& sol) override;
+
+   private:
+    Index iv_;
+    Scalar scale_;
 };
 
 }  // namespace reshala
