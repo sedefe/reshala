@@ -15,14 +15,14 @@ struct HeurFreq {
 class HeuristicManager {
    public:
     HeuristicManager(Reshala& ctx);
-    void Run(HeuristicTrigger trigger, const Solution& relaxed);
+    void RunStartHeus(HeuristicTrigger trigger, const Solution& relaxed);
 
     void PrintStats(std::ostream& os) const;
 
    private:
     Reshala& ctx_;
-    std::vector<HeurFreq> heuristics_;
-    Rounding rounding;
+    std::vector<HeurFreq> start_heus_;
+    Rounding rounding_;
 
     Index n_nodes_ = 0;
 };

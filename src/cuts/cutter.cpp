@@ -51,7 +51,7 @@ void Cutter::Run(Solution& sol) {
             ds.SetBasis(basis);
 
             sol = ds.Solve(true);
-            ctx_.GetHeurMng().Run(HeuristicTrigger::kCut, sol);
+            ctx_.GetHeurMng().RunStartHeus(HeuristicTrigger::kCut, sol);
             if (sol.y > ctx_.GetMip().GetDual()) {
                 ctx_.GetMip().UpdDual(sol.y);
             }

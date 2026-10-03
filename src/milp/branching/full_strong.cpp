@@ -67,7 +67,7 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
                             sols[i].status = LpStatus::kDropped;
                         } else {
                             ds_states[i] = ds.Store();
-                            heur_manager_.Run(HeuristicTrigger::kFsb, sols[i]);
+                            heur_manager_.RunStartHeus(HeuristicTrigger::kFsb, sols[i]);
                         }
                     }
                 }
@@ -131,7 +131,7 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
         ds.Restore(parent.ds_state);
         ds.SetBounds(candidate, final_bounds[i]);
         auto sol = ds.Solve(true);
-        heur_manager_.Run(HeuristicTrigger::kNode, sol);
+        heur_manager_.RunStartHeus(HeuristicTrigger::kNode, sol);
         children_[i] = Node(parent.level + 1, sol, model_.GetDomain(), ds.Store());
 
         if (candidate_used_ps) {

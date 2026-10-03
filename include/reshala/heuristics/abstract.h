@@ -23,10 +23,10 @@ class AbstractHeuristic {
     virtual ~AbstractHeuristic() = default;
     const std::string& GetName() const { return name_; }
 
-    void Run(const Solution& relaxed) {
+    void Run(const Solution& ref) {
         stats.n_called++;
 
-        auto [sol, t_heur] = MEASURE_TIME(InternalRun(relaxed));
+        auto [sol, t_heur] = MEASURE_TIME(InternalRun(ref));
         stats.time += t_heur;
 
         if (sol.status == LpStatus::kOptimal) {
@@ -43,7 +43,7 @@ class AbstractHeuristic {
    protected:
     Reshala& ctx_;
     const std::string name_;
-    virtual Solution InternalRun(const Solution& relaxation) = 0;
+    virtual Solution InternalRun(const Solution& ref) = 0;
 };
 
 }  // namespace reshala

@@ -2,14 +2,14 @@
 
 namespace reshala {
 
-HeuristicManager::HeuristicManager(Reshala& ctx) : ctx_(ctx), rounding(ctx) {
-    heuristics_.push_back({std::make_unique<Rounding>(ctx), 1});
-    heuristics_.push_back({std::make_unique<Diving>(ctx, FixingType::kAll), 10});
-    heuristics_.push_back({std::make_unique<Diving>(ctx, FixingType::kInts), 15});
-    heuristics_.push_back({std::make_unique<Diving>(ctx, FixingType::kNone), 50});
+HeuristicManager::HeuristicManager(Reshala& ctx) : ctx_(ctx), rounding_(ctx) {
+    start_heus_.push_back({std::make_unique<Rounding>(ctx), 1});
+    start_heus_.push_back({std::make_unique<Diving>(ctx, FixingType::kAll), 10});
+    start_heus_.push_back({std::make_unique<Diving>(ctx, FixingType::kInts), 15});
+    start_heus_.push_back({std::make_unique<Diving>(ctx, FixingType::kNone), 50});
 }
 
-void HeuristicManager::Run(HeuristicTrigger trigger, const Solution& relaxed) {
+void HeuristicManager::RunStartHeus(HeuristicTrigger trigger, const Solution& relaxed) {
     if (relaxed.status != LpStatus::kOptimal) return;
     if (relaxed.y >= ctx_.GetMip().GetCutoff()) return;
 
@@ -18,7 +18,7 @@ void HeuristicManager::Run(HeuristicTrigger trigger, const Solution& relaxed) {
     switch (trigger) {
         case HeuristicTrigger::kRoot:
         case HeuristicTrigger::kCut:
-            for (auto& [h, freq] : heuristics_) {
+            for (auto& [h, freq] : start_heus_) {
                 h->Run(relaxed);
                 if (mip_tracker.Converged()) {
                     break;
@@ -26,7 +26,7 @@ void HeuristicManager::Run(HeuristicTrigger trigger, const Solution& relaxed) {
             }
             break;
         case HeuristicTrigger::kNode:
-            for (auto& [h, freq] : heuristics_) {
+            for (auto& [h, freq] : start_heus_) {
                 if (n_nodes_ % freq == 0) {
                     h->Run(relaxed);
                     if (mip_tracker.Converged()) {
@@ -37,7 +37,7 @@ void HeuristicManager::Run(HeuristicTrigger trigger, const Solution& relaxed) {
             n_nodes_++;
             break;
         case HeuristicTrigger::kFsb:
-            rounding.Run(relaxed);
+            rounding_.Run(relaxed);
             if (mip_tracker.Converged()) {
                 break;
             }
@@ -49,7 +49,7 @@ void HeuristicManager::Run(HeuristicTrigger trigger, const Solution& relaxed) {
 
 void HeuristicManager::PrintStats(std::ostream& os) const {
     os << "Heuristics:\n";
-    for (auto& [h, freq] : heuristics_) {
+    for (auto& [h, freq] : start_heus_) {
         os << "\t" << std::setw(12) << h->GetName() << ": " << h->stats << "\n";
     }
 }

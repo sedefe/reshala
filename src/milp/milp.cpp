@@ -30,7 +30,7 @@ Solution MilpSolver::Solve() {
         return presolver.Postsolve(mip_tracker.GetBestSol());
     }
 
-    heur_manager.Run(HeuristicTrigger::kRoot, sol);
+    heur_manager.RunStartHeus(HeuristicTrigger::kRoot, sol);
     if (mip_tracker.Converged()) {
         return presolver.Postsolve(mip_tracker.GetBestSol());
     }
