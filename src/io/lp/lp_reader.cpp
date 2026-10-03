@@ -250,6 +250,9 @@ void LpReader::ParseLincomb(const std::vector<std::string>& tokens, std::vector<
                             Scalar& free_term, Index begin, Index end) {
     enum State { kExpectOperand, kExpectVariable, kExpectOperator };
     State state = kExpectOperand;
+
+    free_term = 0.0;
+
     Scalar sign = 1.0;        // sign of the current monom
     Scalar coeff = 1.0;       // coefficient (if a number was seen)
     bool have_sign = false;   // whether we already set a sign for this monom
@@ -313,7 +316,6 @@ void LpReader::ParseLincomb(const std::vector<std::string>& tokens, std::vector<
         }
     }
 
-    free_term = 0.0;
     if (state == kExpectVariable && has_number) {
         free_term = sign * coeff;
         state = kExpectOperator;
