@@ -11,7 +11,12 @@ class History {
     Index kMinSamples = 8;
 
    public:
-    History(Index n_vars) : s_(n_vars, {0.0, 0.0}), s2_(n_vars, {0.0, 0.0}), n_(n_vars, {0, 0}) {}
+    History() {}
+    void Init(Index n_vars) {
+        s_.assign(n_vars, {0.0, 0.0});
+        s2_.assign(n_vars, {0.0, 0.0});
+        n_.assign(n_vars, {0, 0});
+    }
 
     void Add(Index iv, Direction dir, Scalar dy, Scalar dx);
 

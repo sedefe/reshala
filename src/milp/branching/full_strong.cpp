@@ -48,7 +48,7 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
                 for (Index i = 0; i < 2; ++i) {
                     ds.Restore(parent.ds_state);
                     ds.SetBounds(iv, cand_bounds[i]);
-                    sols[i] = ds.Solve(true, mip_tracker_.GetCutoff());
+                    sols[i] = ds.Solve(true);
                     gains[i] = sols[i].y - parent.sol.y;
 
                     if (sols[i].status == LpStatus::kOptimal) {
@@ -67,7 +67,7 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
                             sols[i].status = LpStatus::kDropped;
                         } else {
                             ds_states[i] = ds.Store();
-                            heur_manager_.Run(HeuristicTrigger::kFsb, model_, sols[i]);
+                            heur_manager_.Run(HeuristicTrigger::kFsb, sols[i]);
                         }
                     }
                 }
@@ -130,8 +130,8 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
     for (Index i = 0; i < 2; ++i) {
         ds.Restore(parent.ds_state);
         ds.SetBounds(candidate, final_bounds[i]);
-        auto sol = ds.Solve(true, mip_tracker_.GetCutoff());
-        heur_manager_.Run(HeuristicTrigger::kNode, model_, sol);
+        auto sol = ds.Solve(true);
+        heur_manager_.Run(HeuristicTrigger::kNode, sol);
         children_[i] = Node(parent.level + 1, sol, model_.GetDomain(), ds.Store());
 
         if (candidate_used_ps) {

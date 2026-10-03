@@ -16,11 +16,11 @@ class Presolver {
     LpStatus Presolve(bool verbose, RuleType max_level);
     Solution Postsolve(const Solution&);
 
-    inline const ModelTracker& GetTracker() const { return tracker_; }
+    inline const ModelTracker& GetTracker() const { return *tracker_; }
 
    private:
     MilpModel& model_;
-    ModelTracker tracker_;
+    std::unique_ptr<ModelTracker> tracker_;
 
     std::map<RuleType, std::vector<std::unique_ptr<Rule>>> rule_map_;
 

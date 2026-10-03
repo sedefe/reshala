@@ -1,5 +1,6 @@
 #include "reshala/cuts/cutter.h"
 
+#include "reshala/heuristics/manager.h"
 #include "reshala/lina/core/operators.h"
 
 namespace reshala {
@@ -20,19 +21,14 @@ bool CutCompare(const Cut& c1, const Cut& c2) {
     return c1.quality > c2.quality;
 }
 
-Cutter::Cutter(MilpModel& model, const Presolver& presolver, DualSimplex& ds,
-               MipTracker& mip_tracker, HeuristicManager& heur_manager)
-    : model_(model),
-      presolver_(presolver),
-      ds_(ds),
-      mip_tracker_(mip_tracker),
-      heur_manager_(heur_manager) {}
-
 void Cutter::Run(Solution& sol) {
-    auto m = model_.GetNCons();
-    auto n = model_.GetNVars();
+    MilpModel& model = ctx_.GetModel();
+    DualSimplex& ds = ctx_.GetDs();
+
+    auto m = model.GetNCons();
+    auto n = model.GetNVars();
     orig_n_cons_ = m;
-    auto orig_basis = ds_.GetBasis();
+    auto orig_basis = ds.GetBasis();
 
     max_cuts_ = Index(kMaxCutsFactor * m);
     max_support_ = std::max(2, Index(kMaxRelSupport * n));  // To guarantee probing is allowed
@@ -50,17 +46,17 @@ void Cutter::Run(Solution& sol) {
 
         if (n_added > 0) {
             LpBasis basis = orig_basis;
-            ds_.SetModel(model_);
+            ds.SetModel(model);
             basis.AddBasicVars(n_added);
-            ds_.SetBasis(basis);
+            ds.SetBasis(basis);
 
-            sol = ds_.Solve(true, mip_tracker_.GetCutoff());
-            heur_manager_.Run(HeuristicTrigger::kCut, model_, sol);
-            if (sol.y > mip_tracker_.GetDual()) {
-                mip_tracker_.UpdDual(sol.y);
+            sol = ds.Solve(true);
+            ctx_.GetHeurMng().Run(HeuristicTrigger::kCut, sol);
+            if (sol.y > ctx_.GetMip().GetDual()) {
+                ctx_.GetMip().UpdDual(sol.y);
             }
-            std::cout << "Added " << n_added << " cuts, size: " << model_.GetNCons() << " x "
-                      << model_.GetNVars() << ", y = " << sol.y << "\n";
+            std::cout << "Added " << n_added << " cuts, size: " << model.GetNCons() << " x "
+                      << model.GetNVars() << ", y = " << sol.y << "\n";
         } else {
             std::cout << "No cuts added\n";
         }
@@ -68,15 +64,15 @@ void Cutter::Run(Solution& sol) {
         if (sol.status != LpStatus::kOptimal) break;
     }
 
-    std::cout << "After cutter: " << sol.y << ", " << model_.StatString() << "\n";
+    std::cout << "After cutter: " << sol.y << ", " << model.StatString() << "\n";
 }
 
 Index Cutter::Generate(const Solution& sol) {
     Index prev_size = pool_.size();
 
     std::unordered_map<CutType, std::unique_ptr<AbstractCg>> generators_;
-    generators_.emplace(CutType::kProbing, std::make_unique<ProbingCg>(model_, presolver_, ds_));
-    generators_.emplace(CutType::kCmir, std::make_unique<CmirCg>(model_, ds_));
+    generators_.emplace(CutType::kProbing, std::make_unique<ProbingCg>(ctx_));
+    generators_.emplace(CutType::kCmir, std::make_unique<CmirCg>(ctx_));
 
     for (const auto& [type, cg] : generators_) {
         Index k = pool_.size();
@@ -98,7 +94,7 @@ Index Cutter::Generate(const Solution& sol) {
 void Cutter::Estimate() {
     for (auto& cut : pool_) {
         if (!cut.removed) {
-            cut.CalcMetrics(sol_, model_);
+            cut.CalcMetrics(sol_, ctx_.GetModel());
             cut.quality = cut.m_obj_parallelism;
         }
     }
@@ -170,10 +166,11 @@ Index Cutter::Select() {
 }
 
 Index Cutter::Add() {
-    model_.Resize(orig_n_cons_, model_.GetNVars());
+    MilpModel& model = ctx_.GetModel();
+    model.Resize(orig_n_cons_, model.GetNVars());
 
-    Index m = model_.GetNCons();
-    Index n = model_.GetNVars();
+    Index m = model.GetNCons();
+    Index n = model.GetNVars();
 
     for (auto& [type, s] : stats.cg_stats) {
         s.n_active = 0;
@@ -182,13 +179,13 @@ Index Cutter::Add() {
     Index n_added = 0;
     for (auto& cut : pool_) {
         if (cut.selected) {
-            model_.PrepareConstraint(cut.lhs, {cut.rhs, kInf});
+            model.PrepareConstraint(cut.lhs, {cut.rhs, kInf});
             n_added++;
             stats.cg_stats[cut.type].n_active++;
         }
     }
-    model_.Resize(m + n_added, n);
-    model_.FinalizeAc();  // Todo можно без Srm2Scm, т.к. мы просто добавляем новые строки
+    model.Resize(m + n_added, n);
+    model.FinalizeAc();  // Todo можно без Srm2Scm, т.к. мы просто добавляем новые строки
 
     return n_added;
 }

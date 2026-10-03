@@ -3,7 +3,9 @@
 namespace reshala {
 
 void ProbingCg::Generate(const Solution& sol, std::vector<Cut>& dst) {
-    Index dim = model_.GetNVars();
+    MilpModel& model = ctx_.GetModel();
+
+    Index dim = model.GetNVars();
     for (const auto& impl : impls_) {
         Index iv1 = impl.x_ind;
         Index iv2 = impl.y_ind;
@@ -13,9 +15,9 @@ void ProbingCg::Generate(const Solution& sol, std::vector<Cut>& dst) {
         Scalar b = impl.b;
         bool left = impl.left;
 
-        const Bounds& bnd = model_.GetBounds(iv2);
+        const Bounds& bnd = model.GetBounds(iv2);
 
-        SparseVector lhs(model_.GetNVars());
+        SparseVector lhs(model.GetNVars());
         Scalar c1, c2;
         Scalar rhs;
 

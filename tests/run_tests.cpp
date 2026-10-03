@@ -1,7 +1,6 @@
 #include <chrono>
 
-#include "reshala/io/io.h"
-#include "reshala/milp/milp.h"
+#include "reshala/reshala.h"
 #include "utils.h"
 
 using namespace reshala;
@@ -54,28 +53,26 @@ std::vector<TestCase> ReadTestCases(const std::string& csv_path) {
 }
 
 bool RunTest(TestCase& tc) {
-    Io io;
+    Reshala reshala;
     std::filesystem::path file_path("tests/models/" + tc.name + ".mps");
-    [[maybe_unused]] auto read_status = io.Read(file_path.c_str());
+    [[maybe_unused]] auto read_status = reshala.Read(file_path.c_str());
     if (read_status != FileReadStatus::kOk) {
         printf("No file %s\n", file_path.c_str());
         return false;
     }
 
-    MilpModel& model = io.GetModel();
-    MilpModel model_copy = model;
-    MilpSolver solver(model);
+    MilpModel model = reshala.GetModel();
     Solution sol;
 
     auto [_, time] = MEASURE_TIME({
         CoutSuppressor suppressor;
-        tc.sol = solver.Solve();
+        tc.sol = reshala.Solve();
     });
     tc.time = time / 1e3;
 
     if (tc.sol.status == LpStatus::kOptimal) {
-        tc.report = model_copy.GetFeasReport(tc.sol.x);
-        tc.y_actual = model_copy.GetObj().evaluate(tc.sol.x);
+        tc.report = model.GetFeasReport(tc.sol.x);
+        tc.y_actual = model.GetObj().evaluate(tc.sol.x);
     } else {
         tc.y_actual = kInf;
     }

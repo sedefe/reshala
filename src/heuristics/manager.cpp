@@ -2,24 +2,25 @@
 
 namespace reshala {
 
-HeuristicManager::HeuristicManager(MipTracker& mip_tracker) : mip_tracker_(mip_tracker) {
-    heuristics_.push_back({std::make_unique<Rounding>(), 1});
-    heuristics_.push_back({std::make_unique<Diving>(FixingType::kAll), 10});
-    heuristics_.push_back({std::make_unique<Diving>(FixingType::kInts), 15});
-    heuristics_.push_back({std::make_unique<Diving>(FixingType::kNone), 50});
+HeuristicManager::HeuristicManager(Reshala& ctx) : ctx_(ctx), rounding(ctx) {
+    heuristics_.push_back({std::make_unique<Rounding>(ctx), 1});
+    heuristics_.push_back({std::make_unique<Diving>(ctx, FixingType::kAll), 10});
+    heuristics_.push_back({std::make_unique<Diving>(ctx, FixingType::kInts), 15});
+    heuristics_.push_back({std::make_unique<Diving>(ctx, FixingType::kNone), 50});
 }
 
-void HeuristicManager::Run(HeuristicTrigger trigger, const MilpModel& model,
-                           const Solution& relaxed) {
+void HeuristicManager::Run(HeuristicTrigger trigger, const Solution& relaxed) {
     if (relaxed.status != LpStatus::kOptimal) return;
-    if (relaxed.y >= mip_tracker_.GetCutoff()) return;
+    if (relaxed.y >= ctx_.GetMip().GetCutoff()) return;
+
+    MipTracker& mip_tracker = ctx_.GetMip();
 
     switch (trigger) {
         case HeuristicTrigger::kRoot:
         case HeuristicTrigger::kCut:
             for (auto& [h, freq] : heuristics_) {
-                h->Run(model, relaxed, mip_tracker_);
-                if (mip_tracker_.Converged()) {
+                h->Run(relaxed);
+                if (mip_tracker.Converged()) {
                     break;
                 }
             }
@@ -27,8 +28,8 @@ void HeuristicManager::Run(HeuristicTrigger trigger, const MilpModel& model,
         case HeuristicTrigger::kNode:
             for (auto& [h, freq] : heuristics_) {
                 if (n_nodes_ % freq == 0) {
-                    h->Run(model, relaxed, mip_tracker_);
-                    if (mip_tracker_.Converged()) {
+                    h->Run(relaxed);
+                    if (mip_tracker.Converged()) {
                         break;
                     }
                 }
@@ -36,8 +37,8 @@ void HeuristicManager::Run(HeuristicTrigger trigger, const MilpModel& model,
             n_nodes_++;
             break;
         case HeuristicTrigger::kFsb:
-            rounding.Run(model, relaxed, mip_tracker_);
-            if (mip_tracker_.Converged()) {
+            rounding.Run(relaxed);
+            if (mip_tracker.Converged()) {
                 break;
             }
             break;

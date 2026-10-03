@@ -11,7 +11,7 @@
 namespace reshala {
 
 enum class MpsParseState { kNam, kRow, kCol, kRhs, kRng, kBnd, kDon, kNon };
-ExpType MpsChar2ExpType(char c) {
+inline ExpType MpsChar2ExpType(char c) {
     switch (c) {
         case 'L':
             return ExpType::kLe;

@@ -2,8 +2,8 @@
 
 namespace reshala {
 
-Solution Rounding::InternalRun(const MilpModel& model, const Solution& relaxed,
-                               const MipTracker& mip_tracker) {
+Solution Rounding::InternalRun(const Solution& relaxed) {
+    const MilpModel& model = ctx_.GetModel();
     Solution sol;
     sol.status = LpStatus::kInfeasible;
     sol.x = relaxed.x;

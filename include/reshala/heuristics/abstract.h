@@ -19,19 +19,19 @@ inline std::ostream& operator<<(std::ostream& os, const HeurStats& stats) {
 
 class AbstractHeuristic {
    public:
-    AbstractHeuristic(const std::string& name) : name_(name) {}
+    AbstractHeuristic(Reshala& ctx, const std::string& name) : ctx_(ctx), name_(name) {}
     virtual ~AbstractHeuristic() = default;
     const std::string& GetName() const { return name_; }
 
-    void Run(const MilpModel& model, const Solution& relaxed, MipTracker& mip_tracker) {
+    void Run(const Solution& relaxed) {
         stats.n_called++;
 
-        auto [sol, t_heur] = MEASURE_TIME(InternalRun(model, relaxed, mip_tracker));
+        auto [sol, t_heur] = MEASURE_TIME(InternalRun(relaxed));
         stats.time += t_heur;
 
         if (sol.status == LpStatus::kOptimal) {
             stats.n_found++;
-            if (mip_tracker.TestPrimal(sol)) {
+            if (ctx_.GetMip().TestPrimal(sol)) {
                 ReportNewPrimal(GetName(), sol.y);
                 stats.n_improved++;
             }
@@ -41,9 +41,9 @@ class AbstractHeuristic {
     HeurStats stats;
 
    protected:
+    Reshala& ctx_;
     const std::string name_;
-    virtual Solution InternalRun(const MilpModel& model, const Solution& relaxation,
-                                 const MipTracker& mip_tracker) = 0;
+    virtual Solution InternalRun(const Solution& relaxation) = 0;
 };
 
 }  // namespace reshala

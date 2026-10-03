@@ -7,7 +7,7 @@ namespace reshala {
 
 class Io {
    public:
-    Io() : mps_reader_(model_, names_), lp_reader_(model_, names_) {}
+    Io(MilpModel& model) : model_(model), mps_reader_(model_, names_), lp_reader_(model_, names_) {}
 
     reshala::FileReadStatus Read(const char* path) {
         std::filesystem::path file_path(path);
@@ -39,8 +39,6 @@ class Io {
         }
     }
 
-    MilpModel& GetModel() { return model_; }
-
     void PrintValues(std::ostream& os, const std::vector<Scalar>& x) const {
         assert(names_.vars.Size() == x.size());
         for (Index iv = 0; iv < x.size(); iv++) {
@@ -52,7 +50,7 @@ class Io {
     }
 
    private:
-    MilpModel model_;
+    MilpModel& model_;
     Names names_;
     MpsReader mps_reader_;
     LpReader lp_reader_;

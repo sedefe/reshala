@@ -6,6 +6,7 @@
 #include "reshala/lp/scaling.h"
 #include "reshala/model/milp_model.h"
 #include "reshala/model/solution.h"
+#include "reshala/reshala.h"
 
 namespace reshala {
 
@@ -34,10 +35,10 @@ class DualSimplex {
     const Index kMaxLinaAge = 50;
 
    public:
-    DualSimplex() {}
+    DualSimplex(Reshala& ctx) : ctx_(ctx) {}
     void SetModel(MilpModel& model);
     void SetBasis(const LpBasis& basis);
-    Solution Solve(bool warm, Scalar cutoff);
+    Solution Solve(bool warm);
 
     inline const DsStats& GetStats() const { return stats; }
     inline const LpBasis& GetBasis() const { return basis; }
@@ -62,6 +63,8 @@ class DualSimplex {
     void GetBasicRow(Index ic, DenseVector& res) const;
 
    private:
+    Reshala& ctx_;
+
     MilpModel* model_orig_;
     MilpModel model_;  // Scaled
     Scaling scaling;

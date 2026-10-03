@@ -7,18 +7,19 @@ std::ostream& operator<<(std::ostream& os, const BnbStats& stats) {
     return os;
 }
 
-BnbSolver::BnbSolver(const MilpModel& model, DualSimplex& ds, MipTracker& mip_tracker,
-                     HeuristicManager& heur_manager)
-    : model_(model),
-      ds_(ds),
-      mip_tracker_(mip_tracker),
-      heur_manager_(heur_manager),
-      hist_(model.GetNVars()) {
-    root_branching_ = std::make_unique<FullStrong>(model, mip_tracker, heur_manager, hist_);
-    node_branching_ = std::make_unique<FullStrong>(model, mip_tracker, heur_manager, hist_);
+BnbSolver::BnbSolver(Reshala& ctx)
+    : ctx_(ctx),
+      model_(ctx.GetModel()),
+      ds_(ctx.GetDs()),
+      mip_tracker_(ctx.GetMip()),
+      heur_manager_(ctx.GetHeurMng()) {
+    root_branching_ = std::make_unique<FullStrong>(ctx, hist_);
+    node_branching_ = std::make_unique<FullStrong>(ctx, hist_);
 }
 
 void BnbSolver::Solve(const Solution& relaxed) {
+    hist_.Init(model_.GetNVars());
+
     Node root(1, relaxed, model_.GetDomain(), ds_.Store());
     nodes.push_back(root);
 

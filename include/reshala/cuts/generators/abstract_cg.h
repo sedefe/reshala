@@ -8,17 +8,15 @@ namespace reshala {
 
 class AbstractCg {
    public:
-    AbstractCg(const std::string& name, MilpModel& model, const DualSimplex& ds)
-        : name_(name), model_(model), ds_(ds) {}
+    AbstractCg(Reshala& ctx, const std::string& name) : ctx_(ctx), name_(name) {}
     virtual ~AbstractCg() = default;
 
     const std::string GetName() const { return name_; }
     virtual void Generate(const Solution& sol, std::vector<Cut>& dst) = 0;
 
    protected:
+    Reshala& ctx_;
     const std::string name_;
-    const MilpModel& model_;
-    const DualSimplex& ds_;
 };
 
 }  // namespace reshala

@@ -6,3 +6,5 @@ add_subdirectory(lp)
 add_subdirectory(milp)
 add_subdirectory(model)
 add_subdirectory(presolve)
+
+target_sources(${PROJECT_NAME}-lib PRIVATE reshala.cpp)

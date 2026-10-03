@@ -10,7 +10,7 @@
 namespace reshala {
 
 enum class LpParseState { kObj, kCon, kBnd, kBin, kGen, kDon, kNon };
-ExpType LpChar2ExpType(char c) {
+inline ExpType LpChar2ExpType(char c) {
     switch (c) {
         case '<':
             return ExpType::kLe;

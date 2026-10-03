@@ -6,53 +6,53 @@
 
 namespace reshala {
 
-Solution Diving::InternalRun(const MilpModel& model, const Solution& relaxed,
-                             const MipTracker& mip_tracker) {
-    if (relaxed.y >= mip_tracker.GetCutoff()) {
+Solution Diving::InternalRun(const Solution& relaxed) {
+    if (relaxed.y >= ctx_.GetMip().GetCutoff()) {
         return Solution::Infeasible();
     }
 
     Solution sol;
 
-    MilpModel model_copy = model;
+    MilpModel model = ctx_.GetModel();
 
-    auto n_fixed = Fixing(fixing_type_, model_copy, relaxed.x);
+    auto n_fixed = Fixing(fixing_type_, model, relaxed.x);
 
-    Presolver presolver(model_copy);
-    if (n_fixed > 0) {
+    Presolver presolver(model);
+    bool do_presolve = n_fixed > 0;
+    if (do_presolve) {
         LpStatus presolve_status = presolver.Presolve(false, RuleType::kFast);
         if (presolve_status != LpStatus::kUnknown) {
             return presolver.Postsolve({presolve_status, {}, {}});
         }
     }
 
-    DualSimplex ds;
-    ds.SetModel(model_copy);
-    sol = ds.Solve(false, mip_tracker.GetCutoff());
+    DualSimplex ds(ctx_);
+    ds.SetModel(model);
+    sol = ds.Solve(false);
 
     while (true) {
         if (sol.status != LpStatus::kOptimal) break;
-        if (sol.y >= mip_tracker.GetCutoff()) {
+        if (sol.y >= ctx_.GetMip().GetCutoff()) {
             sol.status = LpStatus::kDropped;
             break;
         }
-        if (model_copy.IsIntegerFeasible(sol.x)) break;
+        if (model.IsIntegerFeasible(sol.x)) break;
 
-        Index cand = GetCandidate(model_copy, relaxed, sol);
+        Index cand = GetCandidate(model, relaxed, sol);
 
         Scalar lb = Floor(sol.x[cand]);
         Scalar rb = lb + 1;
 
-        Bounds bnd = model_copy.GetBounds(cand);
+        Bounds bnd = model.GetBounds(cand);
         if (sol.x[cand] - bnd.le < bnd.ri - sol.x[cand])
             bnd.ri = lb;
         else
             bnd.le = rb;
         ds.SetBounds(cand, bnd);
-        sol = ds.Solve(true, mip_tracker.GetCutoff());
+        sol = ds.Solve(true);
     }
 
-    return presolver.Postsolve(sol);
+    return do_presolve ? presolver.Postsolve(sol) : sol;
 }
 
 Index Diving::GetCandidate(const MilpModel& model, const Solution& relaxed, const Solution& sol) {

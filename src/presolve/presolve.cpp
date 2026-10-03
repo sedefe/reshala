@@ -2,7 +2,7 @@
 
 namespace reshala {
 
-Presolver::Presolver(MilpModel& model) : model_(model), tracker_(model) {
+Presolver::Presolver(MilpModel& model) : model_(model) {
     std::vector<std::unique_ptr<Rule>> rules_;
     rules_.push_back(std::make_unique<Rule31>(RuleType::kFast));
     rules_.push_back(std::make_unique<Rule32>(RuleType::kFast));
@@ -24,6 +24,8 @@ Presolver::Presolver(MilpModel& model) : model_(model), tracker_(model) {
 }
 
 LpStatus Presolver::Presolve(bool verbose, RuleType max_level) {
+    tracker_ = std::make_unique<ModelTracker>(model_);
+
     RuleType curr_level = RuleType::kFast;
     RuleResult status = RuleResult::kUnknown;
 
@@ -31,20 +33,20 @@ LpStatus Presolver::Presolve(bool verbose, RuleType max_level) {
     while (status != RuleResult::kInfeasible) {
         bool changed = false;
         for (auto& rule : rule_map_[curr_level]) {
-            PresolveStat rule_stat = tracker_.stat;
-            status = rule->Apply(tracker_);
+            PresolveStat rule_stat = tracker_->stat;
+            status = rule->Apply(*tracker_);
 
             if (status != RuleResult::kUnchanged) {
                 changed = true;
-                rule_stat = tracker_.stat - rule_stat;
+                rule_stat = tracker_->stat - rule_stat;
                 if (verbose) PrintStat(*rule, rule_stat);
             }
             if (status == RuleResult::kInfeasible) {
                 break;
             }
         }
-        if (tracker_.GetNDeletedCons() > 0) tracker_.CompressCons();
-        if (tracker_.GetNDeletedVars() > 0) tracker_.CompressVars();
+        if (tracker_->GetNDeletedCons() > 0) tracker_->CompressCons();
+        if (tracker_->GetNDeletedVars() > 0) tracker_->CompressVars();
 
         if (!changed) {
             curr_level = NextLevel(curr_level, max_level);
@@ -100,12 +102,13 @@ Solution Presolver::Postsolve(const Solution& sol) {
     Solution res = sol;
     res.y = model_.GetObj().evaluate(sol.x);
 
-    res.x.assign(tracker_.GetOrigNVars(), kNan);
+    res.x.assign(tracker_->GetOrigNVars(), kNan);
     for (Index iv = 0; iv < sol.x.size(); iv++) {
-        res.x[tracker_.GetOrigVarIdx()[iv]] = sol.x[iv];
+        res.x[tracker_->GetOrigVarIdx()[iv]] = sol.x[iv];
     }
 
-    for (auto it = tracker_.GetTransforms().rbegin(); it != tracker_.GetTransforms().rend(); ++it) {
+    for (auto it = tracker_->GetTransforms().rbegin(); it != tracker_->GetTransforms().rend();
+         ++it) {
         (*it)->Undo(res);
     }
     return res;

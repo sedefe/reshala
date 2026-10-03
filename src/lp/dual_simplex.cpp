@@ -1,5 +1,7 @@
 #include "reshala/lp/dual_simplex.h"
 
+#include "reshala/milp/mip_tracker.h"
+
 namespace reshala {
 
 void DualSimplex::SetModel(MilpModel& model) {
@@ -74,12 +76,14 @@ void DualSimplex::Init() {
     RefreshSolution();
 }
 
-Solution DualSimplex::Solve(bool warm, Scalar cutoff) {
+Solution DualSimplex::Solve(bool warm) {
     if (!warm) {
         Init();
     }
 
     sol.status = LpStatus::kUnknown;
+    Scalar cutoff = ctx_.GetMip().GetCutoff();
+
     while (true) {
         stats.n_iter += 1;
         // DebugPrint();

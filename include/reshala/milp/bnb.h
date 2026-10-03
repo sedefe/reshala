@@ -18,14 +18,14 @@ std::ostream& operator<<(std::ostream& os, const BnbStats& stats);
 
 class BnbSolver {
    public:
-    BnbSolver(const MilpModel& model, DualSimplex& ds, MipTracker& mip_tracker,
-              HeuristicManager& heur_manager);
+    BnbSolver(Reshala& ctx);
 
     void Solve(const Solution& relaxed);
 
     inline const BnbStats& GetStats() const { return stats; }
 
    private:
+    Reshala& ctx_;
     const MilpModel& model_;
     DualSimplex& ds_;
     MipTracker& mip_tracker_;

@@ -11,12 +11,15 @@ namespace reshala {
 
 class MipTracker {
    public:
-    MipTracker(const MilpModel& model, const Solution best_sol = Solution::Infeasible(),
-               Scalar dual = -kInf)
-        : model_(model), best_sol_(best_sol), dual_(dual) {
+    MipTracker(Reshala& ctx) : ctx_(ctx), model_(ctx.GetModel()) {}
+
+    void Init() {
+        best_sol_ = Solution::Infeasible();
+        Scalar dual = -kInf;
         int_obj_ = model_.ObjIsInteger();
         Recalc();
     }
+
     const Solution& GetBestSol() const { return best_sol_; }
     Scalar GetPrimal() const { return best_sol_.y; }
     Scalar GetDual() const { return dual_; }
@@ -38,6 +41,7 @@ class MipTracker {
     bool Converged() const { return cutoff_ <= dual_; }
 
    private:
+    Reshala& ctx_;
     const MilpModel& model_;
     Scalar dual_;
     Scalar cutoff_;

@@ -4,27 +4,18 @@
 #include "reshala/heuristics/manager.h"
 #include "reshala/milp/bnb.h"
 #include "reshala/presolve/presolve.h"
+#include "reshala/reshala.h"
 
 namespace reshala {
 
 class MilpSolver {
    public:
-    MilpSolver(MilpModel& model);
+    MilpSolver(Reshala& ctx);
 
     Solution Solve();
 
-    MilpModel& model;
-    DualSimplex ds;
-    MipTracker mip_tracker;
-
-    Presolver presolver;
-    HeuristicManager heur_manager;
-    Cutter cutter;
-    BnbSolver bnb;
-
-    void PrintStats(std::ostream& os) const;
-
    private:
+    Reshala& ctx_;
 };
 
 }  // namespace reshala

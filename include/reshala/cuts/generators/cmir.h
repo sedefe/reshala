@@ -7,7 +7,7 @@ namespace reshala {
 
 class CmirCg : public AbstractCg {
    public:
-    CmirCg(MilpModel& model, const DualSimplex& ds) : AbstractCg("Cmir", model, ds) {}
+    CmirCg(Reshala& ctx) : AbstractCg(ctx, "Cmir") {}
 
     void Generate(const Solution& sol, std::vector<Cut>& dst) override;
 

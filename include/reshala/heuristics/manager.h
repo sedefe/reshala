@@ -14,15 +14,15 @@ struct HeurFreq {
 
 class HeuristicManager {
    public:
-    HeuristicManager(MipTracker& mip_tracker);
-    void Run(HeuristicTrigger trigger, const MilpModel& model, const Solution& relaxed);
+    HeuristicManager(Reshala& ctx);
+    void Run(HeuristicTrigger trigger, const Solution& relaxed);
 
     void PrintStats(std::ostream& os) const;
 
    private:
+    Reshala& ctx_;
     std::vector<HeurFreq> heuristics_;
     Rounding rounding;
-    MipTracker& mip_tracker_;
 
     Index n_nodes_ = 0;
 };

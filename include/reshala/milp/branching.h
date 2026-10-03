@@ -13,9 +13,12 @@ const Scalar kFsbMu = 1. / 6.;
 
 class AbstractBranching {
    public:
-    AbstractBranching(const MilpModel& model, MipTracker& mip_tracker,
-                      HeuristicManager& heur_manager, History& hist)
-        : model_(model), mip_tracker_(mip_tracker), heur_manager_(heur_manager), hist_(hist) {}
+    AbstractBranching(Reshala& ctx, History& hist)
+        : ctx_(ctx),
+          model_(ctx.GetModel()),
+          mip_tracker_(ctx.GetMip()),
+          heur_manager_(ctx.GetHeurMng()),
+          hist_(hist) {}
     virtual ~AbstractBranching() = default;
     virtual Index Branch(Node& parent, DualSimplex& ds) = 0;
 
@@ -30,6 +33,7 @@ class AbstractBranching {
     }
 
    protected:
+    Reshala& ctx_;
     const MilpModel& model_;
     MipTracker& mip_tracker_;
     HeuristicManager& heur_manager_;
@@ -40,17 +44,13 @@ class AbstractBranching {
 
 class MostInfeasible : public AbstractBranching {
    public:
-    MostInfeasible(const MilpModel& model, MipTracker& mip_tracker, HeuristicManager& heur_manager,
-                   History& hist)
-        : AbstractBranching(model, mip_tracker, heur_manager, hist) {}
+    MostInfeasible(Reshala& ctx, History& hist) : AbstractBranching(ctx, hist) {}
     Index Branch(Node& parent, DualSimplex& ds) override;
 };
 
 class FullStrong : public AbstractBranching {
    public:
-    FullStrong(const MilpModel& model, MipTracker& mip_tracker, HeuristicManager& heur_manager,
-               History& hist)
-        : AbstractBranching(model, mip_tracker, heur_manager, hist) {}
+    FullStrong(Reshala& ctx, History& hist) : AbstractBranching(ctx, hist) {}
     Index Branch(Node& parent, DualSimplex& ds) override;
 };
 
