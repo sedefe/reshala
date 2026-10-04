@@ -22,9 +22,9 @@ RuleResult Rule35::Apply(ModelTracker& tracker) {
             if (tracker.GetConMask(ic)) continue;
 
             const SparseVector& row = model.GetRow(ic);
-            auto gcd = GetGcd(row.values());
-            if (gcd > 1) {
-                tracker.ScaleCon(ic, 1. / gcd);
+            auto gcd = GetGcd(row.values(), kGcdDenominator);
+            if (gcd != 0 and gcd != kGcdDenominator) {
+                tracker.ScaleCon(ic, Scalar(kGcdDenominator) / gcd);
                 n_reduced++;
             }
         }
