@@ -50,6 +50,8 @@ class ModelTracker {
     void ConstShiftVar(Index iv, Scalar val);
     bool SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b);  // iv1 <- a*iv2 + b
     void SlackSub(Index ic, Index iv, Scalar a);
+    void UpdCon(Index ic, const SparseVector& row);
+    void RebuildAc();
 
     void UpdRhs(Index ic, Bounds rhs);
     void UpdVarBounds(Index iv, Bounds bnd);

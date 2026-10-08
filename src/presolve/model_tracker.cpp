@@ -264,6 +264,10 @@ void ModelTracker::SlackSub(Index ic, Index iv, Scalar a) {
     MaskVar(iv);
 }
 
+void ModelTracker::UpdCon(Index ic, const SparseVector& row) { model_.GetRow(ic) = row; }
+
+void ModelTracker::RebuildAc() { model_.FinalizeAc(); }
+
 void ModelTracker::UpdRhs(Index ic, Bounds rhs) {
     if (WeakEq(rhs.le, rhs.ri)) rhs.le = rhs.ri = (rhs.le + rhs.ri) / 2;
 

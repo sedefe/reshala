@@ -10,6 +10,7 @@ target_sources(${PROJECT_NAME}-lib PRIVATE
     rule47.cpp
     rule48.cpp
     rule52.cpp
+    rule53.cpp
     rule72.cpp
     rule76.cpp
 )

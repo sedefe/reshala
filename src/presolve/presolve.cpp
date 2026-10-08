@@ -17,6 +17,7 @@ Presolver::Presolver(MilpModel& model) : model_(model) {
     rules_.push_back(std::make_unique<Rule52>(RuleType::kMedium));
     rules_.push_back(std::make_unique<Rule76>(RuleType::kMedium));
     rules_.push_back(std::make_unique<Rule72>(RuleType::kExhaustive));
+    rules_.push_back(std::make_unique<Rule53>(RuleType::kFinal));
 
     for (auto& rule : rules_) {
         RuleType type = rule->type;
@@ -29,6 +30,7 @@ LpStatus Presolver::Presolve(bool verbose, RuleType max_level) {
 
     RuleType curr_level = RuleType::kFast;
     RuleResult status = RuleResult::kUnknown;
+    did_final_ = false;
 
     if (verbose) PrintHeader();
     while (status != RuleResult::kInfeasible) {
@@ -50,7 +52,30 @@ LpStatus Presolver::Presolve(bool verbose, RuleType max_level) {
         if (tracker_->GetNDeletedVars() > 0) tracker_->CompressVars();
 
         if (!changed) {
-            curr_level = NextLevel(curr_level, max_level);
+            if (curr_level == max_level)
+                curr_level = RuleType::kUnknown;
+            else {
+                switch (curr_level) {
+                    case RuleType::kFast:
+                        curr_level = RuleType::kMedium;
+                        break;
+                    case RuleType::kMedium:
+                        curr_level = RuleType::kExhaustive;
+                        break;
+                    case RuleType::kExhaustive:
+                        if (did_final_) {
+                            curr_level = RuleType::kUnknown;
+                            break;
+                        } else {
+                            did_final_ = true;
+                            curr_level = RuleType::kFinal;
+                            break;
+                        }
+                    default:
+                        curr_level = RuleType::kUnknown;
+                        break;
+                }
+            }
             if (curr_level == RuleType::kUnknown) break;
         } else {
             curr_level = RuleType::kFast;

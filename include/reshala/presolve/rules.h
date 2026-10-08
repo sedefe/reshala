@@ -94,6 +94,39 @@ class Rule52 : public Rule {
                   Scalar scale2) const;
 };
 
+class Rule53 : public Rule {
+   public:
+    Rule53(RuleType t) : Rule("5.3 NzCancel", t) {}
+    RuleResult Apply(ModelTracker& tracker);
+
+   private:
+    struct Key {
+        Index iv1;
+        Index iv2;
+        Scalar ratio;
+        bool operator==(const Key& o) const {
+            return iv1 == o.iv1 && iv2 == o.iv2 && ratio == o.ratio;
+        }
+    };
+    struct KeyHash {
+        std::size_t operator()(const Key& k) const noexcept {
+            std::size_t h = std::hash<Index>{}(k.iv1);
+            h ^= std::hash<Index>{}(k.iv2) + 0x9e3779b97f4a7c15ULL + (h << 6) + (h >> 2);
+            h ^= std::hash<Scalar>{}(k.ratio) + 0x9e3779b97f4a7c15ULL + (h << 6) + (h >> 2);
+            return h;
+        }
+    };
+    struct Value {
+        Index ic;
+        Scalar a1;
+        Scalar a2;
+    };
+    std::unordered_map<Key, Value, KeyHash> eq_hash_map;
+
+    void FillEqHashMap(const ModelTracker& tracker);
+    Index PairSearch(ModelTracker& tracker);
+};
+
 class Rule72 : public Rule {
    public:
     Rule72(RuleType t) : Rule("7.2 Probing", t) {}
