@@ -66,8 +66,8 @@ enum class LockType { kDown = 0, kUp = 1 };
 inline Index LockType2Index(LockType lt) { return static_cast<Index>(lt); }
 
 struct Locks {
-    std::vector<std::array<Scalar, 2>> n_locks;
-    std::vector<Scalar> sum_locks;
+    std::vector<std::array<Index, 2>> n_locks;
+    std::vector<Index> sum_locks;
 
     inline void Resize(Index n) {
         n_locks.resize(n, {0, 0});

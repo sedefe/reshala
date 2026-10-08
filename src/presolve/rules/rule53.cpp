@@ -45,11 +45,11 @@ void Rule53::FillEqHashMap(const ModelTracker& tracker) {
         Index sz = std::min(row.Size(), kMaxNzs);
 
         for (Index nz2 = 0; nz2 < sz; ++nz2) {
-            Index iv2 = row.indices()[nz2];
-            Scalar a2 = row.values()[nz2];
+            Index iv2 = row.indices()[indices[nz2]];
+            Scalar a2 = row.values()[indices[nz2]];
             for (Index nz1 = 0; nz1 < nz2; ++nz1) {
-                Index iv1 = row.indices()[nz1];
-                Scalar a1 = row.values()[nz1];
+                Index iv1 = row.indices()[indices[nz1]];
+                Scalar a1 = row.values()[indices[nz1]];
                 const Key key{iv1, iv2, a2 / a1};
                 const Value value{ic, a1, a2};
 
@@ -84,11 +84,11 @@ Index Rule53::PairSearch(ModelTracker& tracker) {
         Index sz = std::min(row.Size(), kMaxNzs);
 
         for (Index nz2 = 0; nz2 < sz; ++nz2) {
-            Index iv2 = row.indices()[nz2];
-            Scalar a2 = row.values()[nz2];
+            Index iv2 = row.indices()[indices[nz2]];
+            Scalar a2 = row.values()[indices[nz2]];
             for (Index nz1 = 0; nz1 < nz2; ++nz1) {
-                Index iv1 = row.indices()[nz1];
-                Scalar a1 = row.values()[nz1];
+                Index iv1 = row.indices()[indices[nz1]];
+                Scalar a1 = row.values()[indices[nz1]];
                 const Key key{iv1, iv2, a2 / a1};
 
                 auto it = eq_hash_map.find(key);
