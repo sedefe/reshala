@@ -69,6 +69,7 @@ class ModelTracker {
     }
 
     Bounds DeriveBounds(Index ic, Index iv, Activity act, const Bounds& bnd, Scalar val) const;
+    void UpdActivity(Index ic);
 
    private:
     MilpModel& model_;
@@ -86,7 +87,6 @@ class ModelTracker {
     std::vector<std::unique_ptr<Transform>> transforms_;
 
     void CalcActivities();
-    void CalcActivity(Index ic);
 };
 
 }  // namespace reshala

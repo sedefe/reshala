@@ -124,11 +124,11 @@ void ModelTracker::CalcActivities() {
     auto m = model_.GetNCons();
     activities_.resize(m);
     for (Index ic = 0; ic < m; ic++) {
-        CalcActivity(ic);
+        UpdActivity(ic);
     }
 }
 
-void ModelTracker::CalcActivity(Index ic) {
+void ModelTracker::UpdActivity(Index ic) {
     activities_[ic] = Activity();
     for (SvIterator el(model_.GetRow(ic)); el; ++el) {
         activities_[ic].AddTerm(el.value(), model_.GetBounds(el.index()));
