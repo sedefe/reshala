@@ -67,8 +67,12 @@ inline Index LockType2Index(LockType lt) { return static_cast<Index>(lt); }
 
 struct Locks {
     std::vector<std::array<Scalar, 2>> n_locks;
+    std::vector<Scalar> sum_locks;
 
-    inline void Resize(Index n) { n_locks.resize(n, {0, 0}); }
+    inline void Resize(Index n) {
+        n_locks.resize(n, {0, 0});
+        sum_locks.resize(n, 0);
+    }
 };
 
 }  // namespace reshala

@@ -79,6 +79,7 @@ class MilpModel {
     }
     void FinalizeAc();
     void InitLocks();
+    inline const Locks& GetLocks() const { return locks_; }
     inline Index GetNLocks(Index iv, LockType lt) const {
         return locks_.n_locks[iv][LockType2Index(lt)];
     }

@@ -69,7 +69,9 @@ class ModelTracker {
     }
 
     Bounds DeriveBounds(Index ic, Index iv, Activity act, const Bounds& bnd, Scalar val) const;
+    void CalcActivities();
     void UpdActivity(Index ic);
+    void InitLocks() { model_.InitLocks(); }
 
    private:
     MilpModel& model_;
@@ -85,8 +87,6 @@ class ModelTracker {
     std::vector<Implication> implications_;
 
     std::vector<std::unique_ptr<Transform>> transforms_;
-
-    void CalcActivities();
 };
 
 }  // namespace reshala
