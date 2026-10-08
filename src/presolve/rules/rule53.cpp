@@ -4,8 +4,20 @@
 
 namespace reshala {
 
+void SortIndicesByScore(std::vector<Index>& target, const std::vector<Index>& indices,
+                        const Locks& locks, size_t max_len) {
+    if (max_len <= 0 || target.empty()) return;
+
+    std::size_t k = std::min(target.size(), max_len);
+    std::partial_sort(target.begin(), target.begin() + k, target.end(), [&](Index a, Index b) {
+        return locks.sum_locks[indices[a]] < locks.sum_locks[indices[b]];
+    });
+}
+
 RuleResult Rule53::Apply(ModelTracker& tracker) {
     Index n_reduced = 0;
+
+    tracker.InitLocks();  // Todo: keep & update
 
     FillEqHashMap(tracker);
     if (eq_hash_map.size() > 0) {
@@ -27,7 +39,11 @@ void Rule53::FillEqHashMap(const ModelTracker& tracker) {
 
         const auto& row = model.GetRow(ic);
 
-        Index sz = row.Size();
+        std::vector<Index> indices(row.Size());
+        std::iota(indices.begin(), indices.end(), 0);
+        SortIndicesByScore(indices, row.indices(), model.GetLocks(), kMaxNzs);
+        Index sz = std::min(row.Size(), kMaxNzs);
+
         for (Index nz2 = 0; nz2 < sz; ++nz2) {
             Index iv2 = row.indices()[nz2];
             Scalar a2 = row.values()[nz2];
@@ -62,7 +78,11 @@ Index Rule53::PairSearch(ModelTracker& tracker) {
         SparseVector res(model.GetNVars());
         SparseVector best_res(model.GetNVars());
 
-        Index sz = row.Size();
+        std::vector<Index> indices(row.Size());
+        std::iota(indices.begin(), indices.end(), 0);
+        SortIndicesByScore(indices, row.indices(), model.GetLocks(), kMaxNzs);
+        Index sz = std::min(row.Size(), kMaxNzs);
+
         for (Index nz2 = 0; nz2 < sz; ++nz2) {
             Index iv2 = row.indices()[nz2];
             Scalar a2 = row.values()[nz2];
