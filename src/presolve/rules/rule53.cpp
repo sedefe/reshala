@@ -72,53 +72,56 @@ Index Rule53::PairSearch(ModelTracker& tracker) {
 
         const auto& row = model.GetRow(ic);
 
-        Index min_size = row.Size();
-        Index ic_pair = -1;
-        Scalar best_lambda;
-        SparseVector res(model.GetNVars());
-        SparseVector best_res(model.GetNVars());
+        while (true) {
+            Index min_size = row.Size();
+            Index ic_pair = -1;
+            Scalar best_lambda;
+            SparseVector res(model.GetNVars());
+            SparseVector best_res(model.GetNVars());
 
-        std::vector<Index> indices(row.Size());
-        std::iota(indices.begin(), indices.end(), 0);
-        SortIndicesByScore(indices, row.indices(), model.GetLocks(), kMaxNzs);
-        Index sz = std::min(row.Size(), kMaxNzs);
+            std::vector<Index> indices(row.Size());
+            std::iota(indices.begin(), indices.end(), 0);
+            SortIndicesByScore(indices, row.indices(), model.GetLocks(), kMaxNzs);
+            Index sz = std::min(row.Size(), kMaxNzs);
 
-        for (Index nz2 = 0; nz2 < sz; ++nz2) {
-            Index iv2 = row.indices()[indices[nz2]];
-            Scalar a2 = row.values()[indices[nz2]];
-            for (Index nz1 = 0; nz1 < nz2; ++nz1) {
-                Index iv1 = row.indices()[indices[nz1]];
-                Scalar a1 = row.values()[indices[nz1]];
-                const Key key{iv1, iv2, a2 / a1};
+            for (Index nz2 = 0; nz2 < sz; ++nz2) {
+                Index iv2 = row.indices()[indices[nz2]];
+                Scalar a2 = row.values()[indices[nz2]];
+                for (Index nz1 = 0; nz1 < nz2; ++nz1) {
+                    Index iv1 = row.indices()[indices[nz1]];
+                    Scalar a1 = row.values()[indices[nz1]];
+                    const Key key{iv1, iv2, a2 / a1};
 
-                auto it = eq_hash_map.find(key);
-                if (it != eq_hash_map.end()) {
-                    const Value& value = it->second;
-                    if (value.ic == ic) continue;
+                    auto it = eq_hash_map.find(key);
+                    if (it != eq_hash_map.end()) {
+                        const Value& value = it->second;
+                        if (value.ic == ic) continue;
 
-                    Scalar lambda = a1 / value.a1;
-                    res = axpy(-lambda, model.GetRow(value.ic), row);
-                    Index size = res.Size();
+                        Scalar lambda = a1 / value.a1;
+                        res = axpy(-lambda, model.GetRow(value.ic), row);
+                        Index size = res.Size();
 
-                    if (size < min_size) {
-                        min_size = size;
-                        ic_pair = value.ic;
-                        best_lambda = lambda;
-                        std::swap(res, best_res);
+                        if (size < min_size) {
+                            min_size = size;
+                            ic_pair = value.ic;
+                            best_lambda = lambda;
+                            std::swap(res, best_res);
+                        }
                     }
                 }
             }
-        }
 
-        if (ic_pair >= 0) {
-            n_paired++;
+            if (ic_pair >= 0) {
+                n_paired++;
 
-            const Bounds& rhs = model.GetRhs(ic);
-            Scalar b = (model.GetRhs(ic_pair).le + model.GetRhs(ic_pair).ri) / 2;
-
-            tracker.UpdCon(ic, best_res);
-            tracker.UpdActivity(ic);
-            tracker.UpdRhs(ic, {rhs.le - best_lambda * b, rhs.ri - best_lambda * b});
+                const Bounds& rhs = model.GetRhs(ic);
+                Scalar b = (model.GetRhs(ic_pair).le + model.GetRhs(ic_pair).ri) / 2;
+                tracker.UpdCon(ic, best_res);
+                tracker.UpdActivity(ic);
+                tracker.UpdRhs(ic, {rhs.le - best_lambda * b, rhs.ri - best_lambda * b});
+            } else {
+                break;
+            }
         }
     }
 
