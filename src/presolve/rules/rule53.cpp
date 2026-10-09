@@ -4,8 +4,8 @@
 
 namespace reshala {
 
-void SortOffsets(std::vector<Index>& target, const std::vector<Index>& indices,
-                        const Locks& locks, size_t max_len) {
+void SortOffsets(std::vector<Index>& target, const std::vector<Index>& indices, const Locks& locks,
+                 size_t max_len) {
     if (max_len <= 0 || target.empty()) return;
 
     std::size_t k = std::min(target.size(), max_len);
@@ -76,8 +76,6 @@ Index Rule53::PairSearch(ModelTracker& tracker) {
             Index min_size = row.Size();
             Index ic_pair = -1;
             Scalar best_lambda;
-            SparseVector res(model.GetNVars());
-            SparseVector best_res(model.GetNVars());
 
             std::vector<Index> offsets(row.Size());
             std::iota(offsets.begin(), offsets.end(), 0);
@@ -98,14 +96,12 @@ Index Rule53::PairSearch(ModelTracker& tracker) {
                         if (value.ic == ic) continue;
 
                         Scalar lambda = a1 / value.a1;
-                        res = axpy(-lambda, model.GetRow(value.ic), row);
-                        Index size = res.Size();
+                        Index size = axpy_size(-lambda, model.GetRow(value.ic), row);
 
                         if (size < min_size) {
                             min_size = size;
                             ic_pair = value.ic;
                             best_lambda = lambda;
-                            std::swap(res, best_res);
                             if (min_size == 0) break;
                         }
                     }
@@ -115,9 +111,11 @@ Index Rule53::PairSearch(ModelTracker& tracker) {
             if (ic_pair >= 0) {
                 n_paired++;
 
+                SparseVector new_row = axpy(-best_lambda, model.GetRow(ic_pair), row);
+
                 const Bounds& rhs = model.GetRhs(ic);
                 Scalar b = (model.GetRhs(ic_pair).le + model.GetRhs(ic_pair).ri) / 2;
-                tracker.UpdCon(ic, best_res);
+                tracker.UpdCon(ic, new_row);
                 tracker.UpdActivity(ic);
                 tracker.UpdRhs(ic, {rhs.le - best_lambda * b, rhs.ri - best_lambda * b});
             } else {

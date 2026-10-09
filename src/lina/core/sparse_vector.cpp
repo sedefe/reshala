@@ -88,6 +88,49 @@ SparseVector axpy(Scalar a, const SparseVector& sv1, const SparseVector& sv2) {
     return res;
 }
 
+Index axpy_size(Scalar a, const SparseVector& sv1, const SparseVector& sv2) {
+    assert(sv1.dim() == sv2.dim() && "SparseVector combine: vectors are of different dimensions");
+
+    Index res = 0;
+
+    const auto& ind1 = sv1.indices();
+    const auto& val1 = sv1.values();
+    const auto& ind2 = sv2.indices();
+    const auto& val2 = sv2.values();
+
+    Index i1 = 0, i2 = 0;
+    auto n1 = sv1.Size();
+    auto n2 = sv2.Size();
+
+    while (i1 < n1 && i2 < n2) {
+        Index ind;
+        Scalar v1 = Scalar(0);
+        Scalar v2 = Scalar(0);
+
+        if (ind1[i1] < ind2[i2]) {
+            ind = ind1[i1];
+            v1 = val1[i1];
+            i1++;
+        } else if (ind2[i2] < ind1[i1]) {
+            ind = ind2[i2];
+            v2 = val2[i2];
+            i2++;
+        } else {
+            ind = ind1[i1];
+            v1 = val1[i1];
+            v2 = val2[i2];
+            i1++;
+            i2++;
+        }
+
+        res += !IsZero(a * v1 + v2);
+    }
+    res += n1 - i1;
+    res += n2 - i2;
+
+    return res;
+}
+
 SparseVector operator*(SparseVector sv, Scalar x) {
     sv *= x;
     return sv;
