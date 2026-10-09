@@ -4,7 +4,7 @@
 
 namespace reshala {
 
-void SortIndicesByScore(std::vector<Index>& target, const std::vector<Index>& indices,
+void SortOffsets(std::vector<Index>& target, const std::vector<Index>& indices,
                         const Locks& locks, size_t max_len) {
     if (max_len <= 0 || target.empty()) return;
 
@@ -41,7 +41,7 @@ void Rule53::FillEqHashMap(const ModelTracker& tracker) {
 
         std::vector<Index> indices(row.Size());
         std::iota(indices.begin(), indices.end(), 0);
-        SortIndicesByScore(indices, row.indices(), model.GetLocks(), kMaxNzs);
+        SortOffsets(indices, row.indices(), model.GetLocks(), kMaxNzs);
         Index sz = std::min(row.Size(), kMaxNzs);
 
         for (Index nz2 = 0; nz2 < sz; ++nz2) {
@@ -79,17 +79,17 @@ Index Rule53::PairSearch(ModelTracker& tracker) {
             SparseVector res(model.GetNVars());
             SparseVector best_res(model.GetNVars());
 
-            std::vector<Index> indices(row.Size());
-            std::iota(indices.begin(), indices.end(), 0);
-            SortIndicesByScore(indices, row.indices(), model.GetLocks(), kMaxNzs);
+            std::vector<Index> offsets(row.Size());
+            std::iota(offsets.begin(), offsets.end(), 0);
+            SortOffsets(offsets, row.indices(), model.GetLocks(), kMaxNzs);
             Index sz = std::min(row.Size(), kMaxNzs);
 
             for (Index nz2 = 0; nz2 < sz; ++nz2) {
-                Index iv2 = row.indices()[indices[nz2]];
-                Scalar a2 = row.values()[indices[nz2]];
+                Index iv2 = row.indices()[offsets[nz2]];
+                Scalar a2 = row.values()[offsets[nz2]];
                 for (Index nz1 = 0; nz1 < nz2; ++nz1) {
-                    Index iv1 = row.indices()[indices[nz1]];
-                    Scalar a1 = row.values()[indices[nz1]];
+                    Index iv1 = row.indices()[offsets[nz1]];
+                    Scalar a1 = row.values()[offsets[nz1]];
                     const Key key{iv1, iv2, a2 / a1};
 
                     auto it = eq_hash_map.find(key);
@@ -106,6 +106,7 @@ Index Rule53::PairSearch(ModelTracker& tracker) {
                             ic_pair = value.ic;
                             best_lambda = lambda;
                             std::swap(res, best_res);
+                            if (min_size == 0) break;
                         }
                     }
                 }
