@@ -14,6 +14,7 @@ class BitMask {
    public:
     explicit BitMask(Index size = 0) : data((size + 63) / 64, 0), size_(size) {}
 
+    Index Size() const { return size_; }
     void Resize(Index new_size) {
         size_ = new_size;
         data.resize((size_ + 63) / 64);
@@ -55,6 +56,7 @@ class MaskedVector {
     }
     void SetAll() {
         mask_.SetAll();
+        values_.resize(mask_.Size());
         std::iota(values_.begin(), values_.end(), 0);
     }
 
