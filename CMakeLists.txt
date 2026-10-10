@@ -9,6 +9,11 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(_allowed Debug Release RelWithDebInfo MinSizeRel)
+if(NOT isMultiConfig AND NOT CMAKE_BUILD_TYPE IN_LIST _allowed)
+    message(FATAL_ERROR "CMAKE_BUILD_TYPE must be one of: ${_allowed}")
+endif()
+
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
 endif()
