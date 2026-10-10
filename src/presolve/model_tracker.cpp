@@ -339,6 +339,7 @@ void ModelTracker::ScaleCon(Index ic, Scalar scale) {
 }
 
 void ModelTracker::ScaleVar(Index iv, Scalar scale) {
+    assert(StrongGt(scale, 0.0));
     SparseVector& col = model_.GetCol(iv);
     col *= scale;
     for (SvIterator el(col); el; ++el) {

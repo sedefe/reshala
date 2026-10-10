@@ -35,9 +35,8 @@ RuleResult Rule76::Apply(ModelTracker& tracker) {
             }
         }
         eligible &= (n_continuous == 1);
-
         if (eligible) {
-            tracker.ScaleVar(iv_cont, 1 / a);
+            tracker.ScaleVar(iv_cont, 1 / std::abs(a));
             tracker.SetVarInt(iv_cont);
             n_reduced++;
         }
