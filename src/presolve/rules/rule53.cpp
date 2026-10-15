@@ -15,9 +15,12 @@ void SortOffsets(std::vector<Index>& target, const std::vector<Index>& indices, 
 }
 
 RuleResult Rule53::Apply(ModelTracker& tracker) {
+    if (!first_run) return RuleResult::kUnchanged;  // This rule is only called once
+    first_run = false;
+
     Index n_reduced = 0;
 
-    tracker.InitLocks();  // Todo: keep & update
+    tracker.CalcLocks();  // Todo: keep & update
 
     FillEqHashMap(tracker);
     if (eq_hash_map.size() > 0) {
@@ -41,7 +44,7 @@ void Rule53::FillEqHashMap(const ModelTracker& tracker) {
 
         std::vector<Index> indices(row.Size());
         std::iota(indices.begin(), indices.end(), 0);
-        SortOffsets(indices, row.indices(), model.GetLocks(), kMaxNzs);
+        SortOffsets(indices, row.indices(), tracker.GetLocks(), kMaxNzs);
         Index sz = std::min(row.Size(), kMaxNzs);
 
         for (Index nz2 = 0; nz2 < sz; ++nz2) {
@@ -79,7 +82,7 @@ Index Rule53::PairSearch(ModelTracker& tracker) {
 
             std::vector<Index> offsets(row.Size());
             std::iota(offsets.begin(), offsets.end(), 0);
-            SortOffsets(offsets, row.indices(), model.GetLocks(), kMaxNzs);
+            SortOffsets(offsets, row.indices(), tracker.GetLocks(), kMaxNzs);
             Index sz = std::min(row.Size(), kMaxNzs);
 
             for (Index nz2 = 0; nz2 < sz; ++nz2) {

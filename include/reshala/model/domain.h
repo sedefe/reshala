@@ -73,6 +73,10 @@ struct Locks {
         n_locks.resize(n, {0, 0});
         sum_locks.resize(n, 0);
     }
+
+    inline Index GetNLocks(Index iv, LockType lt) const { return n_locks[iv][LockType2Index(lt)]; }
+
+    inline void Move(Index i_read, Index i_write) { n_locks[i_write] = std::move(n_locks[i_read]); }
 };
 
 }  // namespace reshala

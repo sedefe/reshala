@@ -37,6 +37,11 @@ class ModelTracker {
     inline const Activity& GetActivity(Index ic) const { return activities_[ic]; }
     inline const Bounds GetConRange(Index ic) const { return activities_[ic].GetRange(); }
 
+    void CalcLocks();
+    inline const Locks& GetLocks() const { return locks_; }
+    void CalcActivities();
+    void UpdActivity(Index ic);
+
     inline std::vector<Implication>& GetImplications() { return implications_; }
     inline const std::vector<Implication>& GetImplications() const { return implications_; }
 
@@ -71,9 +76,6 @@ class ModelTracker {
     }
 
     Bounds DeriveBounds(Index ic, Index iv, Activity act, const Bounds& bnd, Scalar val) const;
-    void CalcActivities();
-    void UpdActivity(Index ic);
-    void InitLocks() { model_.InitLocks(); }
 
    private:
     MilpModel& model_;
@@ -84,6 +86,7 @@ class ModelTracker {
     MaskedVector deleted_cons_;
     MaskedVector deleted_vars_;
 
+    Locks locks_;
     std::vector<Activity> activities_;
 
     std::vector<Implication> implications_;

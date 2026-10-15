@@ -96,6 +96,7 @@ class Rule52 : public Rule {
 
 class Rule53 : public Rule {
     const size_t kMaxNzs = 70;
+    bool first_run = true;
 
    public:
     Rule53(RuleType t) : Rule("5.3 NzCancel", t) {}

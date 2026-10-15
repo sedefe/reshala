@@ -2,6 +2,10 @@
 
 namespace reshala {
 
+inline bool RuleSuccess(RuleResult status) {
+    return status == RuleResult::kReduced or status == RuleResult::kInfeasible;
+}
+
 Presolver::Presolver(MilpModel& model) : model_(model) {
     std::vector<std::unique_ptr<Rule>> rules_;
     rules_.push_back(std::make_unique<Rule31>(RuleType::kFast));
@@ -30,7 +34,6 @@ LpStatus Presolver::Presolve(bool verbose, RuleType max_level) {
 
     RuleType curr_level = RuleType::kFast;
     RuleResult status = RuleResult::kUnknown;
-    did_final_ = false;
 
     if (verbose) PrintHeader();
     while (status != RuleResult::kInfeasible) {
@@ -39,7 +42,7 @@ LpStatus Presolver::Presolve(bool verbose, RuleType max_level) {
             PresolveStat rule_stat = tracker_->stat;
             status = rule->Apply(*tracker_);
 
-            if (status != RuleResult::kUnchanged) {
+            if (RuleSuccess(status)) {
                 changed = true;
                 rule_stat = tracker_->stat - rule_stat;
                 if (verbose) PrintStat(*rule, rule_stat);
@@ -63,14 +66,8 @@ LpStatus Presolver::Presolve(bool verbose, RuleType max_level) {
                         curr_level = RuleType::kExhaustive;
                         break;
                     case RuleType::kExhaustive:
-                        if (did_final_) {
-                            curr_level = RuleType::kUnknown;
-                            break;
-                        } else {
-                            did_final_ = true;
-                            curr_level = RuleType::kFinal;
-                            break;
-                        }
+                        curr_level = RuleType::kFinal;
+                        break;
                     default:
                         curr_level = RuleType::kUnknown;
                         break;
@@ -94,7 +91,7 @@ LpStatus Presolver::Presolve(bool verbose, RuleType max_level) {
         return LpStatus::kOptimal;
     }
 
-    model_.InitLocks();
+    tracker_->CalcLocks();
 
     {  // Check if there are free vars
         Index n_free = 0;

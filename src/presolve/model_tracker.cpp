@@ -10,6 +10,7 @@ ModelTracker::ModelTracker(MilpModel& model)
         orig_var_idx_[iv] = iv;
     }
 
+    CalcLocks();
     CalcActivities();
 }
 
@@ -77,6 +78,7 @@ void ModelTracker::CompressVars() {
                 coeffs[i_write] = std::move(coeffs[i_read]);
                 model_.GetCol(i_write) = std::move(model_.GetCol(i_read));
                 domain.Move(i_read, i_write);
+                locks_.Move(i_read, i_write);
             }
             new_index_map[i_read] = i_write;
             ++i_write;
@@ -118,6 +120,27 @@ void ModelTracker::CompressVars() {
     model_.Resize(m, n - deleted_vars_.GetNValues());
 
     deleted_vars_.Clear();
+}
+
+void ModelTracker::CalcLocks() {
+    Index n = model_.GetNVars();
+    locks_.Resize(n);
+    for (Index iv = 0; iv < n; iv++) {
+        Index n_up_locks = 0, n_down_locks = 0;
+        for (SvIterator el(model_.GetCol(iv)); el; ++el) {
+            if (el.value() > 0) {
+                if (model_.GetRhs(el.index()).le != -kInf) n_down_locks++;
+                if (model_.GetRhs(el.index()).ri != kInf) n_up_locks++;
+            }
+            if (el.value() < 0) {
+                if (model_.GetRhs(el.index()).le != -kInf) n_up_locks++;
+                if (model_.GetRhs(el.index()).ri != kInf) n_down_locks++;
+            }
+        }
+        locks_.n_locks[iv][LockType2Index(LockType::kDown)] = n_down_locks;
+        locks_.n_locks[iv][LockType2Index(LockType::kUp)] = n_up_locks;
+        locks_.sum_locks[iv] = n_down_locks + n_up_locks;
+    }
 }
 
 void ModelTracker::CalcActivities() {

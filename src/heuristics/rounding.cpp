@@ -8,13 +8,15 @@ Solution Rounding::InternalRun(const Solution& relaxed) {
     sol.status = LpStatus::kInfeasible;
     sol.x = relaxed.x;
 
+    const Locks& locks = ctx_.GetPresolver().GetTracker().GetLocks();
+
     bool eligible = true;
     for (Index iv = 0; iv < model.GetNVars(); iv++) {
         if (!model.GetIntegrality(iv)) continue;
         if (IsZero(MinFraction(relaxed.x[iv]))) continue;
 
-        if (model.GetNLocks(iv, LockType::kUp) == 0) {
-            if (model.GetNLocks(iv, LockType::kDown) == 0) {
+        if (locks.GetNLocks(iv, LockType::kUp) == 0) {
+            if (locks.GetNLocks(iv, LockType::kDown) == 0) {
                 // Todo it's either free or does not appear in constraints
                 std::cerr << "Handle me\n";
                 exit(0);
@@ -22,7 +24,7 @@ Solution Rounding::InternalRun(const Solution& relaxed) {
                 sol.x[iv] = Ceil(sol.x[iv]);
             }
         } else {
-            if (model.GetNLocks(iv, LockType::kDown) == 0) {
+            if (locks.GetNLocks(iv, LockType::kDown) == 0) {
                 sol.x[iv] = Floor(sol.x[iv]);
             } else {
                 eligible = false;

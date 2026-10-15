@@ -103,27 +103,6 @@ void MilpModel::PruneSlacks() {
 
 void MilpModel::FinalizeAc() { Srm2Scm(Ar_, Ac_); }
 
-void MilpModel::InitLocks() {
-    Index n = GetNVars();
-    locks_.Resize(n);
-    for (Index iv = 0; iv < n; iv++) {
-        Index n_up_locks = 0, n_down_locks = 0;
-        for (SvIterator el(GetCol(iv)); el; ++el) {
-            if (el.value() > 0) {
-                if (GetRhs(el.index()).le != -kInf) n_down_locks++;
-                if (GetRhs(el.index()).ri != kInf) n_up_locks++;
-            }
-            if (el.value() < 0) {
-                if (GetRhs(el.index()).le != -kInf) n_up_locks++;
-                if (GetRhs(el.index()).ri != kInf) n_down_locks++;
-            }
-        }
-        locks_.n_locks[iv][LockType2Index(LockType::kDown)] = n_down_locks;
-        locks_.n_locks[iv][LockType2Index(LockType::kUp)] = n_up_locks;
-        locks_.sum_locks[iv] = n_down_locks + n_up_locks;
-    }
-}
-
 void MilpModel::PrepareSolution(Solution& sol) const {
     if (sol.status != LpStatus::kOptimal) {
         sol = Solution::Infeasible();
