@@ -45,6 +45,28 @@ void Presolver::SimplePresolve(bool verbose) {
 
             if (tracker_->GetNDeletedCons() > 0) tracker_->CompressCons();
             if (tracker_->GetNDeletedVars() > 0) tracker_->CompressVars();
+
+            {
+                auto locks = tracker_->GetLocks();
+                tracker_->CalcLocks();
+                int nz = 0;
+                if (verbose) {
+                    for (Index i = 0; i < model_.GetNVars(); i++) {
+                        auto ld1 = locks.GetNLocks(i, LockType::kDown);
+                        auto lu1 = locks.GetNLocks(i, LockType::kUp);
+                        auto lu2 = tracker_->GetLocks().GetNLocks(i, LockType::kUp);
+                        auto ld2 = tracker_->GetLocks().GetNLocks(i, LockType::kDown);
+                        if (lu1 != lu2 or ld1 != ld2) {
+                            nz++;
+                            printf("Zalupa x%-4d: [%2d %2d] vs [%2d %2d]\n", i, ld1, lu1, ld2, lu2);
+                        }
+                    }
+                }
+                if (verbose and nz > 0) {
+                    printf("%d zalup\n", nz);
+                    exit(0);
+                }
+            }
         }
     }
 }
@@ -55,28 +77,6 @@ LpStatus Presolver::Presolve(bool verbose, bool hard) {
     if (verbose) PrintHeader();
 
     SimplePresolve(verbose);
-
-    {
-        auto locks = tracker_->GetLocks();
-        tracker_->CalcLocks();
-        int nz = 0;
-        if (verbose) {
-            for (Index i = 0; i < model_.GetNVars(); i++) {
-                auto ld1 = locks.GetNLocks(i, LockType::kDown);
-                auto lu1 = locks.GetNLocks(i, LockType::kUp);
-                auto lu2 = tracker_->GetLocks().GetNLocks(i, LockType::kUp);
-                auto ld2 = tracker_->GetLocks().GetNLocks(i, LockType::kDown);
-                if (lu1 != lu2 or ld1 != ld2) {
-                    nz++;
-                    printf("Zalupa x%-4d: [%2d %2d] vs [%2d %2d]\n", i, ld1, lu1, ld2, lu2);
-                }
-            }
-        }
-        if (verbose) {
-            printf("%d zalup\n", nz);
-            exit(0);
-        }
-    }
 
     if (hard and status_ != RuleResult::kInfeasible) {
         bool changed = true;

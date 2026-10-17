@@ -139,6 +139,11 @@ void ModelTracker::UpdRhs(Index ic, Bounds rhs) {
     if (WeakEq(rhs.le, rhs.ri)) rhs.le = rhs.ri = (rhs.le + rhs.ri) / 2;
 
     model_.GetRhs(ic) = rhs;
+
+    for (SvIterator el(model_.GetRow(ic)); el; ++el) {
+        UpdLocks(el.index());  // Todo-locks: check old&new rhs
+    }
+
     stat.n_ch_rhs++;
 }
 
@@ -172,6 +177,7 @@ void ModelTracker::UpdCoeff(Index ic, Index iv, Scalar val) {
     if (IsZero(val)) {
         model_.GetRow(ic).EraseIndex(iv);
         model_.GetCol(iv).EraseIndex(ic);
+        UpdLocks(iv); // Todo-locks: look at val
     }
     stat.n_ch_coeff++;
 }
