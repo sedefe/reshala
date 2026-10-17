@@ -19,7 +19,7 @@ RuleResult Rule35::Apply(ModelTracker& tracker) {
 
     {  // constraints
         for (Index ic = 0; ic < model.GetNCons(); ic++) {
-            if (tracker.GetConMask(ic)) continue;
+            if (tracker.ConIsDeleted(ic)) continue;
 
             const SparseVector& row = model.GetRow(ic);
             auto gcd = GetGcd(row.values(), kGcdDenominator);

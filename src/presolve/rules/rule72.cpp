@@ -15,7 +15,7 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
     std::vector<std::pair<Index, Index>> scored_binaries;
     scored_binaries.reserve(model.GetNVars());
     for (Index iv = 0; iv < model.GetNVars(); iv++) {
-        if (tracker.GetVarMask(iv)) continue;
+        if (tracker.VarIsDeleted(iv)) continue;
         if (!model.IsBinary(iv)) continue;
         Index score = 0;
         for (SvIterator el(model.GetCol(iv)); el; ++el) {
@@ -27,7 +27,7 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
 
     for (const auto& pair : scored_binaries) {
         Index iv = pair.second;
-        if (tracker.GetVarMask(iv)) continue;
+        if (tracker.VarIsDeleted(iv)) continue;
         if (!model.IsBinary(iv)) continue;
 
         for (Index i = 0; i < 2; i++) {
@@ -50,7 +50,7 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
         }
 
         for (Index iv1 = 0; iv1 < model.GetNVars(); iv1++) {
-            if (tracker.GetVarMask(iv1)) continue;
+            if (tracker.VarIsDeleted(iv1)) continue;
             if (iv == iv1) continue;
             const Bounds& bnd = model.GetBounds(iv1);
             const Bounds& bnd0 = bounders[0].domain.GetBounds(iv1);

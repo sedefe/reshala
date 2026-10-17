@@ -7,7 +7,7 @@ RuleResult Rule32::Apply(ModelTracker& tracker) {
     Index n_reduced = 0;
 
     for (Index ic = 0; ic < model.GetNCons(); ic++) {
-        if (tracker.GetConMask(ic)) continue;
+        if (tracker.ConIsDeleted(ic)) continue;
 
         const Activity& act = tracker.GetActivity(ic);
         const Bounds& rhs = model.GetRhs(ic);

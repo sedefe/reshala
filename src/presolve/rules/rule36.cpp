@@ -6,7 +6,7 @@ RuleResult Rule36::Apply(ModelTracker& tracker) {
     const MilpModel& model = tracker.GetModel();
     Index n_reduced = 0;
     for (Index ic = 0; ic < model.GetNCons(); ic++) {
-        if (tracker.GetConMask(ic)) continue;
+        if (tracker.ConIsDeleted(ic)) continue;
 
         auto rhs = model.GetRhs(ic);
         if (!WeakEq(rhs.ri, rhs.le)) continue;
@@ -17,7 +17,7 @@ RuleResult Rule36::Apply(ModelTracker& tracker) {
             Index iv_base = -1;
             Scalar a;
             for (SvIterator el(row); el; ++el) {
-                if (tracker.GetVarMask(el.index())) continue;
+                if (tracker.VarIsDeleted(el.index())) continue;
                 if (model.IsBinary(el.index())) {
                     if (IsZero(std::abs(el.value()) - (range.ri - b))) {
                         iv_base = el.index();
@@ -29,7 +29,7 @@ RuleResult Rule36::Apply(ModelTracker& tracker) {
             if (iv_base >= 0) {
                 tracker.MaskCon(ic);  // Сразу маскируем, чтобы при подстановке не менять эту строку
                 for (SvIterator el(row); el; ++el) {
-                    if (tracker.GetVarMask(el.index())) continue;
+                    if (tracker.VarIsDeleted(el.index())) continue;
                     if (el.index() == iv_base) continue;
 
                     const auto& bnd = model.GetBounds(el.index());

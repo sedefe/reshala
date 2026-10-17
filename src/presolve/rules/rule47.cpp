@@ -11,12 +11,12 @@ RuleResult Rule47::Apply(ModelTracker& tracker) {
     std::unordered_map<Index, std::vector<std::pair<Index, Scalar>>> candidates;
 
     for (Index iv = 0; iv < model.GetNVars(); iv++) {
-        if (tracker.GetVarMask(iv)) continue;
+        if (tracker.VarIsDeleted(iv)) continue;
 
         Index ic = -1;
         Scalar a = kNan;
         for (SvIterator el(model.GetCol(iv)); el; ++el) {
-            if (tracker.GetConMask(el.index())) continue;
+            if (tracker.ConIsDeleted(el.index())) continue;
             if (ic != -1) {
                 ic = -1;
                 break;

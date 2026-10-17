@@ -7,7 +7,7 @@ RuleResult Rule46::Apply(ModelTracker& tracker) {
     Index n_reduced = 0;
     Index size = 0;
     for (Index ic = 0; ic < model.GetNCons(); ic++) {
-        if (tracker.GetConMask(ic)) continue;
+        if (tracker.ConIsDeleted(ic)) continue;
 
         auto rhs = model.GetRhs(ic);
         if (!WeakEq(rhs.ri, rhs.le)) continue;
@@ -17,7 +17,7 @@ RuleResult Rule46::Apply(ModelTracker& tracker) {
         SparseVector compressed_row(model.GetNVars());
 
         for (SvIterator el(row); el; ++el) {  // Check if there's exactly 2 vars
-            if (tracker.GetVarMask(el.index())) continue;
+            if (tracker.VarIsDeleted(el.index())) continue;
             compressed_row.Push(el.index(), el.value());
             if (compressed_row.Size() > 2) break;
         }

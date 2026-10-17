@@ -8,14 +8,14 @@ RuleResult Rule44::Apply(ModelTracker& tracker) {
 
     // Todo: count locks?
     for (Index iv = 0; iv < model.GetNVars(); iv++) {
-        if (tracker.GetVarMask(iv)) continue;
+        if (tracker.VarIsDeleted(iv)) continue;
 
         const Bounds& bnd = model.GetBounds(iv);
         bool eligible_up = model.GetObj().coefficients[iv] <= 0 and bnd.ri != kInf;
         bool eligible_down = model.GetObj().coefficients[iv] >= 0 and bnd.le != -kInf;
 
         for (SvIterator el(model.GetCol(iv)); el & (eligible_up || eligible_down); ++el) {
-            if (tracker.GetConMask(el.index())) continue;
+            if (tracker.ConIsDeleted(el.index())) continue;
             const Bounds& rhs = model.GetRhs(el.index());
             if (rhs.le == -kInf) {
                 eligible_down &= el.value() >= 0;

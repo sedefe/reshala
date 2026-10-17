@@ -19,36 +19,38 @@ class ModelTracker {
 
     const MilpModel& GetModel() const { return model_; }
 
-    void MaskCon(Index ic) {
+    // Masks
+    inline void MaskCon(Index ic) {
         deleted_cons_.Add(ic);
         stat.n_rm_con++;
     }
-    void MaskVar(Index iv) {
+    inline void MaskVar(Index iv) {
         deleted_vars_.Add(iv);
         stat.n_rm_var++;
     }
-    inline bool GetConMask(Index ic) const { return deleted_cons_.Get(ic); }
-    inline bool GetVarMask(Index ic) const { return deleted_vars_.Get(ic); }
+    inline const MaskedVector& GetDeletedCons() const { return deleted_cons_; }
+    inline const MaskedVector& GetDeletedVars() const { return deleted_vars_; }
+    inline Index GetNDeletedCons() const { return deleted_cons_.GetNValues(); }
+    inline Index GetNDeletedVars() const { return deleted_vars_.GetNValues(); }
+    inline bool ConIsDeleted(Index ic) const { return deleted_cons_.Get(ic); }
+    inline bool VarIsDeleted(Index ic) const { return deleted_vars_.Get(ic); }
 
     void CompressCons();
     void CompressVars();
 
+    // Tracking info
     inline const std::vector<Activity>& GetActivities() const { return activities_; }
     inline const Activity& GetActivity(Index ic) const { return activities_[ic]; }
     inline const Bounds GetConRange(Index ic) const { return activities_[ic].GetRange(); }
 
-    void CalcLocks();
     inline const Locks& GetLocks() const { return locks_; }
+    void CalcLocks();
+    void UpdLocks(Index iv);
     void CalcActivities();
     void UpdActivity(Index ic);
 
     inline std::vector<Implication>& GetImplications() { return implications_; }
     inline const std::vector<Implication>& GetImplications() const { return implications_; }
-
-    inline Index GetNDeletedCons() const { return deleted_cons_.GetNValues(); }
-    inline Index GetNDeletedVars() const { return deleted_vars_.GetNValues(); }
-    inline const MaskedVector& GetDeletedCons() const { return deleted_cons_; }
-    inline const MaskedVector& GetDeletedVars() const { return deleted_vars_; }
 
     // Model transformations
     void FixVar(Index iv, Scalar val);

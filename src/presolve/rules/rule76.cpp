@@ -8,7 +8,7 @@ RuleResult Rule76::Apply(ModelTracker& tracker) {
 
     // Primal
     for (Index ic = 0; ic < model.GetNCons(); ic++) {
-        if (tracker.GetConMask(ic)) continue;
+        if (tracker.ConIsDeleted(ic)) continue;
 
         const Bounds& rhs = model.GetRhs(ic);
         if (StrongLt(rhs.le, rhs.ri)) continue;
@@ -22,7 +22,7 @@ RuleResult Rule76::Apply(ModelTracker& tracker) {
         Scalar a = kNan;
         bool eligible = true;
         for (SvIterator el(row); el and eligible; ++el) {
-            if (tracker.GetVarMask(el.index())) continue;
+            if (tracker.VarIsDeleted(el.index())) continue;
 
             if (model.GetIntegrality(el.index())) {
                 eligible &= IsZero(MinFraction(el.value()));

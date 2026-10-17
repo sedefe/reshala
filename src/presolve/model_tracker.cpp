@@ -72,7 +72,7 @@ void ModelTracker::CompressVars() {
     Index i_write = 0;
     std::vector<Index> new_index_map(n, -1);
     for (Index i_read = 0; i_read < n; ++i_read) {
-        if (!GetVarMask(i_read)) {
+        if (!VarIsDeleted(i_read)) {
             if (i_write != i_read) {
                 orig_var_idx_[i_write] = std::move(orig_var_idx_[i_read]);
                 coeffs[i_write] = std::move(coeffs[i_read]);
@@ -109,7 +109,7 @@ void ModelTracker::CompressVars() {
     for (Index i = 0; i < implications_.size(); i++) {
         Index iv1 = implications_[i].x_ind;
         Index iv2 = implications_[i].y_ind;
-        if (GetVarMask(iv1) or GetVarMask(iv2)) continue;
+        if (VarIsDeleted(iv1) or VarIsDeleted(iv2)) continue;
         implications_[i].x_ind = new_index_map[iv1];
         implications_[i].y_ind = new_index_map[iv2];
         if (new_n_impl != i) std::swap(implications_[i], implications_[new_n_impl]);
@@ -126,21 +126,25 @@ void ModelTracker::CalcLocks() {
     Index n = model_.GetNVars();
     locks_.Resize(n);
     for (Index iv = 0; iv < n; iv++) {
-        Index n_up_locks = 0, n_down_locks = 0;
-        for (SvIterator el(model_.GetCol(iv)); el; ++el) {
-            if (el.value() > 0) {
-                if (model_.GetRhs(el.index()).le != -kInf) n_down_locks++;
-                if (model_.GetRhs(el.index()).ri != kInf) n_up_locks++;
-            }
-            if (el.value() < 0) {
-                if (model_.GetRhs(el.index()).le != -kInf) n_up_locks++;
-                if (model_.GetRhs(el.index()).ri != kInf) n_down_locks++;
-            }
-        }
-        locks_.n_locks[iv][LockType2Index(LockType::kDown)] = n_down_locks;
-        locks_.n_locks[iv][LockType2Index(LockType::kUp)] = n_up_locks;
-        locks_.sum_locks[iv] = n_down_locks + n_up_locks;
+        UpdLocks(iv);
     }
+}
+
+void ModelTracker::UpdLocks(Index iv) {
+    Index n_up_locks = 0, n_down_locks = 0;
+    for (SvIterator el(model_.GetCol(iv)); el; ++el) {
+        if (el.value() > 0) {
+            if (model_.GetRhs(el.index()).le != -kInf) n_down_locks++;
+            if (model_.GetRhs(el.index()).ri != kInf) n_up_locks++;
+        }
+        if (el.value() < 0) {
+            if (model_.GetRhs(el.index()).le != -kInf) n_up_locks++;
+            if (model_.GetRhs(el.index()).ri != kInf) n_down_locks++;
+        }
+    }
+    locks_.n_locks[iv][LockType2Index(LockType::kDown)] = n_down_locks;
+    locks_.n_locks[iv][LockType2Index(LockType::kUp)] = n_up_locks;
+    locks_.sum_locks[iv] = n_down_locks + n_up_locks;
 }
 
 void ModelTracker::CalcActivities() {

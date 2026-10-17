@@ -7,7 +7,7 @@ RuleResult Rule48::Apply(ModelTracker& tracker) {
     Index n_reduced = 0;
 
     for (Index iv = 0; iv < model.GetNVars(); iv++) {
-        if (tracker.GetVarMask(iv)) continue;
+        if (tracker.VarIsDeleted(iv)) continue;
         if (!model.GetIntegrality(iv)) continue;
         const Bounds& bnd = model.GetBounds(iv);
         if (bnd.le == 0.0) continue;

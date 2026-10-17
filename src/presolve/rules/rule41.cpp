@@ -7,7 +7,7 @@ RuleResult Rule41::Apply(ModelTracker& tracker) {
     Index n_reduced = 0;
 
     for (Index iv = 0; iv < model.GetNVars(); iv++) {
-        if (tracker.GetVarMask(iv)) continue;
+        if (tracker.VarIsDeleted(iv)) continue;
 
         if (model.GetType(iv) == BndType::kFixed) {
             const Bounds& bnd = model.GetBounds(iv);

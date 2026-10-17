@@ -53,7 +53,7 @@ bool ModelTracker::SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b) {
 
     for (SvIterator el(model_.GetCol(iv1)); el; ++el) {
         Index ic = el.index();
-        if (GetConMask(ic)) continue;
+        if (ConIsDeleted(ic)) continue;
 
         Scalar val_iv1 = el.value();
         Scalar val_iv2 = a * val_iv1;
@@ -120,7 +120,7 @@ void ModelTracker::SlackSub(Index ic, Index iv, Scalar a) {
     model_.GetObj().c0 += model_.GetObj().coefficients[iv] * b / a;
     for (SvIterator el(model_.GetRow(ic)); el; ++el) {
         if (el.index() == iv) continue;
-        if (GetVarMask(el.index())) continue;
+        if (VarIsDeleted(el.index())) continue;
         model_.GetObj().coefficients[el.index()] -= c * el.value() / a;
         sv.Push(orig_var_idx_[el.index()], -el.value() / a);
     }
@@ -193,7 +193,7 @@ void ModelTracker::ScaleCon(Index ic, Scalar scale) {
     row *= scale;
     for (SvIterator el(row); el; ++el) {
         auto iv = el.index();
-        if (GetVarMask(iv)) continue;
+        if (VarIsDeleted(iv)) continue;
         model_.GetCol(iv).AtRef(ic) *= scale;
     }
     activities_[ic].Scale(scale);
@@ -211,7 +211,7 @@ void ModelTracker::ScaleVar(Index iv, Scalar scale) {
     col *= scale;
     for (SvIterator el(col); el; ++el) {
         auto ic = el.index();
-        if (GetConMask(ic)) continue;
+        if (ConIsDeleted(ic)) continue;
         model_.GetRow(ic).AtRef(iv) *= scale;
     }
 

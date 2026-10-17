@@ -76,7 +76,7 @@ bool Bounder::Propagate(Index iv_start, const Bounds& new_bnd) {
         for (auto ic : changed_cons.GetValues()) {  // activities -> domain
             for (SvIterator el(model.GetRow(ic)); el; ++el) {
                 Index iv = el.index();
-                if (tracker.GetVarMask(iv)) continue;
+                if (tracker.VarIsDeleted(iv)) continue;
 
                 Scalar val = el.value();
                 const Bounds& old_bnd = old_domain.GetBounds(iv);

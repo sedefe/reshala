@@ -7,14 +7,14 @@ RuleResult Rule33::Apply(ModelTracker& tracker) {
     Index n_reduced = 0;
 
     for (Index ic = 0; ic < model.GetNCons(); ic++) {
-        if (tracker.GetConMask(ic)) continue;
+        if (tracker.ConIsDeleted(ic)) continue;
         const Bounds& rhs = model.GetRhs(ic);
         if (std::isinf(rhs.le) == std::isinf(rhs.ri)) continue;
         const Activity& act = tracker.GetActivity(ic);
 
         for (SvIterator el(model.GetRow(ic)); el; ++el) {
             Index iv = el.index();
-            if (tracker.GetVarMask(iv)) continue;
+            if (tracker.VarIsDeleted(iv)) continue;
             if (!model.IsBinary(iv)) continue;
 
             const Bounds& bnd = model.GetBounds(iv);
