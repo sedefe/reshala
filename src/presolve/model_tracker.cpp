@@ -118,6 +118,7 @@ void ModelTracker::CompressVars() {
     implications_.resize(new_n_impl);
 
     model_.Resize(m, n - deleted_vars_.GetNValues());
+    locks_.Resize(n - deleted_vars_.GetNValues());
 
     deleted_vars_.Clear();
 }
