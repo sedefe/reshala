@@ -3,13 +3,13 @@
 
 namespace reshala {
 
-RuleResult Rule35::Apply(ModelTracker& tracker) {
+RuleResult Rule35::Apply(ModelTracker& tracker, Index ic) {
     const Index kGcdDenominator = 600;
     const Index kFpExpScalingLim = 5;
 
     const MilpModel& model = tracker.GetModel();
-    Index n_reduced = 0;
 
+    // Todo run once
     {  // objective
         auto obj_gcd = GetGcd(model.GetObj().coefficients, kGcdDenominator);
         if (obj_gcd != 0 and obj_gcd != kGcdDenominator) {
@@ -18,19 +18,15 @@ RuleResult Rule35::Apply(ModelTracker& tracker) {
     }
 
     {  // constraints
-        for (Index ic = 0; ic < model.GetNCons(); ic++) {
-            if (tracker.GetConMask(ic)) continue;
-
-            const SparseVector& row = model.GetRow(ic);
-            auto gcd = GetGcd(row.values(), kGcdDenominator);
-            if (gcd != 0 and gcd != kGcdDenominator) {
-                tracker.ScaleCon(ic, Scalar(kGcdDenominator) / gcd);
-                n_reduced++;
-            }
+        const SparseVector& row = model.GetRow(ic);
+        auto gcd = GetGcd(row.values(), kGcdDenominator);
+        if (gcd != 0 and gcd != kGcdDenominator) {
+            tracker.ScaleCon(ic, Scalar(kGcdDenominator) / gcd);
+            return RuleResult::kReduced;
         }
     }
 
-    return n_reduced > 0 ? RuleResult::kReduced : RuleResult::kUnchanged;
+    return RuleResult::kUnchanged;
 }
 
 }  // namespace reshala

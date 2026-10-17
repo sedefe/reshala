@@ -10,81 +10,95 @@ namespace reshala {
 
 class Rule {
    public:
-    Rule(const std::string& name, RuleType t) : name_(name), type(t) {}
+    Rule(const std::string& name) : name_(name) {}
     virtual ~Rule() = default;
     const std::string& GetName() const { return name_; }
-
-    virtual RuleResult Apply(ModelTracker& tracker) = 0;
-
-    RuleType type;
 
    protected:
     const std::string name_;
 };
 
-class Rule31 : public Rule {
+class RowRule : public Rule {
    public:
-    Rule31(RuleType t) : Rule("3.1 RedCon", t) {}
+    RowRule(const std::string& name) : Rule(name) {}
+    virtual RuleResult Apply(ModelTracker& tracker, Index ic) = 0;
+};
+
+class ColRule : public Rule {
+   public:
+    ColRule(const std::string& name) : Rule(name) {}
+    virtual RuleResult Apply(ModelTracker& tracker, Index iv) = 0;
+};
+
+class HardRule : public Rule {
+   public:
+    HardRule(const std::string& name) : Rule(name) {}
+    virtual RuleResult Apply(ModelTracker& tracker) = 0;
+};
+
+class Rule31 : public RowRule {
+   public:
+    Rule31() : RowRule("3.1 RedCon") {}
+    RuleResult Apply(ModelTracker& tracker, Index ic);
+};
+
+class Rule32 : public RowRule {
+   public:
+    Rule32() : RowRule("3.2 BndStr") {}
+    RuleResult Apply(ModelTracker& tracker, Index ic);
+};
+
+class Rule33 : public RowRule {
+   public:
+    Rule33() : RowRule("3.3 CoefStr") {}
+    RuleResult Apply(ModelTracker& tracker, Index ic);
+};
+
+class Rule35 : public RowRule {
+   public:
+    Rule35() : RowRule("3.5 Scaling") {}
+    RuleResult Apply(ModelTracker& tracker, Index ic);
+};
+
+class Rule36 : public RowRule {
+   public:
+    Rule36() : RowRule("3.6 SimProb") {}
+    RuleResult Apply(ModelTracker& tracker, Index ic);
+};
+
+class Rule41 : public ColRule {
+   public:
+    Rule41() : ColRule("4.1 FixVar") {}
+    RuleResult Apply(ModelTracker& tracker, Index iv);
+};
+
+class Rule44 : public ColRule {
+   public:
+    Rule44() : ColRule("4.4 DualFix") {}
+    RuleResult Apply(ModelTracker& tracker, Index iv);
+};
+
+class Rule46 : public RowRule {
+   public:
+    Rule46() : RowRule("4.6 SimSub") {}
+    RuleResult Apply(ModelTracker& tracker, Index ic);
+};
+
+class Rule47 : public HardRule {
+   public:
+    Rule47() : HardRule("4.7 RmSlack") {}
     RuleResult Apply(ModelTracker& tracker);
 };
 
-class Rule32 : public Rule {
+class Rule48 : public ColRule {
    public:
-    Rule32(RuleType t) : Rule("3.2 BndStr", t) {}
-    RuleResult Apply(ModelTracker& tracker);
+    Rule48() : ColRule("4.8 Int2Bin") {}
+    RuleResult Apply(ModelTracker& tracker, Index iv);
 };
 
-class Rule33 : public Rule {
+class Rule52 : public HardRule {
    public:
-    Rule33(RuleType t) : Rule("3.3 CoefStr", t) {}
-    RuleResult Apply(ModelTracker& tracker);
-};
-
-class Rule35 : public Rule {
-   public:
-    Rule35(RuleType t) : Rule("3.5 Scaling", t) {}
-    RuleResult Apply(ModelTracker& tracker);
-};
-
-class Rule36 : public Rule {
-   public:
-    Rule36(RuleType t) : Rule("3.6 SimProb", t) {}
-    RuleResult Apply(ModelTracker& tracker);
-};
-
-class Rule41 : public Rule {
-   public:
-    Rule41(RuleType t) : Rule("4.1 FixVar", t) {}
-    RuleResult Apply(ModelTracker& tracker);
-};
-
-class Rule44 : public Rule {
-   public:
-    Rule44(RuleType t) : Rule("4.4 DualFix", t) {}
-    RuleResult Apply(ModelTracker& tracker);
-};
-
-class Rule46 : public Rule {
-   public:
-    Rule46(RuleType t) : Rule("4.6 SimSub", t) {}
-    RuleResult Apply(ModelTracker& tracker);
-};
-
-class Rule47 : public Rule {
-   public:
-    Rule47(RuleType t) : Rule("4.7 RmSlack", t) {}
-    RuleResult Apply(ModelTracker& tracker);
-};
-
-class Rule48 : public Rule {
-   public:
-    Rule48(RuleType t) : Rule("4.8 Int2Bin", t) {}
-    RuleResult Apply(ModelTracker& tracker);
-};
-
-class Rule52 : public Rule {
-   public:
-    Rule52(RuleType t) : Rule("5.2 ParRows", t) {}
+    Rule52() : HardRule("5.2 ParRows") {}
     RuleResult Apply(ModelTracker& tracker);
 
    private:
@@ -94,12 +108,12 @@ class Rule52 : public Rule {
                   Scalar scale2) const;
 };
 
-class Rule53 : public Rule {
+class Rule53 : public HardRule {
     const size_t kMaxNzs = 70;
     bool first_run = true;
 
    public:
-    Rule53(RuleType t) : Rule("5.3 NzCancel", t) {}
+    Rule53() : HardRule("5.3 NzCancel") {}
     RuleResult Apply(ModelTracker& tracker);
 
    private:
@@ -130,15 +144,15 @@ class Rule53 : public Rule {
     Index PairSearch(ModelTracker& tracker);
 };
 
-class Rule72 : public Rule {
+class Rule72 : public HardRule {
    public:
-    Rule72(RuleType t) : Rule("7.2 Probing", t) {}
+    Rule72() : HardRule("7.2 Probing") {}
     RuleResult Apply(ModelTracker& tracker);
 };
 
-class Rule76 : public Rule {
+class Rule76 : public HardRule {
    public:
-    Rule76(RuleType t) : Rule("7.6 ImplInt", t) {}
+    Rule76() : HardRule("7.6 ImplInt") {}
     RuleResult Apply(ModelTracker& tracker);
 };
 

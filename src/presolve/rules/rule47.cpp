@@ -1,7 +1,6 @@
 #include "reshala/presolve/rules.h"
 
 namespace reshala {
-
 RuleResult Rule47::Apply(ModelTracker& tracker) {
     const MilpModel& model = tracker.GetModel();
     Index n_reduced = 0;
@@ -11,12 +10,12 @@ RuleResult Rule47::Apply(ModelTracker& tracker) {
     std::unordered_map<Index, std::vector<std::pair<Index, Scalar>>> candidates;
 
     for (Index iv = 0; iv < model.GetNVars(); iv++) {
-        if (tracker.GetVarMask(iv)) continue;
+        if (tracker.VarIsDeleted(iv)) continue;
 
         Index ic = -1;
         Scalar a = kNan;
         for (SvIterator el(model.GetCol(iv)); el; ++el) {
-            if (tracker.GetConMask(el.index())) continue;
+            if (tracker.ConIsDeleted(el.index())) continue;
             if (ic != -1) {
                 ic = -1;
                 break;
@@ -51,6 +50,7 @@ RuleResult Rule47::Apply(ModelTracker& tracker) {
             }
         }
         tracker.SlackSub(ic, iv_cand, a_cand);
+        tracker.TouchCon(ic);
         n_reduced++;
     }
 

@@ -2,22 +2,17 @@
 
 namespace reshala {
 
-RuleResult Rule48::Apply(ModelTracker& tracker) {
+RuleResult Rule48::Apply(ModelTracker& tracker, Index iv) {
     const MilpModel& model = tracker.GetModel();
-    Index n_reduced = 0;
 
-    for (Index iv = 0; iv < model.GetNVars(); iv++) {
-        if (tracker.GetVarMask(iv)) continue;
-        if (!model.GetIntegrality(iv)) continue;
-        const Bounds& bnd = model.GetBounds(iv);
-        if (bnd.le == 0.0) continue;
-        if (bnd.ri - bnd.le != 1.0) continue;
+    if (!model.GetIntegrality(iv)) return RuleResult::kUnchanged;
+    const Bounds& bnd = model.GetBounds(iv);
+    if (bnd.le == 0.0) return RuleResult::kUnchanged;
+    if (bnd.ri - bnd.le != 1.0) return RuleResult::kUnchanged;
 
-        tracker.ConstShiftVar(iv, -bnd.le);
-        n_reduced++;
-    }
+    tracker.ConstShiftVar(iv, -bnd.le);
 
-    return n_reduced > 0 ? RuleResult::kReduced : RuleResult::kUnchanged;
+    return RuleResult::kReduced;
 }
 
 }  // namespace reshala

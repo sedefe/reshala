@@ -2,9 +2,7 @@
 
 namespace reshala {
 
-enum class RuleType { kTrivial, kFast, kMedium, kExhaustive, kFinal, kUnknown };
-
-enum class RuleResult { kSkipped, kUnchanged, kReduced, kInfeasible, kUnknown };
+enum class RuleResult { kUnchanged, kReduced, kInfeasible };
 
 struct PresolveStat {
     Index n_rm_con = 0;

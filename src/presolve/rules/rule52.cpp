@@ -10,7 +10,7 @@ RuleResult Rule52::Apply(ModelTracker& tracker) {
 
     std::unordered_map<Index, std::vector<Index>> bins;
     for (Index ic = 0; ic < model.GetNCons(); ic++) {
-        if (tracker.GetConMask(ic)) continue;
+        if (tracker.ConIsDeleted(ic)) continue;
         if (model.GetRow(ic).Empty()) continue;
         auto hash = HashRow(tracker, ic);
 
@@ -85,7 +85,7 @@ Index Rule52::HashRow(const ModelTracker& tracker, Index ic) const {
     const auto& row = tracker.GetModel().GetRow(ic);
     Index hash = row.Size();
     for (Index iv : row.indices()) {
-        if (tracker.GetVarMask(iv)) continue;
+        if (tracker.VarIsDeleted(iv)) continue;
         hash = hash * 0x9E3779B9 + (iv + 0x3AB0D);
     }
     return hash;

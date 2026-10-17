@@ -7,81 +7,154 @@ inline bool RuleSuccess(RuleResult status) {
 }
 
 Presolver::Presolver(MilpModel& model) : model_(model) {
-    std::vector<std::unique_ptr<Rule>> rules_;
-    rules_.push_back(std::make_unique<Rule31>(RuleType::kFast));
-    rules_.push_back(std::make_unique<Rule32>(RuleType::kFast));
-    rules_.push_back(std::make_unique<Rule33>(RuleType::kFast));
-    rules_.push_back(std::make_unique<Rule35>(RuleType::kFast));
-    rules_.push_back(std::make_unique<Rule36>(RuleType::kFast));
-    rules_.push_back(std::make_unique<Rule41>(RuleType::kFast));
-    rules_.push_back(std::make_unique<Rule44>(RuleType::kFast));
-    rules_.push_back(std::make_unique<Rule46>(RuleType::kFast));
-    rules_.push_back(std::make_unique<Rule47>(RuleType::kFast));
-    rules_.push_back(std::make_unique<Rule48>(RuleType::kFast));
-    rules_.push_back(std::make_unique<Rule52>(RuleType::kMedium));
-    rules_.push_back(std::make_unique<Rule76>(RuleType::kMedium));
-    rules_.push_back(std::make_unique<Rule72>(RuleType::kExhaustive));
-    rules_.push_back(std::make_unique<Rule53>(RuleType::kFinal));
+    row_rules_.push_back(std::make_unique<Rule31>());
+    row_rules_.push_back(std::make_unique<Rule32>());
+    row_rules_.push_back(std::make_unique<Rule33>());
+    row_rules_.push_back(std::make_unique<Rule35>());
+    row_rules_.push_back(std::make_unique<Rule36>());
+    row_rules_.push_back(std::make_unique<Rule46>());
 
-    for (auto& rule : rules_) {
-        RuleType type = rule->type;
-        rule_map_[type].push_back(std::move(rule));
-    }
+    col_rules_.push_back(std::make_unique<Rule41>());
+    col_rules_.push_back(std::make_unique<Rule44>());
+    col_rules_.push_back(std::make_unique<Rule48>());
+
+    hard_rules_.push_back(std::make_unique<Rule47>());
+    hard_rules_.push_back(std::make_unique<Rule52>());
+    hard_rules_.push_back(std::make_unique<Rule76>());
+    hard_rules_.push_back(std::make_unique<Rule72>());
+    hard_rules_.push_back(std::make_unique<Rule53>());
 }
 
-LpStatus Presolver::Presolve(bool verbose, RuleType max_level) {
-    tracker_ = std::make_unique<ModelTracker>(model_);
+RuleResult Presolver::SimplePresolve(bool verbose) {
+    RuleResult sp_result = RuleResult::kUnchanged;
 
-    RuleType curr_level = RuleType::kFast;
-    RuleResult status = RuleResult::kUnknown;
+    std::vector<Index> indices;
 
-    if (verbose) PrintHeader();
-    while (status != RuleResult::kInfeasible) {
-        bool changed = false;
-        for (auto& rule : rule_map_[curr_level]) {
+    tracker_->TouchAll();
+    tracker_->CalcLocks();
+    tracker_->CalcActivities();
+
+    bool changed = true;
+    while (changed) {
+        changed = false;
+
+        // printf("start row presolve\n");
+        tracker_->TouchAll();
+        indices = tracker_->GetChangedCons().GetValues();
+        tracker_->ClearChangedCons();
+        for (auto& rule : row_rules_) {
+            tracker_->CalcLocks();
+            tracker_->CalcActivities();
             PresolveStat rule_stat = tracker_->stat;
-            status = rule->Apply(*tracker_);
+            // printf("\t%s\n", rule->GetName().c_str());
 
-            if (RuleSuccess(status)) {
+            RuleResult rule_result = RuleResult::kUnchanged;
+            for (Index ic : indices) {
+                if (tracker_->ConIsDeleted(ic)) continue;
+                RuleResult row_result = rule->Apply(*tracker_, ic);
+
+                if (RuleSuccess(row_result)) rule_result = row_result;
+                if (row_result == RuleResult::kInfeasible) break;
+            }
+            // printf("\t\t%d\n", rule_status);
+
+            if (RuleSuccess(rule_result)) {
+                sp_result = rule_result;
                 changed = true;
-                rule_stat = tracker_->stat - rule_stat;
-                if (verbose) PrintStat(*rule, rule_stat);
-            }
-            if (status == RuleResult::kInfeasible) {
-                break;
-            }
-        }
-        if (tracker_->GetNDeletedCons() > 0) tracker_->CompressCons();
-        if (tracker_->GetNDeletedVars() > 0) tracker_->CompressVars();
 
-        if (!changed) {
-            if (curr_level == max_level)
-                curr_level = RuleType::kUnknown;
-            else {
-                switch (curr_level) {
-                    case RuleType::kFast:
-                        curr_level = RuleType::kMedium;
-                        break;
-                    case RuleType::kMedium:
-                        curr_level = RuleType::kExhaustive;
-                        break;
-                    case RuleType::kExhaustive:
-                        curr_level = RuleType::kFinal;
-                        break;
-                    default:
-                        curr_level = RuleType::kUnknown;
-                        break;
+                if (rule_result == RuleResult::kReduced) {
+                    rule_stat = tracker_->stat - rule_stat;
+                    if (verbose) PrintStat(*rule, rule_stat);
+                }
+                if (rule_result == RuleResult::kInfeasible) {
+                    break;
                 }
             }
-            if (curr_level == RuleType::kUnknown) break;
-        } else {
-            curr_level = RuleType::kFast;
+        }
+        if (sp_result == RuleResult::kInfeasible) break;
+        if (tracker_->GetNDeletedCons() > 0) tracker_->CompressCons();
+        if (tracker_->GetNDeletedVars() > 0) tracker_->CompressVars();
+        tracker_->CalcLocks();
+        tracker_->CalcActivities();
+
+        // printf("start col presolve\n");
+        indices = tracker_->GetChangedVars().GetValues();
+        tracker_->ClearChangedVars();
+        for (auto& rule : col_rules_) {
+            tracker_->CalcLocks();
+            tracker_->CalcActivities();
+            PresolveStat rule_stat = tracker_->stat;
+            // printf("\t%s\n", rule->GetName().c_str());
+
+            RuleResult rule_result = RuleResult::kUnchanged;
+            for (Index iv : indices) {
+                if (tracker_->VarIsDeleted(iv)) continue;
+                RuleResult col_result = rule->Apply(*tracker_, iv);
+
+                if (RuleSuccess(col_result)) rule_result = col_result;
+                if (col_result == RuleResult::kInfeasible) break;
+            }
+            // printf("\t\t%d\n", rule_status);
+
+            if (RuleSuccess(rule_result)) {
+                sp_result = rule_result;
+                changed = true;
+
+                if (rule_result == RuleResult::kReduced) {
+                    rule_stat = tracker_->stat - rule_stat;
+                    if (verbose) PrintStat(*rule, rule_stat);
+                }
+                if (rule_result == RuleResult::kInfeasible) {
+                    break;
+                }
+            }
+        }
+        if (sp_result == RuleResult::kInfeasible) break;
+        if (tracker_->GetNDeletedCons() > 0) tracker_->CompressCons();
+        if (tracker_->GetNDeletedVars() > 0) tracker_->CompressVars();
+        tracker_->CalcLocks();
+        tracker_->CalcActivities();
+    }
+
+    return sp_result;
+}
+
+LpStatus Presolver::Presolve(bool verbose, bool hard) {
+    tracker_ = std::make_unique<ModelTracker>(model_);
+
+    if (verbose) PrintHeader();
+    status_ = SimplePresolve(verbose);
+    // exit(0);
+
+    if (hard and !Solved()) {
+        bool changed = true;
+        while (changed and !Solved()) {
+            changed = false;
+            for (auto& rule : hard_rules_) {
+                PresolveStat rule_stat = tracker_->stat;
+                // printf("\t%s\n", rule->GetName().c_str());
+                RuleResult rule_result = rule->Apply(*tracker_);
+
+                if (RuleSuccess(rule_result)) {
+                    status_ = rule_result;
+                    changed = true;
+
+                    if (rule_result == RuleResult::kReduced) {
+                        rule_stat = tracker_->stat - rule_stat;
+                        if (verbose) PrintStat(*rule, rule_stat);
+                        status_ = SimplePresolve(verbose);
+                    }
+                    break;
+                }
+            }
         }
     }
 
-    if (verbose) std::cout << "After presolve: " << model_.StatString() << "\n";
+    // if (verbose) std::cout << "After presolve: " << model_.StatString() << "\n";
+    if (verbose) printf("%d After presolve: %s\n", status_, model_.StatString().c_str());
+    status_ = RuleResult::kInfeasible;
 
-    if (status == RuleResult::kInfeasible) {
+    if (status_ == RuleResult::kInfeasible) {
         if (verbose) std::cout << "Presolve proved infeasibility\n";
         return LpStatus::kInfeasible;
     }
@@ -90,8 +163,6 @@ LpStatus Presolver::Presolve(bool verbose, RuleType max_level) {
         if (verbose) std::cout << "Presolve reduced to empty\n";
         return LpStatus::kOptimal;
     }
-
-    tracker_->CalcLocks();
 
     {  // Check if there are free vars
         Index n_free = 0;

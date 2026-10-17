@@ -20,8 +20,6 @@ RuleResult Rule53::Apply(ModelTracker& tracker) {
 
     Index n_reduced = 0;
 
-    tracker.CalcLocks();  // Todo: keep & update
-
     FillEqHashMap(tracker);
     if (eq_hash_map.size() > 0) {
         n_reduced = PairSearch(tracker);
@@ -35,7 +33,7 @@ void Rule53::FillEqHashMap(const ModelTracker& tracker) {
 
     eq_hash_map.clear();
     for (Index ic = 0; ic < model.GetNCons(); ic++) {
-        if (tracker.GetConMask(ic)) continue;
+        if (tracker.ConIsDeleted(ic)) continue;
 
         const Bounds& rhs = model.GetRhs(ic);
         if (!WeakEq(rhs.le, rhs.ri)) continue;
@@ -71,7 +69,7 @@ Index Rule53::PairSearch(ModelTracker& tracker) {
     Index n_paired = 0;
 
     for (Index ic = 0; ic < model.GetNCons(); ic++) {
-        if (tracker.GetConMask(ic)) continue;
+        if (tracker.ConIsDeleted(ic)) continue;
 
         const auto& row = model.GetRow(ic);
 
