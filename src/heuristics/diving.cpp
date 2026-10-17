@@ -20,7 +20,7 @@ Solution Diving::InternalRun(const Solution& relaxed) {
     Presolver presolver(model);
     bool do_presolve = n_fixed > 0;
     if (do_presolve) {
-        LpStatus presolve_status = presolver.Presolve(false, RuleType::kFast);
+        LpStatus presolve_status = presolver.Presolve(false, false);
         if (presolve_status != LpStatus::kUnknown) {
             return presolver.Postsolve({presolve_status, {}, {}});
         }

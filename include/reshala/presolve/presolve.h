@@ -13,7 +13,8 @@ class Presolver {
    public:
     Presolver(MilpModel& model);
 
-    LpStatus Presolve(bool verbose, RuleType max_level = RuleType::kFinal);
+    void SimplePresolve(bool verbose);
+    LpStatus Presolve(bool verbose, bool hard = true);
     Solution Postsolve(const Solution&);
 
     inline const ModelTracker& GetTracker() const { return *tracker_; }
@@ -21,9 +22,10 @@ class Presolver {
    private:
     MilpModel& model_;
     std::unique_ptr<ModelTracker> tracker_;
-    bool did_final_;
+    RuleResult status_;
 
-    std::map<RuleType, std::vector<std::unique_ptr<Rule>>> rule_map_;
+    std::vector<std::unique_ptr<Rule>> simple_rules_;
+    std::vector<std::unique_ptr<Rule>> hard_rules_;
 
     void PrintHeader() const;
     void PrintStat(const Rule&, const PresolveStat& stat) const;

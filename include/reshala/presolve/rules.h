@@ -10,13 +10,11 @@ namespace reshala {
 
 class Rule {
    public:
-    Rule(const std::string& name, RuleType t) : name_(name), type(t) {}
+    Rule(const std::string& name) : name_(name) {}
     virtual ~Rule() = default;
     const std::string& GetName() const { return name_; }
 
     virtual RuleResult Apply(ModelTracker& tracker) = 0;
-
-    RuleType type;
 
    protected:
     const std::string name_;
@@ -24,67 +22,67 @@ class Rule {
 
 class Rule31 : public Rule {
    public:
-    Rule31(RuleType t) : Rule("3.1 RedCon", t) {}
+    Rule31() : Rule("3.1 RedCon") {}
     RuleResult Apply(ModelTracker& tracker);
 };
 
 class Rule32 : public Rule {
    public:
-    Rule32(RuleType t) : Rule("3.2 BndStr", t) {}
+    Rule32() : Rule("3.2 BndStr") {}
     RuleResult Apply(ModelTracker& tracker);
 };
 
 class Rule33 : public Rule {
    public:
-    Rule33(RuleType t) : Rule("3.3 CoefStr", t) {}
+    Rule33() : Rule("3.3 CoefStr") {}
     RuleResult Apply(ModelTracker& tracker);
 };
 
 class Rule35 : public Rule {
    public:
-    Rule35(RuleType t) : Rule("3.5 Scaling", t) {}
+    Rule35() : Rule("3.5 Scaling") {}
     RuleResult Apply(ModelTracker& tracker);
 };
 
 class Rule36 : public Rule {
    public:
-    Rule36(RuleType t) : Rule("3.6 SimProb", t) {}
+    Rule36() : Rule("3.6 SimProb") {}
     RuleResult Apply(ModelTracker& tracker);
 };
 
 class Rule41 : public Rule {
    public:
-    Rule41(RuleType t) : Rule("4.1 FixVar", t) {}
+    Rule41() : Rule("4.1 FixVar") {}
     RuleResult Apply(ModelTracker& tracker);
 };
 
 class Rule44 : public Rule {
    public:
-    Rule44(RuleType t) : Rule("4.4 DualFix", t) {}
+    Rule44() : Rule("4.4 DualFix") {}
     RuleResult Apply(ModelTracker& tracker);
 };
 
 class Rule46 : public Rule {
    public:
-    Rule46(RuleType t) : Rule("4.6 SimSub", t) {}
+    Rule46() : Rule("4.6 SimSub") {}
     RuleResult Apply(ModelTracker& tracker);
 };
 
 class Rule47 : public Rule {
    public:
-    Rule47(RuleType t) : Rule("4.7 RmSlack", t) {}
+    Rule47() : Rule("4.7 RmSlack") {}
     RuleResult Apply(ModelTracker& tracker);
 };
 
 class Rule48 : public Rule {
    public:
-    Rule48(RuleType t) : Rule("4.8 Int2Bin", t) {}
+    Rule48() : Rule("4.8 Int2Bin") {}
     RuleResult Apply(ModelTracker& tracker);
 };
 
 class Rule52 : public Rule {
    public:
-    Rule52(RuleType t) : Rule("5.2 ParRows", t) {}
+    Rule52() : Rule("5.2 ParRows") {}
     RuleResult Apply(ModelTracker& tracker);
 
    private:
@@ -99,7 +97,7 @@ class Rule53 : public Rule {
     bool first_run = true;
 
    public:
-    Rule53(RuleType t) : Rule("5.3 NzCancel", t) {}
+    Rule53() : Rule("5.3 NzCancel") {}
     RuleResult Apply(ModelTracker& tracker);
 
    private:
@@ -132,13 +130,13 @@ class Rule53 : public Rule {
 
 class Rule72 : public Rule {
    public:
-    Rule72(RuleType t) : Rule("7.2 Probing", t) {}
+    Rule72() : Rule("7.2 Probing") {}
     RuleResult Apply(ModelTracker& tracker);
 };
 
 class Rule76 : public Rule {
    public:
-    Rule76(RuleType t) : Rule("7.6 ImplInt", t) {}
+    Rule76() : Rule("7.6 ImplInt") {}
     RuleResult Apply(ModelTracker& tracker);
 };
 

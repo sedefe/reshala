@@ -7,81 +7,83 @@ inline bool RuleSuccess(RuleResult status) {
 }
 
 Presolver::Presolver(MilpModel& model) : model_(model) {
-    std::vector<std::unique_ptr<Rule>> rules_;
-    rules_.push_back(std::make_unique<Rule31>(RuleType::kFast));
-    rules_.push_back(std::make_unique<Rule32>(RuleType::kFast));
-    rules_.push_back(std::make_unique<Rule33>(RuleType::kFast));
-    rules_.push_back(std::make_unique<Rule35>(RuleType::kFast));
-    rules_.push_back(std::make_unique<Rule36>(RuleType::kFast));
-    rules_.push_back(std::make_unique<Rule41>(RuleType::kFast));
-    rules_.push_back(std::make_unique<Rule44>(RuleType::kFast));
-    rules_.push_back(std::make_unique<Rule46>(RuleType::kFast));
-    rules_.push_back(std::make_unique<Rule47>(RuleType::kFast));
-    rules_.push_back(std::make_unique<Rule48>(RuleType::kFast));
-    rules_.push_back(std::make_unique<Rule52>(RuleType::kMedium));
-    rules_.push_back(std::make_unique<Rule76>(RuleType::kMedium));
-    rules_.push_back(std::make_unique<Rule72>(RuleType::kExhaustive));
-    rules_.push_back(std::make_unique<Rule53>(RuleType::kFinal));
-
-    for (auto& rule : rules_) {
-        RuleType type = rule->type;
-        rule_map_[type].push_back(std::move(rule));
-    }
+    simple_rules_.push_back(std::make_unique<Rule31>());
+    simple_rules_.push_back(std::make_unique<Rule32>());
+    simple_rules_.push_back(std::make_unique<Rule33>());
+    simple_rules_.push_back(std::make_unique<Rule35>());
+    simple_rules_.push_back(std::make_unique<Rule36>());
+    simple_rules_.push_back(std::make_unique<Rule41>());
+    simple_rules_.push_back(std::make_unique<Rule44>());
+    simple_rules_.push_back(std::make_unique<Rule46>());
+    simple_rules_.push_back(std::make_unique<Rule48>());
+    hard_rules_.push_back(std::make_unique<Rule47>());
+    hard_rules_.push_back(std::make_unique<Rule52>());
+    hard_rules_.push_back(std::make_unique<Rule76>());
+    hard_rules_.push_back(std::make_unique<Rule72>());
+    hard_rules_.push_back(std::make_unique<Rule53>());
 }
 
-LpStatus Presolver::Presolve(bool verbose, RuleType max_level) {
-    tracker_ = std::make_unique<ModelTracker>(model_);
+void Presolver::SimplePresolve(bool verbose) {
+    status_ = RuleResult::kUnchanged;
+    RuleResult rule_result;
 
-    RuleType curr_level = RuleType::kFast;
-    RuleResult status = RuleResult::kUnknown;
+    bool changed = true;
+    while (changed and status_ != RuleResult::kInfeasible) {
+        changed = false;
 
-    if (verbose) PrintHeader();
-    while (status != RuleResult::kInfeasible) {
-        bool changed = false;
-        for (auto& rule : rule_map_[curr_level]) {
+        for (auto& rule : simple_rules_) {
             PresolveStat rule_stat = tracker_->stat;
-            status = rule->Apply(*tracker_);
+            rule_result = rule->Apply(*tracker_);
 
-            if (RuleSuccess(status)) {
+            if (RuleSuccess(rule_result)) {
+                status_ = rule_result;
                 changed = true;
                 rule_stat = tracker_->stat - rule_stat;
                 if (verbose) PrintStat(*rule, rule_stat);
             }
-            if (status == RuleResult::kInfeasible) {
-                break;
-            }
-        }
-        if (tracker_->GetNDeletedCons() > 0) tracker_->CompressCons();
-        if (tracker_->GetNDeletedVars() > 0) tracker_->CompressVars();
+            if (rule_result == RuleResult::kInfeasible) break;
 
-        if (!changed) {
-            if (curr_level == max_level)
-                curr_level = RuleType::kUnknown;
-            else {
-                switch (curr_level) {
-                    case RuleType::kFast:
-                        curr_level = RuleType::kMedium;
-                        break;
-                    case RuleType::kMedium:
-                        curr_level = RuleType::kExhaustive;
-                        break;
-                    case RuleType::kExhaustive:
-                        curr_level = RuleType::kFinal;
-                        break;
-                    default:
-                        curr_level = RuleType::kUnknown;
-                        break;
+            if (tracker_->GetNDeletedCons() > 0) tracker_->CompressCons();
+            if (tracker_->GetNDeletedVars() > 0) tracker_->CompressVars();
+        }
+    }
+}
+
+LpStatus Presolver::Presolve(bool verbose, bool hard) {
+    tracker_ = std::make_unique<ModelTracker>(model_);
+
+    if (verbose) PrintHeader();
+
+    SimplePresolve(verbose);
+
+    if (hard and status_ != RuleResult::kInfeasible) {
+        bool changed = true;
+        while (changed and status_ != RuleResult::kInfeasible) {
+            changed = false;
+            for (auto& rule : hard_rules_) {
+                PresolveStat rule_stat = tracker_->stat;
+                RuleResult rule_result = rule->Apply(*tracker_);
+
+                if (RuleSuccess(rule_result)) {
+                    status_ = rule_result;
+                    changed = true;
+                    rule_stat = tracker_->stat - rule_stat;
+                    if (verbose) PrintStat(*rule, rule_stat);
+
+                    if (rule_result == RuleResult::kReduced) {
+                        if (tracker_->GetNDeletedCons() > 0) tracker_->CompressCons();
+                        if (tracker_->GetNDeletedVars() > 0) tracker_->CompressVars();
+                        SimplePresolve(verbose);
+                    }
+                    break;
                 }
             }
-            if (curr_level == RuleType::kUnknown) break;
-        } else {
-            curr_level = RuleType::kFast;
         }
     }
 
     if (verbose) std::cout << "After presolve: " << model_.StatString() << "\n";
 
-    if (status == RuleResult::kInfeasible) {
+    if (status_ == RuleResult::kInfeasible) {
         if (verbose) std::cout << "Presolve proved infeasibility\n";
         return LpStatus::kInfeasible;
     }
