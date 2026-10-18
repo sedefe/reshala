@@ -29,26 +29,30 @@ RuleResult Rule36::Apply(ModelTracker& tracker) {
             if (iv_base >= 0) {
                 tracker.MaskCon(ic);  // Сразу маскируем, чтобы при подстановке не менять эту строку
                 for (SvIterator el(row); el; ++el) {
-                    if (tracker.VarIsDeleted(el.index())) continue;
+                    Index iv = el.index();
+                    if (tracker.VarIsDeleted(iv)) continue;
                     if (el.index() == iv_base) continue;
 
-                    const auto& bnd = model.GetBounds(el.index());
+                    const auto& bnd = model.GetBounds(iv);
                     Scalar range = bnd.ri - bnd.le;
-                    if (IsZero(range)) continue;  // handled by 4.1
+                    if (IsZero(range)) {
+                        tracker.UpdLocks(iv);
+                        continue;  // handled by 4.1
+                    }
                     if (a >= 0) {
                         if (el.value() >= 0) {  // x + y = 1 => y = -x + 1
-                            if (!tracker.SimpleSub(el.index(), -range, iv_base, bnd.ri))
+                            if (!tracker.SimpleSub(iv, -range, iv_base, bnd.ri))
                                 return RuleResult::kInfeasible;
                         } else {  // x - y = 0 => y = x + 0
-                            if (!tracker.SimpleSub(el.index(), range, iv_base, bnd.le))
+                            if (!tracker.SimpleSub(iv, range, iv_base, bnd.le))
                                 return RuleResult::kInfeasible;
                         }
                     } else {
                         if (el.value() >= 0) {  // -x + y = 0 => y = x
-                            if (!tracker.SimpleSub(el.index(), range, iv_base, bnd.le))
+                            if (!tracker.SimpleSub(iv, range, iv_base, bnd.le))
                                 return RuleResult::kInfeasible;
                         } else {  // -x - y = -1 => y = 1-x
-                            if (!tracker.SimpleSub(el.index(), -range, iv_base, bnd.ri))
+                            if (!tracker.SimpleSub(iv, -range, iv_base, bnd.ri))
                                 return RuleResult::kInfeasible;
                         }
                     }

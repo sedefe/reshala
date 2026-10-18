@@ -20,11 +20,13 @@ RuleResult Rule53::Apply(ModelTracker& tracker) {
 
     Index n_reduced = 0;
 
-    tracker.CalcLocks();  // Todo: keep & update
-
     FillEqHashMap(tracker);
     if (eq_hash_map.size() > 0) {
         n_reduced = PairSearch(tracker);
+    }
+
+    if (n_reduced > 0) {
+        tracker.CalcLocks();  // Todo-locks: only for changed
     }
 
     return n_reduced > 0 ? RuleResult::kReduced : RuleResult::kUnchanged;

@@ -93,8 +93,6 @@ LpStatus Presolver::Presolve(bool verbose, bool hard) {
         return LpStatus::kOptimal;
     }
 
-    tracker_->CalcLocks();
-
     {  // Check if there are free vars
         Index n_free = 0;
         for (Index iv = 0; iv < model_.GetNVars(); iv++)

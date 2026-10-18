@@ -118,6 +118,7 @@ void ModelTracker::CompressVars() {
     implications_.resize(new_n_impl);
 
     model_.Resize(m, n - deleted_vars_.GetNValues());
+    locks_.Resize(n - deleted_vars_.GetNValues());
 
     deleted_vars_.Clear();
 }
@@ -133,11 +134,12 @@ void ModelTracker::CalcLocks() {
 void ModelTracker::UpdLocks(Index iv) {
     Index n_up_locks = 0, n_down_locks = 0;
     for (SvIterator el(model_.GetCol(iv)); el; ++el) {
-        if (el.value() > 0) {
+        if (ConIsDeleted(el.index())) continue;
+        if (StrongGt(el.value(), 0)) {
             if (model_.GetRhs(el.index()).le != -kInf) n_down_locks++;
             if (model_.GetRhs(el.index()).ri != kInf) n_up_locks++;
         }
-        if (el.value() < 0) {
+        if (StrongLt(el.value(), 0)) {
             if (model_.GetRhs(el.index()).le != -kInf) n_up_locks++;
             if (model_.GetRhs(el.index()).ri != kInf) n_down_locks++;
         }

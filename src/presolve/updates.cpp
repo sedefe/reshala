@@ -94,6 +94,8 @@ bool ModelTracker::SimpleSub(Index iv1, Scalar a, Index iv2, Scalar b) {
         UpdVarBounds(iv2, std::move(new_bnd2));
     }
 
+    UpdLocks(iv2);  // Todo-locks: can update in the loop above
+
     transforms_.push_back(
         std::make_unique<SimpleSubTransform>(orig_var_idx_[iv1], a, orig_var_idx_[iv2], b));
     MaskVar(iv1);
@@ -139,6 +141,11 @@ void ModelTracker::UpdRhs(Index ic, Bounds rhs) {
     if (WeakEq(rhs.le, rhs.ri)) rhs.le = rhs.ri = (rhs.le + rhs.ri) / 2;
 
     model_.GetRhs(ic) = rhs;
+
+    for (SvIterator el(model_.GetRow(ic)); el; ++el) {
+        UpdLocks(el.index());  // Todo-locks: check old&new rhs
+    }
+
     stat.n_ch_rhs++;
 }
 
@@ -172,6 +179,7 @@ void ModelTracker::UpdCoeff(Index ic, Index iv, Scalar val) {
     if (IsZero(val)) {
         model_.GetRow(ic).EraseIndex(iv);
         model_.GetCol(iv).EraseIndex(ic);
+        UpdLocks(iv);  // Todo-locks: look at val
     }
     stat.n_ch_coeff++;
 }
@@ -243,6 +251,7 @@ void ModelTracker::ImportBounder(Bounder& bounder) {
             FixVar(iv, (model_.GetBounds(iv).le + model_.GetBounds(iv).ri) / 2);
         }
     }
+    CalcLocks();  // Todo-locks: only for changed cons' vars
 }
 
 }  // namespace reshala
