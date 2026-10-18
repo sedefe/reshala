@@ -11,24 +11,10 @@ RuleResult Rule44::Apply(ModelTracker& tracker) {
         if (tracker.VarIsDeleted(iv)) continue;
 
         const Bounds& bnd = model.GetBounds(iv);
-        bool eligible_up = model.GetObj().coefficients[iv] <= 0 and bnd.ri != kInf;
-        bool eligible_down = model.GetObj().coefficients[iv] >= 0 and bnd.le != -kInf;
-
-        for (SvIterator el(model.GetCol(iv)); el & (eligible_up || eligible_down); ++el) {
-            if (tracker.ConIsDeleted(el.index())) continue;
-            const Bounds& rhs = model.GetRhs(el.index());
-            if (rhs.le == -kInf) {
-                eligible_down &= el.value() >= 0;
-                eligible_up &= el.value() <= 0;
-            }
-            if (rhs.ri == kInf) {
-                eligible_down &= el.value() <= 0;
-                eligible_up &= el.value() >= 0;
-            }
-            if (rhs.le != -kInf and rhs.ri != kInf) {
-                eligible_down = eligible_up = false;
-            }
-        }
+        bool eligible_down = model.GetObj().coefficients[iv] >= 0 and bnd.le != -kInf and
+                             tracker.GetLocks().GetNLocks(iv, LockType::kDown) == 0;
+        bool eligible_up = model.GetObj().coefficients[iv] <= 0 and bnd.ri != kInf and
+                           tracker.GetLocks().GetNLocks(iv, LockType::kUp) == 0;
 
         if (eligible_down) {
             Scalar value = bnd.le;
