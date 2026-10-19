@@ -77,6 +77,14 @@ class Locks {
         n_locks_[iv][1] = n_up;
         sum_locks_[iv] = n_down + n_up;
     }
+    inline void Inc(Index iv, LockType lt) {
+        n_locks_[iv][LockType2Index(lt)]++;
+        sum_locks_[iv]++;
+    }
+    inline void Dec(Index iv, LockType lt) {
+        n_locks_[iv][LockType2Index(lt)]--;
+        sum_locks_[iv]--;
+    }
 
     inline Index GetNLocks(Index iv, LockType lt) const { return n_locks_[iv][LockType2Index(lt)]; }
     inline Index GetSumLocks(Index iv) const { return sum_locks_[iv]; }

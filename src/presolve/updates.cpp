@@ -140,11 +140,30 @@ void ModelTracker::RebuildAc() { model_.FinalizeAc(); }
 void ModelTracker::UpdRhs(Index ic, Bounds rhs) {
     if (WeakEq(rhs.le, rhs.ri)) rhs.le = rhs.ri = (rhs.le + rhs.ri) / 2;
 
-    model_.GetRhs(ic) = rhs;
+    Bounds& curr_rhs = model_.GetRhs(ic);
+    const auto& row = model_.GetRow(ic);
 
-    for (SvIterator el(model_.GetRow(ic)); el; ++el) {
-        UpdLocks(el.index());  // Todo-locks: check old&new rhs
+    for (SvIterator el(row); el; ++el) {
+        Index iv = el.index();
+        Scalar val = el.value();
+        if (rhs.le == -kInf and curr_rhs.le != -kInf) {  // Release lower
+            if (val > 0) locks_.Dec(iv, LockType::kDown);
+            if (val < 0) locks_.Dec(iv, LockType::kUp);
+        }
+        if (rhs.le != -kInf and curr_rhs.le == -kInf) {  // Lock lower
+            if (val > 0) locks_.Inc(iv, LockType::kDown);
+            if (val < 0) locks_.Inc(iv, LockType::kUp);
+        }
+        if (rhs.ri == kInf and curr_rhs.ri != kInf) {  // Release upper
+            if (val > 0) locks_.Dec(iv, LockType::kUp);
+            if (val < 0) locks_.Dec(iv, LockType::kDown);
+        }
+        if (rhs.ri != kInf and curr_rhs.ri == kInf) {  // Lock upper
+            if (val > 0) locks_.Inc(iv, LockType::kUp);
+            if (val < 0) locks_.Inc(iv, LockType::kDown);
+        }
     }
+    curr_rhs = rhs;
 
     stat.n_ch_rhs++;
 }
