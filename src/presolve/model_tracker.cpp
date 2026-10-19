@@ -144,9 +144,7 @@ void ModelTracker::UpdLocks(Index iv) {
             if (model_.GetRhs(el.index()).ri != kInf) n_down_locks++;
         }
     }
-    locks_.n_locks[iv][LockType2Index(LockType::kDown)] = n_down_locks;
-    locks_.n_locks[iv][LockType2Index(LockType::kUp)] = n_up_locks;
-    locks_.sum_locks[iv] = n_down_locks + n_up_locks;
+    locks_.Set(iv, n_down_locks, n_up_locks);
 }
 
 void ModelTracker::CalcActivities() {

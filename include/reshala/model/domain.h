@@ -65,18 +65,30 @@ class Domain {
 enum class LockType { kDown = 0, kUp = 1 };
 inline Index LockType2Index(LockType lt) { return static_cast<Index>(lt); }
 
-struct Locks {
-    std::vector<std::array<Index, 2>> n_locks;
-    std::vector<Index> sum_locks;
-
+class Locks {
+   public:
     inline void Resize(Index n) {
-        n_locks.resize(n, {0, 0});
-        sum_locks.resize(n, 0);
+        n_locks_.resize(n, {0, 0});
+        sum_locks_.resize(n, 0);
     }
 
-    inline Index GetNLocks(Index iv, LockType lt) const { return n_locks[iv][LockType2Index(lt)]; }
+    inline void Set(Index iv, Index n_down, Index n_up) {
+        n_locks_[iv][0] = n_down;
+        n_locks_[iv][1] = n_up;
+        sum_locks_[iv] = n_down + n_up;
+    }
 
-    inline void Move(Index i_read, Index i_write) { n_locks[i_write] = std::move(n_locks[i_read]); }
+    inline Index GetNLocks(Index iv, LockType lt) const { return n_locks_[iv][LockType2Index(lt)]; }
+    inline Index GetSumLocks(Index iv) const { return sum_locks_[iv]; }
+
+    inline void Move(Index i_read, Index i_write) {
+        n_locks_[i_write] = std::move(n_locks_[i_read]);
+        sum_locks_[i_write] = std::move(sum_locks_[i_read]);
+    }
+
+   private:
+    std::vector<std::array<Index, 2>> n_locks_;
+    std::vector<Index> sum_locks_;
 };
 
 }  // namespace reshala

@@ -10,7 +10,7 @@ void SortOffsets(std::vector<Index>& target, const std::vector<Index>& indices, 
 
     std::size_t k = std::min(target.size(), max_len);
     std::partial_sort(target.begin(), target.begin() + k, target.end(), [&](Index a, Index b) {
-        return locks.sum_locks[indices[a]] < locks.sum_locks[indices[b]];
+        return locks.GetSumLocks(indices[a]) < locks.GetSumLocks(indices[b]);
     });
 }
 
