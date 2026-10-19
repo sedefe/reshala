@@ -104,18 +104,18 @@ void ModelTracker::CompressVars() {
         row.Resize(i_write);
     }
 
-    // Implications
-    Index new_n_impl = 0;
-    for (Index i = 0; i < implications_.size(); i++) {
-        Index iv1 = implications_[i].x_ind;
-        Index iv2 = implications_[i].y_ind;
-        if (VarIsDeleted(iv1) or VarIsDeleted(iv2)) continue;
-        implications_[i].x_ind = new_index_map[iv1];
-        implications_[i].y_ind = new_index_map[iv2];
-        if (new_n_impl != i) std::swap(implications_[i], implications_[new_n_impl]);
-        new_n_impl++;
-    }
-    implications_.resize(new_n_impl);
+    // // Implications
+    // Index new_n_impl = 0;
+    // for (Index i = 0; i < implications_.size(); i++) {
+    //     Index iv1 = implications_[i].x_ind;
+    //     Index iv2 = implications_[i].y_ind;
+    //     if (VarIsDeleted(iv1) or VarIsDeleted(iv2)) continue;
+    //     implications_[i].x_ind = new_index_map[iv1];
+    //     implications_[i].y_ind = new_index_map[iv2];
+    //     if (new_n_impl != i) std::swap(implications_[i], implications_[new_n_impl]);
+    //     new_n_impl++;
+    // }
+    // implications_.resize(new_n_impl);
 
     model_.Resize(m, n - deleted_vars_.GetNValues());
     locks_.Resize(n - deleted_vars_.GetNValues());
