@@ -6,7 +6,6 @@ RuleResult Rule44::Apply(ModelTracker& tracker) {
     const MilpModel& model = tracker.GetModel();
     Index n_reduced = 0;
 
-    // Todo: count locks?
     for (Index iv = 0; iv < model.GetNVars(); iv++) {
         if (tracker.VarIsDeleted(iv)) continue;
 

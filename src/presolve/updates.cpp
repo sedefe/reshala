@@ -237,13 +237,14 @@ void ModelTracker::ScaleVar(Index iv, Scalar scale) {
 void ModelTracker::SetVarInt(Index iv) {
     const Bounds& bnd = model_.GetBounds(iv);
     model_.SetIntegrality(iv, true);
-    model_.SetBounds(iv, {WeakCeil(bnd.le), WeakFloor(bnd.ri)});
+    UpdVarBounds(iv, {WeakCeil(bnd.le), WeakFloor(bnd.ri)});
 }
 
 void ModelTracker::ImportBounder(Bounder& bounder) {
     std::swap(activities_, bounder.activities);
     std::swap(model_.GetDomain(), bounder.domain);
     for (auto ic : bounder.redundant_con_mask.GetValues()) {  // Mini 3.1
+        UpdRhs(ic, {-kInf, kInf});                            // To update locks
         MaskCon(ic);
     }
     for (auto iv : bounder.all_changed_vars.GetValues()) {  // Mini 4.1
@@ -251,7 +252,6 @@ void ModelTracker::ImportBounder(Bounder& bounder) {
             FixVar(iv, (model_.GetBounds(iv).le + model_.GetBounds(iv).ri) / 2);
         }
     }
-    CalcLocks();  // Todo-locks: only for changed cons' vars
 }
 
 }  // namespace reshala

@@ -89,7 +89,7 @@ bool Bounder::Propagate(Index iv_start, const Bounds& new_bnd) {
                     if (StrongGt(curr_bnd.le, curr_bnd.ri)) {
                         return false;
                     }
-                    if (!changed_vars.Add(iv)) {
+                    if (changed_vars.Add(iv)) {
                         all_changed_vars.Add(iv);
                     }
                 }
