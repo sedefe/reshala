@@ -30,6 +30,7 @@ bool Bounder::Propagate(Index iv_start, const Bounds& new_bnd) {
     Index n_iter = 0;
 
     changed_vars.Add(iv_start);
+    all_changed_vars.Add(iv_start);
 
     Domain old_domain = domain;
     domain.SetBounds(iv_start, new_bnd);
