@@ -158,6 +158,7 @@ void ModelTracker::CalcActivities() {
 void ModelTracker::UpdActivity(Index ic) {
     activities_[ic] = Activity();
     for (SvIterator el(model_.GetRow(ic)); el; ++el) {
+        if (VarIsDeleted(el.index())) continue;
         activities_[ic].AddTerm(el.value(), model_.GetBounds(el.index()));
     }
 }
