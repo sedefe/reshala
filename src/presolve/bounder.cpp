@@ -35,7 +35,7 @@ bool Bounder::Propagate(Index iv_start, const Bounds& new_bnd) {
     Domain old_domain = domain;
     domain.SetBounds(iv_start, new_bnd);
 
-    while (!changed_vars.Empty() and n_iter < kMaxIters) {
+    while (!changed_vars.Empty()) {
         n_iter++;
 
         changed_cons.Clear();
@@ -69,6 +69,10 @@ bool Bounder::Propagate(Index iv_start, const Bounds& new_bnd) {
                     changed_cons.Add(ic);
                 }
             }
+        }
+
+        if (n_iter >= kMaxIters) {  // break here to ensure activities are correct
+            break;
         }
 
         old_domain = domain;

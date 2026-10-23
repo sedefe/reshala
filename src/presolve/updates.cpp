@@ -10,8 +10,8 @@ void ModelTracker::FixVar(Index iv, Scalar val) {
         Index ic = el.index();
         activities_[ic].RmTerm(el.value(), old_bnd);
 
-        const Bounds& rhs = model_.GetRhs(ic);
-        model_.GetRhs(ic) = {rhs.le - el.value() * val, rhs.ri - el.value() * val};
+        Bounds& rhs = model_.GetRhs(ic);
+        rhs = {rhs.le - el.value() * val, rhs.ri - el.value() * val};
     }
 
     transforms_.push_back(std::make_unique<FixVariableTransform>(orig_var_idx_[iv], val));
@@ -145,6 +145,7 @@ void ModelTracker::UpdRhs(Index ic, Bounds rhs) {
 
     for (SvIterator el(row); el; ++el) {
         Index iv = el.index();
+        if (VarIsDeleted(iv)) continue;
         Scalar val = el.value();
         if (rhs.le == -kInf and curr_rhs.le != -kInf) {  // Release lower
             if (val > 0) locks_.Dec(iv, LockType::kDown);
@@ -173,8 +174,10 @@ void ModelTracker::UpdVarBounds(Index iv, Bounds bnd) {
     if (WeakEq(bnd.le, bnd.ri)) bnd.le = bnd.ri = (bnd.le + bnd.ri) / 2;
 
     for (SvIterator el(model_.GetCol(iv)); el; ++el) {
-        activities_[el.index()].RmTerm(el.value(), old_bnd);
-        activities_[el.index()].AddTerm(el.value(), bnd);
+        Index ic = el.index();
+        if (ConIsDeleted(ic)) continue;
+        activities_[ic].RmTerm(el.value(), old_bnd);
+        activities_[ic].AddTerm(el.value(), bnd);
     }
     model_.SetBounds(iv, bnd);
     stat.n_ch_bnd++;

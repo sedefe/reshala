@@ -127,6 +127,7 @@ void ModelTracker::CalcLocks() {
     Index n = model_.GetNVars();
     locks_.Resize(n);
     for (Index iv = 0; iv < n; iv++) {
+        if (VarIsDeleted(iv)) continue;
         UpdLocks(iv);
     }
 }
