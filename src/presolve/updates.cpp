@@ -8,6 +8,7 @@ void ModelTracker::FixVar(Index iv, Scalar val) {
     const Bounds& old_bnd = model_.GetBounds(iv);
     for (SvIterator el(model_.GetCol(iv)); el; ++el) {
         Index ic = el.index();
+        if (ConIsDeleted(ic)) continue;
         activities_[ic].RmTerm(el.value(), old_bnd);
 
         Bounds& rhs = model_.GetRhs(ic);
