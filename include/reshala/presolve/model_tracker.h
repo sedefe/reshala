@@ -68,7 +68,7 @@ class ModelTracker {
     void ScaleCon(Index ic, Scalar scale);
     void ScaleVar(Index iv, Scalar scale);
     void SetVarInt(Index iv);
-    void ImportBounder(Bounder& bounder);
+    Index ImportBounder(Bounder& bounder);
 
     inline Index GetOrigNVars() const { return orig_n_vars_; }
     inline const std::vector<Index>& GetOrigVarIdx() const { return orig_var_idx_; }

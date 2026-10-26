@@ -263,18 +263,23 @@ void ModelTracker::SetVarInt(Index iv) {
     UpdVarBounds(iv, {WeakCeil(bnd.le), WeakFloor(bnd.ri)});
 }
 
-void ModelTracker::ImportBounder(Bounder& bounder) {
+Index ModelTracker::ImportBounder(Bounder& bounder) {
+    Index n_fix_vars = 0, n_rem_cons = 0;
     std::swap(activities_, bounder.activities);
     std::swap(model_.GetDomain(), bounder.domain);
     for (auto ic : bounder.redundant_con_mask.GetValues()) {  // Mini 3.1
         UpdRhs(ic, {-kInf, kInf});                            // To update locks
         MaskCon(ic);
+        n_rem_cons++;
     }
+
     for (auto iv : bounder.all_changed_vars.GetValues()) {  // Mini 4.1
         if (model_.GetType(iv) == BndType::kFixed) {
             FixVar(iv, (model_.GetBounds(iv).le + model_.GetBounds(iv).ri) / 2);
+            n_fix_vars++;
         }
     }
+    return n_rem_cons + n_fix_vars;
 }
 
 }  // namespace reshala

@@ -39,13 +39,11 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
             return RuleResult::kInfeasible;
         }
         if (!results[0]) {
-            tracker.ImportBounder(bounders[1]);
-            n_reduced++;
+            n_reduced += tracker.ImportBounder(bounders[1]);
             continue;
         }
         if (!results[1]) {
-            tracker.ImportBounder(bounders[0]);
-            n_reduced++;
+            n_reduced += tracker.ImportBounder(bounders[0]);
             continue;
         }
 
