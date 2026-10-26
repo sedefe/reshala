@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_set>
 
 #include "reshala/presolve/model_tracker.h"
 #include "reshala/presolve/utils.h"
@@ -132,6 +133,30 @@ class Rule72 : public Rule {
    public:
     Rule72() : Rule("7.2 Probing") {}
     RuleResult Apply(ModelTracker& tracker);
+
+   private:
+    struct BinValue {
+        Index iv;
+        bool val;
+        bool operator==(const BinValue& o) const { return iv == o.iv && val == o.val; }
+        bool operator<(const BinValue& o) const {
+            if (iv != o.iv) return iv < o.iv;
+            return val < o.val;
+        }
+    };
+    struct BinValueHash {
+        std::size_t operator()(const BinValue& bv) const noexcept {
+            std::size_t h = std::hash<Index>{}(bv.iv);
+            if (bv.val) h ^= 0x3AB0D;
+            return h;
+        }
+    };
+
+    std::unordered_map<BinValue, std::unordered_set<BinValue, BinValueHash>, BinValueHash> cliq_implics;
+    std::vector<std::array<Index, 4>> scores;
+
+    Index FindCliques(ModelTracker& tracker);
+    void Score(ModelTracker& tracker);
 };
 
 class Rule76 : public Rule {

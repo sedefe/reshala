@@ -6,29 +6,25 @@ namespace reshala {
 
 RuleResult Rule72::Apply(ModelTracker& tracker) {
     const MilpModel& model = tracker.GetModel();
-    Index n_reduced = 0;
     tracker.GetImplications().clear();
+
+    Index n_reduced = 0, n_probed = 0;
+    const Index kMaxReductions = std::max(1000, (model.GetNCons() + model.GetNVars()) / 20);
 
     std::array<Bounder, 2> bounders = {Bounder{tracker}, Bounder{tracker}};
     std::array<bool, 2> results;
 
-    std::vector<std::pair<Index, Index>> scored_binaries;
-    scored_binaries.reserve(model.GetNVars());
-    for (Index iv = 0; iv < model.GetNVars(); iv++) {
-        if (tracker.VarIsDeleted(iv)) continue;
-        if (!model.IsBinary(iv)) continue;
-        Index score = 0;
-        for (SvIterator el(model.GetCol(iv)); el; ++el) {
-            score += model.GetRow(el.index()).Size() == 2;  // likely an implication
-        }
-        scored_binaries.push_back({-score, iv});
-    }
-    std::sort(scored_binaries.begin(), scored_binaries.end());
+    Index find_cliq_res = FindCliques(tracker);
+    n_reduced += find_cliq_res;
+    Score(tracker);
 
-    for (const auto& pair : scored_binaries) {
-        Index iv = pair.second;
+    for (const auto& cand : scores) {
+        Index iv = cand[3];
         if (tracker.VarIsDeleted(iv)) continue;
         if (!model.IsBinary(iv)) continue;
+
+        n_probed++;
+        if (n_reduced >= kMaxReductions) break;
 
         for (Index i = 0; i < 2; i++) {
             bounders[i].Reset();
@@ -95,6 +91,93 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
     }
 
     return n_reduced > 0 ? RuleResult::kReduced : RuleResult::kUnchanged;
+}
+
+Index Rule72::FindCliques(ModelTracker& tracker) {
+    const MilpModel& model = tracker.GetModel();
+
+    Index res = 0;
+    cliq_implics.clear();
+
+    for (Index ic = 0; ic < model.GetNCons(); ic++) {
+        const auto& row = model.GetRow(ic);
+        const auto& rhs = model.GetRhs(ic);
+
+        auto try_clique = [&](const SparseVector& row, Scalar b, bool negate) {
+            if (b == kInf) return;
+            Index n_neg = 0;
+            for (SvIterator el(row); el; ++el) {
+                if (tracker.VarIsDeleted(el.index())) continue;
+                if (!model.IsBinary(el.index())) {
+                    return;
+                }
+                Scalar a = negate ? -el.value() : el.value();
+                if (a == 1.0) {
+                } else if (a == -1.0)
+                    ++n_neg;
+                else
+                    return;
+            }
+            if (StrongLt(b + n_neg, 1.0)) return;
+            if (WeakGe(b + n_neg, 2.0)) return;
+
+            for (SvIterator el(row); el; ++el) {
+                const Scalar a = negate ? -el.value() : el.value();
+                auto [iter, _] = cliq_implics.try_emplace({el.index(), a > 0});
+                for (SvIterator el1(row); el1; ++el1) {
+                    if (el.index() == el1.index()) continue;
+                    const Scalar a1 = negate ? -el1.value() : el1.value();
+                    iter->second.emplace(BinValue{el1.index(), !(a1 > 0)});
+                }
+            }
+        };
+
+        // if (row.Size() > 2) continue;
+        try_clique(row, rhs.ri, false);  // <= b
+        try_clique(row, -rhs.le, true);  // >= b, negated
+    }
+
+    if (0) {  // Если в импликациях есть пересечения, можно форсить
+        for (Index iv = 0; iv < model.GetNVars(); iv++) {
+            if (tracker.VarIsDeleted(iv)) continue;
+            if (!model.IsBinary(iv)) continue;
+
+            auto it0 = cliq_implics.find({iv, 0});
+            auto it1 = cliq_implics.find({iv, 1});
+            if (it0 != cliq_implics.end() and it1 != cliq_implics.end()) {
+                for (const auto& v : it0->second) {
+                    if (tracker.VarIsDeleted(v.iv)) continue;
+                    auto it2 = it1->second.find(v);
+                    if (it2 != it1->second.end()) {
+                        tracker.FixVar(v.iv, v.val);
+                        res++;
+                    }
+                }
+            }
+        }
+    }
+
+    return res;
+}
+
+void Rule72::Score(ModelTracker& tracker) {
+    const MilpModel& model = tracker.GetModel();
+
+    scores.clear();
+    scores.reserve(model.GetNVars());
+    for (Index iv = 0; iv < model.GetNVars(); iv++) {
+        if (tracker.VarIsDeleted(iv)) continue;
+        if (!model.IsBinary(iv)) continue;
+        Index impl_d = cliq_implics[{iv, 0}].size();
+        Index impl_u = cliq_implics[{iv, 1}].size();
+
+        Index score1 = std::min(5000, impl_d * impl_u);
+        Index score2 = std::min(100, impl_d + impl_u);
+        Index score3 = rand();
+
+        scores.push_back({-score1, -score2, score3, iv});
+    }
+    std::sort(scores.begin(), scores.end());
 }
 
 }  // namespace reshala
