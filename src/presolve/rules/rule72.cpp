@@ -122,12 +122,13 @@ Index Rule72::FindCliques(ModelTracker& tracker) {
             if (WeakGe(b + n_neg, 2.0)) return;
 
             for (SvIterator el(row); el; ++el) {
-                const Scalar a = negate ? -el.value() : el.value();
-                auto [iter, _] = cliq_implics.try_emplace({el.index(), a > 0});
+                bool val = (el.value() > 0) != negate;
+                auto [iter, _] = cliq_implics.try_emplace({el.index(), val});
+                iter->second.reserve(iter->second.size() + row.Size() - 1);  // <len(row) emplacings
                 for (SvIterator el1(row); el1; ++el1) {
                     if (el.index() == el1.index()) continue;
-                    const Scalar a1 = negate ? -el1.value() : el1.value();
-                    iter->second.emplace(BinValue{el1.index(), !(a1 > 0)});
+                    bool val1 = (el1.value() > 0) != negate;
+                    iter->second.emplace(BinValue{el1.index(), !val1});
                 }
             }
         };
