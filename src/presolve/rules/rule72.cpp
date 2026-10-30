@@ -19,17 +19,18 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
     Score(tracker);
 
     for (const auto& cand : scores) {
+        if (n_reduced >= kMaxReductions) break;
+
         Index iv = cand[3];
         if (tracker.VarIsDeleted(iv)) continue;
         if (!model.IsBinary(iv)) continue;
-
-        n_probed++;
-        if (n_reduced >= kMaxReductions) break;
 
         for (Index i = 0; i < 2; i++) {
             bounders[i].Reset();
             results[i] = bounders[i].Propagate(iv, {Scalar(i), Scalar(i)});
         }
+        n_probed++;
+        tracker.GetNProbes(iv)++;
 
         if (!results[0] and !results[1]) {
             return RuleResult::kInfeasible;
@@ -172,7 +173,7 @@ void Rule72::Score(ModelTracker& tracker) {
         Index impl_d = cliq_implics[{iv, 0}].size();
         Index impl_u = cliq_implics[{iv, 1}].size();
 
-        Index score1 = std::min(5000, impl_d * impl_u);
+        Index score1 = std::min(5000, (impl_d * impl_u) / (tracker.GetNProbes(iv) + 1));
         Index score2 = std::min(100, impl_d + impl_u);
         Index score3 = rand();
 

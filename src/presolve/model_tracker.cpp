@@ -12,6 +12,7 @@ ModelTracker::ModelTracker(MilpModel& model)
 
     CalcLocks();
     CalcActivities();
+    n_probes_.assign(model.GetNVars(), 0);
 }
 
 void ModelTracker::CompressCons() {
@@ -79,6 +80,7 @@ void ModelTracker::CompressVars() {
                 model_.GetCol(i_write) = std::move(model_.GetCol(i_read));
                 domain.Move(i_read, i_write);
                 locks_.Move(i_read, i_write);
+                n_probes_[i_read] = n_probes_[i_write];
             }
             new_index_map[i_read] = i_write;
             ++i_write;

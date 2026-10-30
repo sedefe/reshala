@@ -49,6 +49,8 @@ class ModelTracker {
     void CalcActivities();
     void UpdActivity(Index ic);
 
+    inline Index& GetNProbes(Index iv) { return n_probes_[iv]; }
+
     inline std::vector<Implication>& GetImplications() { return implications_; }
     inline const std::vector<Implication>& GetImplications() const { return implications_; }
 
@@ -90,7 +92,7 @@ class ModelTracker {
 
     Locks locks_;
     std::vector<Activity> activities_;
-
+    std::vector<Index> n_probes_;
     std::vector<Implication> implications_;
 
     std::vector<std::unique_ptr<Transform>> transforms_;
