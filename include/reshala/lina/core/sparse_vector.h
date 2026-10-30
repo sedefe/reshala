@@ -19,16 +19,12 @@ class SparseVector {
 
     SparseVector(Index dim) : dim_(dim) {}
     inline static const SparseVector UnitVector(Index dim, Index index) {
-        return SparseVector(dim, {index}, {1.0}, true);
+        return SparseVector(dim, {index}, {1.0});
     }
-    explicit SparseVector(Index dim, const std::vector<Index> &indices,
-                          const std::vector<Scalar> &values, bool sorted) {
+    explicit SparseVector(Index dim, std::vector<Index> indices, std::vector<Scalar> values) {
         dim_ = dim;
         indices_ = std::move(indices);
         values_ = std::move(values);
-        if (!sorted) {
-            Sort();
-        }
     }
     explicit SparseVector(Index dim, const Scalar *array) : dim_(dim) {
         for (Index i = 0; i < dim; i++) {

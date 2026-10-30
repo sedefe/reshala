@@ -17,7 +17,6 @@ void ProbingCg::Generate(const Solution& sol, std::vector<Cut>& dst) {
 
         const Bounds& bnd = model.GetBounds(iv2);
 
-        SparseVector lhs(model.GetNVars());
         Scalar c1, c2;
         Scalar rhs;
 
@@ -59,7 +58,12 @@ void ProbingCg::Generate(const Solution& sol, std::vector<Cut>& dst) {
             }
         }
 
-        Cut cut(CutType::kProbing, SparseVector(dim, {iv1, iv2}, {c1, c2}, false), rhs);
+        const bool sorted = iv1 < iv2;
+        Cut cut(CutType::kProbing,
+                SparseVector(dim, {sorted ? iv1 : iv2, sorted ? iv2 : iv1},
+                             {sorted ? c1 : c2, sorted ? c2 : c1}),
+                rhs);
+
         if (cut.IsViolated(sol.x)) {
             dst.push_back(cut);
         }
