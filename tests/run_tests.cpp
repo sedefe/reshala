@@ -110,7 +110,7 @@ int main() {
 
         bool compare_y_des = CompareScalars(tc.y_desired, tc.sol.y);
         bool compare_y_act = CompareScalars(tc.y_actual, tc.sol.y);
-        printf("%10.5g ", tc.sol.y);
+        printf("%11.5g ", tc.sol.y);
         if (compare_y_des) {
             printf("[%s", MARK_SUCCESS);
         } else {

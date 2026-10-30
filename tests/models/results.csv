@@ -3,6 +3,7 @@ name,status,obj,used
 app2-1,Optimal,19294.25,1
 app2-2,Optimal,212040.5,1
 b-ball,Optimal,-1.5,1
+cap6000,Optimal,-2451279,1
 dcmulti,Optimal,188182,1
 dell,Infeasible,inf,1
 enlight4,Infeasible,inf,1
