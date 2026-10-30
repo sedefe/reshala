@@ -130,6 +130,8 @@ class Rule53 : public Rule {
 };
 
 class Rule72 : public Rule {
+    const Index kBudget = 1000;
+
    public:
     Rule72() : Rule("7.2 Probing") {}
     RuleResult Apply(ModelTracker& tracker);
@@ -152,7 +154,8 @@ class Rule72 : public Rule {
         }
     };
 
-    std::unordered_map<BinValue, std::unordered_set<BinValue, BinValueHash>, BinValueHash> cliq_implics;
+    std::unordered_map<BinValue, std::unordered_set<BinValue, BinValueHash>, BinValueHash>
+        cliq_implics;
     std::vector<std::array<Index, 4>> scores;
 
     Index FindCliques(ModelTracker& tracker);

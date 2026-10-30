@@ -8,6 +8,7 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
     const MilpModel& model = tracker.GetModel();
     tracker.GetImplications().clear();
 
+    Index budget = kBudget;
     Index n_reduced = 0, n_probed = 0;
     const Index kMaxReductions = std::max(1000, (model.GetNCons() + model.GetNVars()) / 20);
 
@@ -20,6 +21,7 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
 
     for (const auto& cand : scores) {
         if (n_reduced >= kMaxReductions) break;
+        if (budget <= 0) break;
 
         Index iv = cand[3];
         if (tracker.VarIsDeleted(iv)) continue;
@@ -29,18 +31,18 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
             bounders[i].Reset();
             results[i] = bounders[i].Propagate(iv, {Scalar(i), Scalar(i)});
         }
+        budget--;
         n_probed++;
         tracker.GetNProbes(iv)++;
 
         if (!results[0] and !results[1]) {
             return RuleResult::kInfeasible;
         }
-        if (!results[0]) {
-            n_reduced += tracker.ImportBounder(bounders[1]);
-            continue;
-        }
-        if (!results[1]) {
-            n_reduced += tracker.ImportBounder(bounders[0]);
+        if (!results[0] || !results[1]) {
+            Index failed_branch = !results[0] ? 0 : 1;
+            Index res = tracker.ImportBounder(bounders[1 - failed_branch]);
+            n_reduced += res;
+            budget += res;
             continue;
         }
 
@@ -61,6 +63,7 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
                     tracker.SimpleSub(iv1, y1 - y0, iv, y0);
                 }
                 n_reduced++;
+                budget++;
                 continue;
             }
 
@@ -73,6 +76,7 @@ RuleResult Rule72::Apply(ModelTracker& tracker) {
             if (GoodBndChange(bnd, derived)) {
                 tracker.UpdVarBounds(iv1, std::move(derived));
                 n_reduced++;
+                budget++;
                 continue;
             }
 
