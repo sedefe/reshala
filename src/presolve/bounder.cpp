@@ -89,13 +89,14 @@ bool Bounder::Propagate(Index iv_start, const Bounds& new_bnd) {
                 Bounds derived = tracker.DeriveBounds(ic, iv, activities[ic], old_bnd, val);
 
                 if (StrongGt(derived.le, curr_bnd.le) or StrongLt(derived.ri, curr_bnd.ri)) {
-                    domain.SetBounds(iv, BoundsIntersection(curr_bnd, derived));
-                    if (StrongGt(curr_bnd.le, curr_bnd.ri)) {
-                        return false;
-                    }
+                    Bounds new_bnd = BoundsIntersection(curr_bnd, derived);
+                    if (StrongGt(new_bnd.le, new_bnd.ri)) return false;
 
-                    if (changed_vars.Add(iv)) {
-                        all_changed_vars.Add(iv);
+                    if (GoodBndChange(curr_bnd, new_bnd)) {
+                        domain.SetBounds(iv, BoundsIntersection(curr_bnd, derived));
+                        if (changed_vars.Add(iv)) {
+                            all_changed_vars.Add(iv);
+                        }
                     }
                 }
             }

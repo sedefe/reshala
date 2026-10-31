@@ -16,14 +16,14 @@ RuleResult Rule32::Apply(ModelTracker& tracker) {
 
             Index iv = el.index();
             Scalar val = el.value();
-            const Bounds& bnd = model.GetBounds(iv);
-            Bounds derived = tracker.DeriveBounds(ic, iv, tracker.GetActivity(ic), bnd, val);
+            const Bounds& curr_bnd = model.GetBounds(iv);
+            Bounds derived = tracker.DeriveBounds(ic, iv, tracker.GetActivity(ic), curr_bnd, val);
 
-            if (StrongGt(derived.le, bnd.le) or StrongLt(derived.ri, bnd.ri)) {
-                Bounds new_bnd = BoundsIntersection(bnd, derived);
+            if (StrongGt(derived.le, curr_bnd.le) or StrongLt(derived.ri, curr_bnd.ri)) {
+                Bounds new_bnd = BoundsIntersection(curr_bnd, derived);
                 if (StrongGt(new_bnd.le, new_bnd.ri)) return RuleResult::kInfeasible;
 
-                if (GoodBndChange(bnd, new_bnd)) {
+                if (GoodBndChange(curr_bnd, new_bnd)) {
                     tracker.UpdVarBounds(iv, std::move(new_bnd));
                     n_reduced++;
                 }
