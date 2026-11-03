@@ -147,11 +147,7 @@ class Rule72 : public Rule {
         }
     };
     struct BinValueHash {
-        std::size_t operator()(const BinValue& bv) const noexcept {
-            std::size_t h = std::hash<Index>{}(bv.iv);
-            if (bv.val) h ^= 0x3AB0D;
-            return h;
-        }
+        std::size_t operator()(const BinValue& bv) const noexcept { return bv.iv ^ (-bv.val); }
     };
 
     std::unordered_map<BinValue, std::unordered_set<BinValue, BinValueHash>, BinValueHash>
