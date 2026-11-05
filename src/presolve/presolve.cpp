@@ -19,6 +19,7 @@ Presolver::Presolver(Reshala& ctx) : ctx_(ctx) {
     hard_rules_.push_back(std::make_unique<Rule47>());
     hard_rules_.push_back(std::make_unique<Rule52>());
     hard_rules_.push_back(std::make_unique<Rule76>());
+    hard_rules_.push_back(std::make_unique<Rule45>());
     hard_rules_.push_back(std::make_unique<Rule72>());
     hard_rules_.push_back(std::make_unique<Rule53>());
 }

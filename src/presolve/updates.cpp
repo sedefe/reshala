@@ -134,6 +134,29 @@ void ModelTracker::SlackSub(Index ic, Index iv, Scalar a) {
     MaskVar(iv);
 }
 
+void ModelTracker::LinCombSub(Index iv, const SparseVector& lc, Scalar a) {
+    for (SvIterator el(model_.GetCol(iv)); el; ++el) {
+        Index ic = el.index();
+        if (ConIsDeleted(ic)) continue;
+        Scalar val = el.value();
+        const auto& rhs = model_.GetRhs(ic);
+        UpdCon(ic, axpy(val, lc, model_.GetRow(ic)));
+        UpdRhs(ic, {rhs.le - a * val, rhs.ri - a * val});
+    }
+
+    Scalar c = model_.GetObj().coefficients[iv];
+    SparseVector sv(model_.GetNVars());
+    sv.Reserve(lc.Size());
+    model_.GetObj().c0 += model_.GetObj().coefficients[iv] * a;
+    for (SvIterator el(lc); el; ++el) {
+        model_.GetObj().coefficients[el.index()] += c * el.value();
+        sv.Push(orig_var_idx_[el.index()], el.value());
+    }
+
+    transforms_.push_back(std::make_unique<LinCombTransform>(orig_var_idx_[iv], sv, a));
+    MaskVar(iv);
+}
+
 void ModelTracker::UpdCon(Index ic, const SparseVector& row) { model_.GetRow(ic) = row; }
 
 void ModelTracker::RebuildAc() { model_.FinalizeAc(); }
