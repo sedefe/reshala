@@ -21,6 +21,7 @@ class Reshala {
     ~Reshala();
 
     FileReadStatus Read(const char* path);
+    const Io& GetIo() const { return io_; }
 
     const MilpModel& GetModel() const { return model_; }
     MilpModel& GetModel() { return model_; }
