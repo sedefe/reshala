@@ -63,6 +63,12 @@ class Rule44 : public Rule {
     RuleResult Apply(ModelTracker& tracker);
 };
 
+class Rule45 : public Rule {
+   public:
+    Rule45() : Rule("4.5 SubFree") {}
+    RuleResult Apply(ModelTracker& tracker);
+};
+
 class Rule46 : public Rule {
    public:
     Rule46() : Rule("4.6 SimSub") {}
