@@ -33,7 +33,7 @@ FileReadStatus LpReader::Parse(std::ifstream& file) {
             multiline = {};
             current_state = LpParseState::kObj;
             continue;
-        } else if (lower_line == "s.t." or lower_line == "subject to") {
+        } else if (lower_line == "st" or lower_line == "s.t." or lower_line == "subject to") {
             ParseObjective(multiline);
             multiline = {};
             current_state = LpParseState::kCon;
@@ -44,18 +44,22 @@ FileReadStatus LpReader::Parse(std::ifstream& file) {
             }
             current_state = LpParseState::kBnd;
             continue;
-        } else if (lower_line == "binaries" or lower_line == "binary") {
+        } else if (lower_line == "bin" or lower_line == "binaries" or lower_line == "binary") {
             if (!matrix_finalized) {
                 FinalizeMatrix();
             }
             current_state = LpParseState::kBin;
             continue;
-        } else if (lower_line == "generals" or lower_line == "integers") {
+        } else if (lower_line == "gen" or lower_line == "generals" or lower_line == "integers") {
             if (!matrix_finalized) {
                 FinalizeMatrix();
             }
             current_state = LpParseState::kGen;
             continue;
+
+        } else if (lower_line == "semi" or lower_line == "semis" or
+                   lower_line == "semi-continuous") {
+            ThrowParseError("No support for semi-continuous yet");
         } else if (lower_line == "end") {
             if (!matrix_finalized) {
                 FinalizeMatrix();
@@ -172,7 +176,8 @@ void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
     if (n == 3) {
         bool var_at_0 = names_.vars.Contains(tokens[0]);
         bool var_at_2 = names_.vars.Contains(tokens[2]);
-        if ((var_at_0 ^ var_at_2) == false) ThrowParseError("Can't parse bounds (unknown var name?)");
+        if ((var_at_0 ^ var_at_2) == false)
+            ThrowParseError("Can't parse bounds (unknown var name?)");
 
         if (var_at_0) {  // "x >= 0"  ->  no swap
             index = names_.vars.GetIndex(tokens[0]);
