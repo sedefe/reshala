@@ -4,6 +4,7 @@
 #include <fstream>
 #include <stdexcept>
 
+#include "reshala/io/abstract_reader.h"
 #include "reshala/io/utils.h"
 #include "reshala/model/milp_model.h"
 
@@ -29,21 +30,14 @@ struct Monom {
     Index index;
 };
 
-class LpReader {
+class LpReader : public AbstractReader {
    public:
-    LpReader(MilpModel& model, Names& names) : model_(model), names_(names) {}
+    LpReader(MilpModel& model, Names& names) : AbstractReader(model, names) {}
     FileReadStatus Parse(std::ifstream& file);
 
    private:
-    MilpModel& model_;
-    Names& names_;
-    Index line_number = 0;
     bool matrix_finalized = false;
     std::vector<std::string> multiline;
-
-    void ThrowParseError(const std::string& message) {
-        throw std::runtime_error("Line " + std::to_string(line_number) + ": " + message + "\n");
-    }
 
     void ParseObjective(const std::vector<std::string>&);
     void ParseConstraint(const std::vector<std::string>&);

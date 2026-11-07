@@ -22,11 +22,13 @@ struct NameMapper {
     std::unordered_map<std::string, Index> name_to_index;
     std::vector<std::string> index_to_name;
 
-    Index GetIndex(const std::string& name) {
+    Index GetIndex(const std::string& name, bool can_add) {
         auto it = name_to_index.find(name);
         if (it != name_to_index.end()) {
             return it->second;
         }
+
+        if (!can_add) return -1;
 
         Index new_index = index_to_name.size();
         name_to_index[name] = new_index;
@@ -34,7 +36,7 @@ struct NameMapper {
         return new_index;
     }
 
-    bool Contains(const std::string& name) {
+    bool Contains(const std::string& name) const {
         return name_to_index.find(name) != name_to_index.end();
     }
 

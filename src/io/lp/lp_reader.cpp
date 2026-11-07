@@ -106,14 +106,14 @@ void LpReader::ParseObjective(const std::vector<std::string>& tokens) {
     Scalar c0;
     Index begin = 0;
     if (tokens.size() >= 1 and tokens[0].back() == ':') {
-        names_.obj.assign(tokens[0], 0, tokens[0].length() - 1);
+        SetObjName(tokens[0]);
         begin = 1;
     }
     Index end = tokens.size();
     ParseLincomb(tokens, lhs, c0, begin, end);
 
     Objective& obj = model_.GetObj();
-    model_.GetObj().coefficients.resize(names_.vars.Size());
+    model_.GetObj().coefficients.resize(GetNVars());
     obj.c0 = c0;
     if (model_.GetObj().orig_sense == Sense::kMin) {
         for (const auto& m : lhs) {
@@ -132,7 +132,7 @@ void LpReader::ParseConstraint(const std::vector<std::string>& tokens) {
     Index begin = 0;
     if (tokens.size() >= 1 and tokens[0].back() == ':') {
         std::string con_name(tokens[0].begin(), tokens[0].end() - 1);
-        names_.cons.GetIndex(con_name);
+        GetConIndex(con_name, true);
         begin = 1;
     }
     Index end = tokens.size() - 2;
@@ -151,7 +151,7 @@ void LpReader::ParseConstraint(const std::vector<std::string>& tokens) {
     Scalar coeff = std::stod(rhs_token);
     Bounds rhs = ExpType2Bounds(exp_type, coeff);
 
-    SparseVector sv(names_.vars.Size());
+    SparseVector sv(GetNVars());
     sv.Reserve(lhs.size());
     for (const auto& m : lhs) {
         if (m.coeff != 0.0) {
@@ -163,33 +163,33 @@ void LpReader::ParseConstraint(const std::vector<std::string>& tokens) {
 
 void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
     size_t n = tokens.size();
+    Index index;
+
     if (n == 2 and tokens[1] == "Free") {
-        Index index = names_.vars.GetIndex(tokens[0]);
+        index = GetVarIndex(tokens[0], false);
         model_.SetBounds(index, {-kInf, kInf});
         return;
     }
     if (n != 3 and n != 5)
         ThrowParseError("Can't parse bounds line: " + std::to_string(n) + " tokens");
 
-    Index index;
     std::vector<std::tuple<bool, ExpType, Scalar>> expressions;
     if (n == 3) {
-        bool var_at_0 = names_.vars.Contains(tokens[0]);
-        bool var_at_2 = names_.vars.Contains(tokens[2]);
+        bool var_at_0 = GetNames().vars.Contains(tokens[0]);
+        bool var_at_2 = GetNames().vars.Contains(tokens[2]);
         if ((var_at_0 ^ var_at_2) == false)
             ThrowParseError("Can't parse bounds (unknown var name?)");
 
         if (var_at_0) {  // "x >= 0"  ->  no swap
-            index = names_.vars.GetIndex(tokens[0]);
+            index = GetVarIndex(tokens[0], false);
             expressions.push_back({false, LpChar2ExpType(tokens[1][0]), std::stod(tokens[2])});
         } else {  // "0 <= x"  ->  swap
-            index = names_.vars.GetIndex(tokens[2]);
+            index = GetVarIndex(tokens[2], false);
             expressions.push_back({true, LpChar2ExpType(tokens[1][0]), std::stod(tokens[0])});
         }
     } else {  // (n == 5)
-        bool var_at_2 = names_.vars.Contains(tokens[2]);
-        if (!var_at_2) ThrowParseError("Can't parse bounds (unknown var name?)");
-        index = names_.vars.GetIndex(tokens[2]);
+        bool var_at_2 = GetNames().vars.Contains(tokens[2]);
+        index = GetVarIndex(tokens[2], false);
         expressions.push_back({true, LpChar2ExpType(tokens[1][0]), std::stod(tokens[0])});
         expressions.push_back({false, LpChar2ExpType(tokens[3][0]), std::stod(tokens[4])});
     }
@@ -223,10 +223,7 @@ void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
 
 void LpReader::ParseBinaries(const std::vector<std::string>& tokens) {
     for (const auto& str : tokens) {
-        if (names_.vars.name_to_index.find(str) == names_.vars.name_to_index.end()) {
-            ThrowParseError("Unexpected variable " + str + " in Binaries section");
-        }
-        auto index = names_.vars.GetIndex(str);
+        auto index = GetVarIndex(str, false);
         model_.SetIntegrality(index, true);
         const Bounds& bnd = model_.GetBounds(index);
         model_.SetBounds(index, BoundsIntersection(bnd, {0, 1}));
@@ -235,10 +232,7 @@ void LpReader::ParseBinaries(const std::vector<std::string>& tokens) {
 
 void LpReader::ParseGenerals(const std::vector<std::string>& tokens) {
     for (const auto& str : tokens) {
-        if (names_.vars.name_to_index.find(str) == names_.vars.name_to_index.end()) {
-            ThrowParseError("Unexpected variable " + str + " in Generals section");
-        }
-        auto index = names_.vars.GetIndex(str);
+        auto index = GetVarIndex(str, false);
         model_.SetIntegrality(index, true);
     }
 }
@@ -309,7 +303,7 @@ void LpReader::ParseLincomb(const std::vector<std::string>& tokens, std::vector<
                 ThrowParseError("Token " + std::to_string(i) + ": expected operator, got \"" +
                                 token + "\"");
 
-            Index idx = names_.vars.GetIndex(token);
+            Index idx = GetVarIndex(token, true);
             lhs.push_back({sign * coeff, idx});
 
             // Reset
@@ -333,7 +327,7 @@ void LpReader::ParseLincomb(const std::vector<std::string>& tokens, std::vector<
 
 void LpReader::FinalizeMatrix() {
     size_t n_cons = model_.GetAr().GetRows().size();
-    size_t n_vars = names_.vars.Size();
+    size_t n_vars = GetNVars();
     model_.Resize(n_cons, n_vars);
     model_.FinalizeAc();
     matrix_finalized = true;

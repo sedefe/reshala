@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <unordered_set>
 
+#include "reshala/io/abstract_reader.h"
 #include "reshala/io/utils.h"
 #include "reshala/model/milp_model.h"
 
@@ -29,24 +30,17 @@ inline ExpType MpsChar2ExpType(char c) {
 enum class MpsBoundType { kLO, kUP, kFX, kFR, kMI, kPL, kBV, kLI, kUI, kNon };
 MpsBoundType Str2MpsBoundType(const std::string&);
 
-class MpsReader {
+class MpsReader : public AbstractReader {
    public:
-    MpsReader(MilpModel& model, Names& names) : model_(model), names_(names) {}
+    MpsReader(MilpModel& model, Names& names) : AbstractReader(model, names) {}
     FileReadStatus Parse(std::ifstream& file);
 
    private:
-    MilpModel& model_;
-    Names& names_;
-    Index line_number = 0;
-
     bool has_obj = false;
     bool int_marker = false;
+
     std::vector<ExpType> con_types;
     std::unordered_set<std::string> discarded_free_rows;
-
-    void ThrowParseError(const std::string& message) {
-        throw std::runtime_error("Line " + std::to_string(line_number) + ": " + message + "\n");
-    }
 
     void ParseRows(const std::vector<std::string>&);
     void ParseColumns(const std::vector<std::string>&);
