@@ -64,6 +64,9 @@ class Rule44 : public Rule {
 };
 
 class Rule45 : public Rule {
+    const Scalar kMinAbsPivot = 1e-2;
+    const Scalar kMaxFillin = 1e-2;
+
    public:
     Rule45() : Rule("4.5 SubFree") {}
     RuleResult Apply(ModelTracker& tracker);
