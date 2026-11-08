@@ -33,6 +33,6 @@ int main(int argc, char** argv) {
         std::cout << "Objective: " << FMT(-10, 5) << y << "\n";
         auto rep = model.GetFeasReport(sol.x);
         std::cout << rep << "\n";
-        // reshala.GetIo().PrintValues(std::cout, sol.x);
+        // reshala.PrintSolution(std::cout, sol.x);
     }
 }

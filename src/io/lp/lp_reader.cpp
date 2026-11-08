@@ -132,7 +132,7 @@ void LpReader::ParseConstraint(const std::vector<std::string>& tokens) {
     Index begin = 0;
     if (tokens.size() >= 1 and tokens[0].back() == ':') {
         std::string con_name(tokens[0].begin(), tokens[0].end() - 1);
-        GetConIndex(con_name, true);
+        GetOrAddCon(con_name);
         begin = 1;
     }
     Index end = tokens.size() - 2;
@@ -163,11 +163,11 @@ void LpReader::ParseConstraint(const std::vector<std::string>& tokens) {
 
 void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
     size_t n = tokens.size();
-    Index index;
+    Index iv;
 
     if (n == 2 and tokens[1] == "Free") {
-        index = GetVarIndex(tokens[0], false);
-        model_.SetBounds(index, {-kInf, kInf});
+        iv = LookupVar(tokens[0]);
+        model_.SetBounds(iv, {-kInf, kInf});
         return;
     }
     if (n != 3 and n != 5)
@@ -181,15 +181,15 @@ void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
             ThrowParseError("Can't parse bounds (unknown var name?)");
 
         if (var_at_0) {  // "x >= 0"  ->  no swap
-            index = GetVarIndex(tokens[0], false);
+            iv = LookupVar(tokens[0]);
             expressions.push_back({false, LpChar2ExpType(tokens[1][0]), std::stod(tokens[2])});
         } else {  // "0 <= x"  ->  swap
-            index = GetVarIndex(tokens[2], false);
+            iv = LookupVar(tokens[2]);
             expressions.push_back({true, LpChar2ExpType(tokens[1][0]), std::stod(tokens[0])});
         }
     } else {  // (n == 5)
         bool var_at_2 = GetNames().vars.Contains(tokens[2]);
-        index = GetVarIndex(tokens[2], false);
+        iv = LookupVar(tokens[2]);
         expressions.push_back({true, LpChar2ExpType(tokens[1][0]), std::stod(tokens[0])});
         expressions.push_back({false, LpChar2ExpType(tokens[3][0]), std::stod(tokens[4])});
     }
@@ -204,16 +204,16 @@ void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
             else if (type == ExpType::kLe)
                 type = ExpType::kGe;
         }
-        const Bounds& bnd = model_.GetBounds(index);
+        const Bounds& bnd = model_.GetBounds(iv);
         switch (type) {
             case ExpType::kGe:
-                model_.SetBounds(index, BoundsIntersection(bnd, {rhs, kInf}));
+                model_.SetBounds(iv, BoundsIntersection(bnd, {rhs, kInf}));
                 break;
             case ExpType::kLe:
-                model_.SetBounds(index, BoundsIntersection(bnd, {-kInf, rhs}));
+                model_.SetBounds(iv, BoundsIntersection(bnd, {-kInf, rhs}));
                 break;
             case ExpType::kEq:
-                model_.SetBounds(index, BoundsIntersection(bnd, {rhs, rhs}));
+                model_.SetBounds(iv, BoundsIntersection(bnd, {rhs, rhs}));
                 break;
             default:
                 assert(false && "Unknown ExpType");
@@ -223,7 +223,7 @@ void LpReader::ParseBounds(const std::vector<std::string>& tokens) {
 
 void LpReader::ParseBinaries(const std::vector<std::string>& tokens) {
     for (const auto& str : tokens) {
-        auto index = GetVarIndex(str, false);
+        auto index = LookupVar(str);
         model_.SetIntegrality(index, true);
         const Bounds& bnd = model_.GetBounds(index);
         model_.SetBounds(index, BoundsIntersection(bnd, {0, 1}));
@@ -232,7 +232,7 @@ void LpReader::ParseBinaries(const std::vector<std::string>& tokens) {
 
 void LpReader::ParseGenerals(const std::vector<std::string>& tokens) {
     for (const auto& str : tokens) {
-        auto index = GetVarIndex(str, false);
+        auto index = LookupVar(str);
         model_.SetIntegrality(index, true);
     }
 }
@@ -303,7 +303,7 @@ void LpReader::ParseLincomb(const std::vector<std::string>& tokens, std::vector<
                 ThrowParseError("Token " + std::to_string(i) + ": expected operator, got \"" +
                                 token + "\"");
 
-            Index idx = GetVarIndex(token, true);
+            Index idx = GetOrAddVar(token);
             lhs.push_back({sign * coeff, idx});
 
             // Reset

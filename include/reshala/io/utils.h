@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -18,20 +19,19 @@ std::string to_lowercase(const std::string& s);
 
 std::vector<std::string> tokenize_line(const std::string& line);
 
-struct NameMapper {
-    std::unordered_map<std::string, Index> name_to_index;
-    std::vector<std::string> index_to_name;
-
-    Index GetIndex(const std::string& name, bool can_add) {
+class NameMapper {
+   public:
+    std::optional<Index> Lookup(const std::string& name) const {
         auto it = name_to_index.find(name);
-        if (it != name_to_index.end()) {
-            return it->second;
-        }
+        if (it == name_to_index.end()) return std::nullopt;
+        return it->second;
+    }
 
-        if (!can_add) return -1;
+    Index GetOrAdd(const std::string& name) {
+        if (auto idx = Lookup(name)) return *idx;
 
-        Index new_index = index_to_name.size();
-        name_to_index[name] = new_index;
+        Index new_index = static_cast<Index>(index_to_name.size());
+        name_to_index.emplace(name, new_index);
         index_to_name.push_back(name);
         return new_index;
     }
@@ -43,6 +43,10 @@ struct NameMapper {
     const std::string& GetName(Index index) const { return index_to_name.at(index); }
 
     Index Size() const { return index_to_name.size(); }
+
+   private:
+    std::unordered_map<std::string, Index> name_to_index;
+    std::vector<std::string> index_to_name;
 };
 
 struct Names {

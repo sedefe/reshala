@@ -24,16 +24,20 @@ class AbstractReader {
 
     const std::string& GetObjName() const { return names_.obj; }
     void SetObjName(const std::string& name) { names_.obj = name; }
-    Index GetConIndex(const std::string& name, bool can_add) {
-        auto res = names_.cons.GetIndex(name, can_add);
-        if (res < 0) ThrowParseError("Unexpected constraint: " + name);
-        return res;
+
+    Index LookupCon(const std::string& name) const {
+        if (auto idx = names_.cons.Lookup(name)) return *idx;
+        ThrowParseError("Unexpected constraint: " + name);
+        return -1;
     }
-    Index GetVarIndex(const std::string& name, bool can_add) {
-        auto res = names_.vars.GetIndex(name, can_add);
-        if (res < 0) ThrowParseError("Unexpected variable: " + name);
-        return res;
+    Index GetOrAddCon(const std::string& name) { return names_.cons.GetOrAdd(name); }
+
+    Index LookupVar(const std::string& name) const {
+        if (auto idx = names_.vars.Lookup(name)) return *idx;
+        ThrowParseError("Unexpected variable: " + name);
+        return -1;
     }
+    Index GetOrAddVar(const std::string& name) { return names_.vars.GetOrAdd(name); }
 
     const Names& GetNames() const { return names_; }
     Index GetNCons() const { return names_.cons.Size(); }

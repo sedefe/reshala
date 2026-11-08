@@ -98,7 +98,7 @@ void MpsReader::ParseRows(const std::vector<std::string>& tokens) {
     ExpType exp_type = MpsChar2ExpType(sense);
 
     if (exp_type != ExpType::kNon) {
-        GetConIndex(name, true);
+        GetOrAddCon(name);
         con_types.push_back(exp_type);
         model_.GetRhs().push_back(ExpType2Bounds(exp_type, 0.0));
     } else {
@@ -128,7 +128,7 @@ void MpsReader::ParseColumns(const std::vector<std::string>& tokens) {
             model_.GetVars().Push({}, false);
         }
     }
-    Index var_index = GetVarIndex(tokens[0], true);
+    Index iv = GetOrAddVar(tokens[0]);
     for (Index i = 1; i < tokens.size(); i += 2) {
         if (discarded_free_rows.find(tokens[i]) != discarded_free_rows.end()) {
             continue;  // Skip free rows
@@ -136,15 +136,15 @@ void MpsReader::ParseColumns(const std::vector<std::string>& tokens) {
 
         Scalar coeff = std::stod(tokens[i + 1]);
         if (tokens[i] != GetObjName()) {
-            Index ic = GetConIndex(tokens[i], false);
+            Index ic = LookupCon(tokens[i]);
             if (ic >= model_.GetNCons()) {
                 ThrowParseError("Constraint did not appear in ROWS: " + tokens[i]);
             }
             if (coeff != 0.0) {
-                model_.GetRow(ic).Push(var_index, coeff);
+                model_.GetRow(ic).Push(iv, coeff);
             }
         } else {
-            model_.GetObj().coefficients[var_index] = coeff;
+            model_.GetObj().coefficients[iv] = coeff;
         }
     }
 }
@@ -157,7 +157,7 @@ void MpsReader::ParseRhs(const std::vector<std::string>& tokens) {
         if (tokens[i] == GetObjName()) {  // Todo: check specs for objective rhs
             continue;
         }
-        Index ic = GetConIndex(tokens[i], false);
+        Index ic = LookupCon(tokens[i]);
         Scalar rhs = std::stod(tokens[i + 1]);
         model_.GetRhs(ic) = ExpType2Bounds(con_types[ic], rhs);
     }
@@ -168,7 +168,7 @@ void MpsReader::ParseRanges(const std::vector<std::string>& tokens) {
         ThrowParseError("Bad RANGES section");
     }
     for (Index i = 1; i < tokens.size(); i += 2) {
-        Index ic = GetConIndex(tokens[i], false);
+        Index ic = LookupCon(tokens[i]);
         Scalar range = std::stod(tokens[i + 1]);
         Bounds& rhs = model_.GetRhs(ic);
         switch (con_types[ic]) {
@@ -197,42 +197,42 @@ void MpsReader::ParseBounds(const std::vector<std::string>& tokens) {
     }
 
     auto type = Str2MpsBoundType(tokens[0]);
-    Index var_index = GetVarIndex(tokens[2], false);
+    Index iv = LookupVar(tokens[2]);
     Scalar value;
     switch (type) {
         case MpsBoundType::kLI:  // integer kLO
             value = std::stod(tokens[3]);
-            model_.SetIntegrality(var_index, true);
+            model_.SetIntegrality(iv, true);
             if (value == 0.0) {
                 // "To specify general integers with no upper bounds, use LI with the value 0.0."
-                model_.SetBounds(var_index, {0, kInf});
+                model_.SetBounds(iv, {0, kInf});
             }
         case MpsBoundType::kLO:
             value = std::stod(tokens[3]);
-            model_.SetBounds(var_index, {value, model_.GetBounds(var_index).ri});
+            model_.SetBounds(iv, {value, model_.GetBounds(iv).ri});
             break;
         case MpsBoundType::kUI:  // integer kUI
-            model_.SetIntegrality(var_index, true);
+            model_.SetIntegrality(iv, true);
         case MpsBoundType::kUP:
             value = std::stod(tokens[3]);
-            model_.SetBounds(var_index, {model_.GetBounds(var_index).le, value});
+            model_.SetBounds(iv, {model_.GetBounds(iv).le, value});
             break;
         case MpsBoundType::kFX:
             value = std::stod(tokens[3]);
-            model_.SetBounds(var_index, {value, value});
+            model_.SetBounds(iv, {value, value});
             break;
         case MpsBoundType::kFR:
-            model_.SetBounds(var_index, {-kInf, kInf});
+            model_.SetBounds(iv, {-kInf, kInf});
             break;
         case MpsBoundType::kMI:
-            model_.SetBounds(var_index, {-kInf, model_.GetBounds(var_index).ri});
+            model_.SetBounds(iv, {-kInf, model_.GetBounds(iv).ri});
             break;
         case MpsBoundType::kPL:
-            model_.SetBounds(var_index, {model_.GetBounds(var_index).le, kInf});
+            model_.SetBounds(iv, {model_.GetBounds(iv).le, kInf});
             break;
         case MpsBoundType::kBV:
-            model_.SetBounds(var_index, {0, 1});
-            model_.SetIntegrality(var_index, true);
+            model_.SetBounds(iv, {0, 1});
+            model_.SetIntegrality(iv, true);
             break;
         default:
             ThrowParseError("Unsupported bound type: " + tokens[0]);

@@ -24,6 +24,17 @@ FileReadStatus Reshala::Read(const char* path) {
 
 Solution Reshala::Solve() { return milp_->Solve(); }
 
+void Reshala::PrintSolution(std::ostream& os, const std::vector<Scalar>& x) const {
+    const auto& names = GetIo().GetNames();
+    assert(names.vars.Size() == x.size());
+    for (Index iv = 0; iv < x.size(); iv++) {
+        if (!IsZero(x[iv])) {
+            os << names.vars.GetName(iv) << ": " << x[iv] << " ";
+        }
+    }
+    os << "\n";
+}
+
 void Reshala::PrintStats(std::ostream& os) const {
     os << "=== Stats ===\n";
     os << ds_->GetLina().GetStats();

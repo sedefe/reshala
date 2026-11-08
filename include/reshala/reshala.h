@@ -46,6 +46,7 @@ class Reshala {
 
     Solution Solve();
 
+    void PrintSolution(std::ostream& os, const std::vector<Scalar>& x) const;
     void PrintStats(std::ostream& os) const;
 
    private:

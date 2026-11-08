@@ -7,7 +7,7 @@ namespace reshala {
 
 class Io {
    public:
-    Io(MilpModel& model) : model_(model), mps_reader_(model_, names_), lp_reader_(model_, names_) {}
+    Io(MilpModel& model) : model_(model) {}
 
     reshala::FileReadStatus Read(const char* path) {
         std::filesystem::path file_path(path);
@@ -20,40 +20,28 @@ class Io {
         std::string extension = to_lowercase(file_path.extension().string());
 
         if (extension == ".mps") {
-            try {
-                return mps_reader_.Parse(file);
-            } catch (const std::runtime_error& e) {
-                std::cerr << e.what();
-                return FileReadStatus::kParseError;
-            }
+            reader_ = std::make_unique<MpsReader>(model_, names_);
         } else if (extension == ".lp") {
-            try {
-                return lp_reader_.Parse(file);
-            } catch (const std::runtime_error& e) {
-                std::cerr << e.what();
-                return FileReadStatus::kParseError;
-            }
+            reader_ = std::make_unique<LpReader>(model_, names_);
         } else {
             std::cerr << "Unsupported file format: " << extension + "\n";
             return FileReadStatus::kFsError;
         }
+        try {
+            return reader_->Parse(file);
+        } catch (const std::runtime_error& e) {
+            std::cerr << e.what();
+            return FileReadStatus::kParseError;
+        }
     }
 
-    void PrintValues(std::ostream& os, const std::vector<Scalar>& x) const {
-        assert(names_.vars.Size() == x.size());
-        for (Index iv = 0; iv < x.size(); iv++) {
-            if (!IsZero(x[iv])) {
-                os << names_.vars.index_to_name[iv] << ": " << x[iv] << " ";
-            }
-        }
-        os << "\n";
-    }
+    const Names& GetNames() const { return names_; }
 
    private:
     MilpModel& model_;
     Names names_;
-    MpsReader mps_reader_;
-    LpReader lp_reader_;
+
+    std::unique_ptr<AbstractReader> reader_;
 };
 
 }  // namespace reshala
