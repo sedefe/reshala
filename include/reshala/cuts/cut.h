@@ -78,7 +78,7 @@ struct Cut {
         Scalar denominator(1);
         for (SvIterator el(lhs); el; ++el) {
             const auto& bounds = model.GetBounds(el.index());
-            if (x[el.index()] > bounds.le + kEpsZero and x[el.index()] < bounds.ri - kEpsZero) {
+            if (StrongGt(x[el.index()], bounds.le) and StrongLt(x[el.index()], bounds.ri)) {
                 denominator += el.value() * el.value();
             }
         }
