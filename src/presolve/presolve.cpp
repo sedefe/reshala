@@ -6,7 +6,7 @@ inline bool RuleSuccess(RuleResult status) {
     return status == RuleResult::kReduced or status == RuleResult::kInfeasible;
 }
 
-Presolver::Presolver(MilpModel& model) : model_(model) {
+Presolver::Presolver(Reshala& ctx) : ctx_(ctx) {
     simple_rules_.push_back(std::make_unique<Rule31>());
     simple_rules_.push_back(std::make_unique<Rule32>());
     simple_rules_.push_back(std::make_unique<Rule33>());
@@ -49,8 +49,8 @@ void Presolver::SimplePresolve(bool verbose) {
     }
 }
 
-LpStatus Presolver::Presolve(bool verbose, bool hard) {
-    tracker_ = std::make_unique<ModelTracker>(model_);
+LpStatus Presolver::Presolve(MilpModel& model, bool verbose, bool hard) {
+    tracker_ = std::make_unique<ModelTracker>(model);
 
     if (verbose) PrintHeader();
 
@@ -81,22 +81,22 @@ LpStatus Presolver::Presolve(bool verbose, bool hard) {
         }
     }
 
-    if (verbose) std::cout << "After presolve: " << model_.StatString() << "\n";
+    if (verbose) std::cout << "After presolve: " << model.StatString() << "\n";
 
     if (status_ == RuleResult::kInfeasible) {
         if (verbose) std::cout << "Presolve proved infeasibility\n";
         return LpStatus::kInfeasible;
     }
-    if (model_.GetNVars() == 0) {
-        assert(model_.GetNCons() == 0);
+    if (model.GetNVars() == 0) {
+        assert(model.GetNCons() == 0);
         if (verbose) std::cout << "Presolve reduced to empty\n";
         return LpStatus::kOptimal;
     }
 
     {  // Check if there are free vars
         Index n_free = 0;
-        for (Index iv = 0; iv < model_.GetNVars(); iv++)
-            n_free += model_.GetType(iv) == BndType::kFree;
+        for (Index iv = 0; iv < model.GetNVars(); iv++)
+            n_free += model.GetType(iv) == BndType::kFree;
         if (n_free > 0) {
             std::cerr << "No support for free variables yet, but there are " << n_free
                       << " of them\n";
@@ -123,7 +123,7 @@ Solution Presolver::Postsolve(const Solution& sol) {
     assert(sol.status == LpStatus::kOptimal);
 
     Solution res = sol;
-    res.y = model_.GetObj().evaluate(sol.x);
+    res.y = tracker_->GetModel().GetObj().evaluate(sol.x);
 
     res.x.assign(tracker_->GetOrigNVars(), kNan);
     for (Index iv = 0; iv < sol.x.size(); iv++) {
@@ -145,7 +145,7 @@ void Presolver::PrintStat(const Rule& rule, const PresolveStat& stat) const {
     std::cout << std::left << std::setw(12) << rule.GetName() << ": " << std::right << std::setw(5)
               << stat.n_rm_con << " " << std::setw(5) << stat.n_rm_var << " " << std::setw(5)
               << stat.n_ch_bnd << " " << std::setw(5) << stat.n_ch_rhs << " " << std::setw(5)
-              << stat.n_ch_coeff << " " << std::setw(6) << model_.GetNnz() << "\n";
+              << stat.n_ch_coeff << " " << std::setw(6) << tracker_->GetModel().GetNnz() << "\n";
 }
 
 }  // namespace reshala

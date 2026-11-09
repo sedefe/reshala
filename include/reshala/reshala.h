@@ -2,12 +2,13 @@
 
 #include <memory>
 
-#include "reshala/io/io.h"
+#include "reshala/io/utils.h"
 #include "reshala/model/milp_model.h"
-#include "reshala/presolve/presolve.h"
 
 namespace reshala {
 
+class Io;
+class Presolver;
 class DualSimplex;
 class MipTracker;
 class HeuristicManager;
@@ -21,7 +22,7 @@ class Reshala {
     ~Reshala();
 
     FileReadStatus Read(const char* path);
-    const Io& GetIo() const { return io_; }
+    const Io& GetIo() const { return *io_; }
 
     const MilpModel& GetModel() const { return model_; }
     MilpModel& GetModel() { return model_; }
@@ -50,9 +51,9 @@ class Reshala {
     void PrintStats(std::ostream& os) const;
 
    private:
-    Io io_;
     MilpModel model_;
 
+    std::unique_ptr<Io> io_;
     std::unique_ptr<Presolver> presolver_;
     std::unique_ptr<DualSimplex> ds_;
     std::unique_ptr<MipTracker> mip_tracker_;

@@ -2,12 +2,13 @@
 
 #include "reshala/io/lp/lp_reader.h"
 #include "reshala/io/mps/mps_reader.h"
+#include "reshala/reshala.h"
 
 namespace reshala {
 
 class Io {
    public:
-    Io(MilpModel& model) : model_(model) {}
+    Io(Reshala& ctx) : ctx_(ctx), model_(ctx.GetModel()) {}
 
     reshala::FileReadStatus Read(const char* path) {
         std::filesystem::path file_path(path);
@@ -38,6 +39,8 @@ class Io {
     const Names& GetNames() const { return names_; }
 
    private:
+    Reshala& ctx_;
+
     MilpModel& model_;
     Names names_;
 

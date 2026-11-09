@@ -17,10 +17,10 @@ Solution Diving::InternalRun(const Solution& relaxed) {
 
     auto n_fixed = Fixing(fixing_type_, model, relaxed.x);
 
-    Presolver presolver(model);
+    Presolver presolver(ctx_);
     bool do_presolve = n_fixed > 0;
     if (do_presolve) {
-        LpStatus presolve_status = presolver.Presolve(false, false);
+        LpStatus presolve_status = presolver.Presolve(model, false, false);
         if (presolve_status != LpStatus::kUnknown) {
             return presolver.Postsolve({presolve_status, {}, {}});
         }

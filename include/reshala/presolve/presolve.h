@@ -1,26 +1,25 @@
 #pragma once
 
-#include <map>
-#include <memory>
-
 #include "reshala/model/milp_model.h"
 #include "reshala/presolve/model_tracker.h"
 #include "reshala/presolve/rules.h"
+#include "reshala/reshala.h"
 
 namespace reshala {
 
 class Presolver {
    public:
-    Presolver(MilpModel& model);
+    Presolver(Reshala& ctx);
 
     void SimplePresolve(bool verbose);
-    LpStatus Presolve(bool verbose, bool hard = true);
+    LpStatus Presolve(MilpModel& model, bool verbose, bool hard = true);
     Solution Postsolve(const Solution&);
 
     inline const ModelTracker& GetTracker() const { return *tracker_; }
 
    private:
-    MilpModel& model_;
+    Reshala& ctx_;
+
     std::unique_ptr<ModelTracker> tracker_;
     RuleResult status_;
 
