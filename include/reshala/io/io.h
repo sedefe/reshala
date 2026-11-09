@@ -1,6 +1,7 @@
 #pragma once
 
 #include "reshala/io/lp/lp_reader.h"
+#include "reshala/io/lp/lp_writer.h"
 #include "reshala/io/mps/mps_reader.h"
 #include "reshala/reshala.h"
 
@@ -8,7 +9,7 @@ namespace reshala {
 
 class Io {
    public:
-    Io(Reshala& ctx) : ctx_(ctx), model_(ctx.GetModel()) {}
+    Io(Reshala& ctx) : ctx_(ctx), model_(ctx.GetModel()), writer_(ctx) {}
 
     reshala::FileReadStatus Read(const char* path) {
         std::filesystem::path file_path(path);
@@ -38,6 +39,8 @@ class Io {
 
     const Names& GetNames() const { return names_; }
 
+    void PrintModel(std::ostream& os, const MilpModel& model) const { writer_.PrintModel(os, model); }
+
    private:
     Reshala& ctx_;
 
@@ -45,6 +48,7 @@ class Io {
     Names names_;
 
     std::unique_ptr<AbstractReader> reader_;
+    LpWriter writer_;
 };
 
 }  // namespace reshala

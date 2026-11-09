@@ -25,6 +25,10 @@ FileReadStatus Reshala::Read(const char* path) {
 
 Solution Reshala::Solve() { return milp_->Solve(); }
 
+void Reshala::PrintModel(std::ostream& os, const MilpModel& model) const {
+    io_->PrintModel(os, model);
+}
+
 void Reshala::PrintSolution(std::ostream& os, const std::vector<Scalar>& x) const {
     const auto& names = io_->GetNames();
     assert(names.vars.Size() == x.size());

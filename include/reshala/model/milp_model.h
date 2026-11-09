@@ -81,7 +81,6 @@ class MilpModel {
 
     void PrepareSolution(Solution& sol) const;
 
-    friend std::ostream& operator<<(std::ostream& os, const MilpModel& model);
     const std::string StatString() const {
         return std::to_string(GetNCons()) + " x " + std::to_string(GetNVars()) + ", " +
                std::to_string(GetNInts()) + " ints, " + std::to_string(GetNnz()) + " nnz";

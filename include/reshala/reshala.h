@@ -47,6 +47,7 @@ class Reshala {
 
     Solution Solve();
 
+    void PrintModel(std::ostream& os, const MilpModel& model) const;
     void PrintSolution(std::ostream& os, const std::vector<Scalar>& x) const;
     void PrintStats(std::ostream& os) const;
 
