@@ -58,12 +58,15 @@ RuleResult Rule45::Apply(ModelTracker& tracker) {
 
                 tracker.MaskCon(ic);
                 tracker.LinCombSub(iv, sv, a);
-                tracker.MaskVar(iv);
                 tracker.RebuildAc();
-                tracker.CalcActivities();
-                for (SvIterator el(row); el; ++el) {
-                    if (tracker.VarIsDeleted(el.index())) continue;
-                    tracker.UpdLocks(el.index());
+
+                for (SvIterator el1(col); el1; ++el1) {
+                    if (tracker.ConIsDeleted(el1.index())) continue;
+                    tracker.UpdActivity(el1.index());
+                }
+                for (SvIterator el1(row); el1; ++el1) {
+                    if (tracker.VarIsDeleted(el1.index())) continue;
+                    tracker.UpdLocks(el1.index());
                 }
 
                 n_reduced++;
