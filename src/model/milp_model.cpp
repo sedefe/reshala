@@ -101,7 +101,10 @@ void MilpModel::PruneSlacks() {
     }
 }
 
-void MilpModel::FinalizeAc() { Srm2Scm(Ar_, Ac_); }
+void MilpModel::FinalizeAc() {
+    Srm2Scm(Ar_, Ac_);
+    UpdNnz();
+}
 
 void MilpModel::PrepareSolution(Solution& sol) const {
     if (sol.status != LpStatus::kOptimal) {

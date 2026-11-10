@@ -15,6 +15,19 @@ ModelTracker::ModelTracker(MilpModel& model)
     n_probes_.assign(model.GetNVars(), 0);
 }
 
+void ModelTracker::TryCompress() {
+    bool upd_nnz = false;
+    if (GetNDeletedCons() > 0) {
+        CompressCons();
+        upd_nnz = true;
+    }
+    if (GetNDeletedVars() > 0) {
+        CompressVars();
+        upd_nnz = true;
+    }
+    if (upd_nnz) model_.UpdNnz();
+}
+
 void ModelTracker::CompressCons() {
     auto m = model_.GetNCons();
     auto n = model_.GetNVars();

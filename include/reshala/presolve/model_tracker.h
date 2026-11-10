@@ -35,8 +35,7 @@ class ModelTracker {
     inline bool ConIsDeleted(Index ic) const { return deleted_cons_.Get(ic); }
     inline bool VarIsDeleted(Index ic) const { return deleted_vars_.Get(ic); }
 
-    void CompressCons();
-    void CompressVars();
+    void TryCompress();
 
     // Tracking info
     inline const std::vector<Activity>& GetActivities() const { return activities_; }
@@ -96,6 +95,9 @@ class ModelTracker {
     std::vector<Implication> implications_;
 
     std::vector<std::unique_ptr<Transform>> transforms_;
+
+    void CompressCons();
+    void CompressVars();
 };
 
 }  // namespace reshala

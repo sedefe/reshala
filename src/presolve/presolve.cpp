@@ -43,8 +43,7 @@ void Presolver::SimplePresolve(bool verbose) {
             }
             if (rule_result == RuleResult::kInfeasible) break;
 
-            if (tracker_->GetNDeletedCons() > 0) tracker_->CompressCons();
-            if (tracker_->GetNDeletedVars() > 0) tracker_->CompressVars();
+            tracker_->TryCompress();
         }
     }
 }
@@ -71,8 +70,7 @@ LpStatus Presolver::Presolve(MilpModel& model, bool verbose, bool hard) {
                     if (verbose) PrintStat(*rule, rule_stat);
 
                     if (rule_result == RuleResult::kReduced) {
-                        if (tracker_->GetNDeletedCons() > 0) tracker_->CompressCons();
-                        if (tracker_->GetNDeletedVars() > 0) tracker_->CompressVars();
+                        tracker_->TryCompress();
                         SimplePresolve(verbose);
                     }
                     break;

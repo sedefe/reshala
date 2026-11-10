@@ -16,7 +16,6 @@ std::ostream& operator<<(std::ostream& os, const ScaleStats& stats) {
 
 ScaleReport::ScaleReport(const SparseRowMatrix& A) {
     frob_norm = 0.0;
-    Index nnz = A.GetNnz();
     Scalar mx = -kInf, mn = kInf, val;
     for (Index ic = 0; ic < A.GetNRows(); ic++) {
         if (A.GetRow(ic).Size() == 0) continue;

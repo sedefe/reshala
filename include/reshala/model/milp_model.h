@@ -14,7 +14,8 @@ class MilpModel {
 
     inline Index GetNCons() const { return Ac_.GetNRows(); }
     inline Index GetNVars() const { return Ac_.GetNCols(); }
-    Index GetNnz() const { return Ac_.GetNnz(); }
+    inline Index GetNnz() const { return nnz_; }
+    inline void UpdNnz() { nnz_ = Ac_.GetNnz(); }
     Index GetNInts() const {
         Index res = 0;
         for (Index iv = 0; iv < GetNVars(); iv++) res += domain_.GetIntegrality(iv);
@@ -94,6 +95,7 @@ class MilpModel {
     Domain domain_;
 
     bool has_slacks_ = false;
+    Index nnz_ = 0;
 };
 
 }  // namespace reshala
