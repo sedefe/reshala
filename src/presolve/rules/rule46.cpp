@@ -5,7 +5,7 @@ namespace reshala {
 RuleResult Rule46::Apply(ModelTracker& tracker) {
     const MilpModel& model = tracker.GetModel();
     Index n_reduced = 0;
-    Index size = 0;
+
     for (Index ic = 0; ic < model.GetNCons(); ic++) {
         if (tracker.ConIsDeleted(ic)) continue;
 
@@ -14,19 +14,15 @@ RuleResult Rule46::Apply(ModelTracker& tracker) {
         Scalar b = (rhs.ri + rhs.le) / 2;
 
         const auto& row = model.GetRow(ic);
-        SparseVector compressed_row(model.GetNVars());
 
-        for (SvIterator el(row); el; ++el) {  // Check if there's exactly 2 vars
-            if (tracker.VarIsDeleted(el.index())) continue;
-            compressed_row.Push(el.index(), el.value());
-            if (compressed_row.Size() > 2) break;
-        }
-        if (compressed_row.Size() != 2) continue;
+        if (row.Size() != 2) continue;
 
-        Index i1 = compressed_row.indices()[0];
-        Index i2 = compressed_row.indices()[1];
-        Scalar v1 = compressed_row.values()[0];
-        Scalar v2 = compressed_row.values()[1];
+        Index i1 = row.indices()[0];
+        Index i2 = row.indices()[1];
+        if (tracker.VarIsDeleted(i1) or tracker.VarIsDeleted(i2)) continue;
+
+        Scalar v1 = row.values()[0];
+        Scalar v2 = row.values()[1];
 
         if (std::abs(v1) < std::abs(v2)) {
             std::swap(i1, i2);
