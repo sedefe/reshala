@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <unordered_map>
 
 #include "reshala/model/implication.h"
 #include "reshala/model/milp_model.h"

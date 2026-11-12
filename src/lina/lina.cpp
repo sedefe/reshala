@@ -17,9 +17,7 @@ Lina::Lina(const SparseColMatrix& Ac, const SparseRowMatrix& Ar, const LpBasis* 
       Lc(m, m),
       Uc(m, m),
       u_diag(m),
-      ftran_res(m) {
-    Refactor();
-}
+      ftran_res(m) {}
 
 std::ostream& operator<<(std::ostream& os, const LinaStats& stats) {
     Scalar avg_fillin = stats.total_nnz_b > 0

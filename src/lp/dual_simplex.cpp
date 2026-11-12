@@ -136,6 +136,8 @@ Solution DualSimplex::Solve(bool warm) {
     if (sol.status == LpStatus::kOptimal) {
         RefreshSolution();
         model_orig_->PrepareSolution(sol);
+    } else {
+        sol.y = kInf;
     }
 
     return sol;

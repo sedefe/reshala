@@ -31,7 +31,7 @@ void CmirCg::Generate(const Solution& sol, std::vector<Cut>& dst) {
 
 bool CmirCg::PrepareRow(Index ic, SparseVector& lhs) {
     MilpModel& model = ctx_.GetModel();
-    DualSimplex& ds = ctx_.GetDs();
+    const DualSimplex& ds = ctx_.GetDs();
 
     Index m = model.GetNCons();
     Index n = model.GetNVars();
