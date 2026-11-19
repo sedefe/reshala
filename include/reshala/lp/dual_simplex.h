@@ -87,6 +87,7 @@ class DualSimplex {
     Scalar theta_p, theta_d;
     Scalar a_pq;
     Scalar c_q;
+    Scalar x_q;
 
     Index iv_leaving, iv_entering;
 
@@ -97,7 +98,7 @@ class DualSimplex {
     void Chuzc();
     void Ftran();
     bool Update();
-    bool RebuildAll();
+    bool Rebuild();
 
     void RefreshSolution();
 

@@ -2,7 +2,7 @@
 
 namespace reshala {
 
-bool DualSimplex::RebuildAll() {
+bool DualSimplex::Rebuild() {
     auto res = lina.Refactor();
     if (res != LinaResult::kOk) {
         // std::cerr << "Rebuild: degenerate basis\n";
@@ -87,19 +87,13 @@ bool DualSimplex::RebuildAll() {
 }
 
 bool DualSimplex::Update() {
-    auto x_q_old = GetXnValue(iv_entering);
-    auto c_q_old = c_n[iv_entering];
-    basis.Swap(iv_leaving, iv_entering);
-
-    if (lina.GetAge() >= kMaxLinaAge) {
-        return RebuildAll();
-    }
     auto res = lina.Update(iv_leaving, iv_entering);
     if (res != LinaResult::kOk) {
         // std::cerr << "Update: degenerate basis\n";
         return false;
     }
 
+    auto c_q_old = c_n[iv_entering];
     {  // Update c_n
         for (Index iv = 0; iv < n; iv++) {
             Scalar old = c_n[iv];
@@ -124,7 +118,7 @@ bool DualSimplex::Update() {
         for (Index ic = 0; ic < m; ic++) {
             x_b[ic] -= theta_p * a_q[ic];
         }
-        x_b[iv_leaving] = theta_p + x_q_old;
+        x_b[iv_leaving] = theta_p + x_q;
     }
 
     sol.y += c_q_old * theta_p * model_.GetObj().mult;

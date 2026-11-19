@@ -25,7 +25,7 @@ void DualSimplex::SetModel(MilpModel& model) {
 
 void DualSimplex::SetBasis(const LpBasis& new_basis) {
     basis = new_basis;
-    RebuildAll();
+    Rebuild();
 }
 
 void DualSimplex::Init() {
@@ -117,7 +117,15 @@ Solution DualSimplex::Solve(bool warm) {
             }
         }
 
-        auto res = Update();
+        basis.Swap(iv_leaving, iv_entering);
+
+        bool res;
+        if (lina.GetAge() >= kMaxLinaAge) {
+            res = Rebuild();
+        } else {
+            res = Update();
+        }
+
         if (!res) {
             // std::cerr << "Aborting DS\n";
             stats.num_issues[NumIssue::kDegenBasis]++;

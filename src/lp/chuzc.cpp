@@ -41,6 +41,7 @@ void DualSimplex::Chuzc() {
         //     //     d_n[iv_entering] * delta_c;
         // }
 
+        x_q = GetXnValue(iv_entering);
         theta_p = d_n[iv_entering] * primal_infeasibility / a_pq;
         theta_d = s_p * c_q / a_pq;
     }
