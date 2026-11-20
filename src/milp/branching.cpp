@@ -1,5 +1,4 @@
 #include <array>
-#include <limits>
 
 #include "reshala/lp/dual_simplex.h"
 #include "reshala/milp/branching.h"
@@ -7,7 +6,7 @@
 
 namespace reshala {
 
-Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
+Index Branching::Branch(Node& parent, DualSimplex& ds) {
     Index candidate;
     bool candidate_used_ps;
     Scalar best_score;
@@ -35,9 +34,9 @@ Index FullStrong::Branch(Node& parent, DualSimplex& ds) {
             const Scalar floor_x = Floor(x_val);
             const Scalar ceil_x = floor_x + 1;
 
-            Bounds orig_bnd = model_.GetBounds(iv);
-            Bounds cand_bounds[2] = {{orig_bnd.le, floor_x}, {ceil_x, orig_bnd.ri}};
-            Scalar dxs[2] = {x_val - floor_x, ceil_x - x_val};
+            const Bounds orig_bnd = model_.GetBounds(iv);
+            const Bounds cand_bounds[2] = {{orig_bnd.le, floor_x}, {ceil_x, orig_bnd.ri}};
+            const Scalar dxs[2] = {x_val - floor_x, ceil_x - x_val};
 
             bool use_ps = false and hist_.IsEnough(iv);
             if (use_ps) {
