@@ -10,6 +10,8 @@
 
 namespace reshala {
 
+enum class RebuildCause { kHz = 0, kInit = 1, kAge = 2, kMbOpt = 3, kMbInf = 4, kNumIssue = 5 };
+
 struct DsState {
     DenseVector c_n;
     DenseVector x_b;
@@ -62,6 +64,8 @@ class DualSimplex {
 
     void GetBasicRow(Index ic, DenseVector& res) const;
 
+    inline bool IsFresh() const { return lina.GetAge() == 0; }
+
    private:
     Reshala& ctx_;
 
@@ -98,7 +102,7 @@ class DualSimplex {
     void Chuzc();
     void Ftran();
     bool Update();
-    bool Rebuild();
+    bool Rebuild(RebuildCause cause);
 
     void RefreshSolution();
 

@@ -25,7 +25,7 @@ void DualSimplex::SetModel(MilpModel& model) {
 
 void DualSimplex::SetBasis(const LpBasis& new_basis) {
     basis = new_basis;
-    Rebuild();
+    Rebuild(RebuildCause::kInit);
 }
 
 void DualSimplex::Init() {
@@ -83,60 +83,78 @@ Solution DualSimplex::Solve(bool warm) {
 
     sol.status = LpStatus::kUnknown;
     Scalar cutoff = ctx_.GetMip().GetCutoff();
+    RebuildCause rebuild_cause = RebuildCause::kHz;
 
     while (true) {
-        stats.n_iter += 1;
-        // DebugPrint();
+        while (true) {
+            stats.n_iter += 1;
+            Chuzr();
+            if (iv_leaving < 0) {
+                rebuild_cause = RebuildCause::kMbOpt;
+                break;
+            }
+            // std::cout << "Leaving: " << iv_leaving << " (" << basis.Basis()[iv_leaving]
+            //           << "), pinf: " << primal_infeasibility << "\n";
 
-        Chuzr();
-        if (iv_leaving < 0) {
-            sol.status = LpStatus::kOptimal;
-            break;
-        }
-        // std::cout << "Leaving: " << iv_leaving << " (" << basis.Basis()[iv_leaving]
-        //           << "), pinf: " << primal_infeasibility << "\n";
+            GetBasicRow(iv_leaving, a_p);
 
-        GetBasicRow(iv_leaving, a_p);
+            Chuzc();
+            if (iv_entering < 0) {
+                rebuild_cause = RebuildCause::kMbInf;
+                break;
+            }
+            // std::cout << "Entering: " << iv_entering << " (" << basis.NonBasis()[iv_entering]
+            //           << "), a_pq: " << a_pq << "\n";
 
-        Chuzc();
-        if (iv_entering < 0) {
-            sol.status = LpStatus::kInfeasible;
-            break;
-        }
-        // std::cout << "Entering: " << iv_entering << " (" << basis.NonBasis()[iv_entering]
-        //           << "), a_pq: " << a_pq << "\n";
+            Ftran();
 
-        Ftran();
+            {
+                auto a_pq_bt = a_p[iv_entering];
+                auto a_pq_ft = a_q[iv_leaving];
+                if (std::abs(a_pq_bt - a_pq_ft) > 0.1) {
+                    // std::cerr << "a_pq diverged: " << a_pq_bt << " vs " << a_pq_ft << "\n";
+                    stats.num_issues[NumIssue::kApq]++;
+                    rebuild_cause = RebuildCause::kNumIssue;
+                    break;
+                }
+            }
 
-        {
-            auto a_pq_bt = a_p[iv_entering];
-            auto a_pq_ft = a_q[iv_leaving];
-            if (std::abs(a_pq_bt - a_pq_ft) > 0.1) {
-                // std::cerr << "a_pq diverged: " << a_pq_bt << " vs " << a_pq_ft << "\n";
-                stats.num_issues[NumIssue::kApq]++;
+            basis.Swap(iv_leaving, iv_entering);
+
+            if (lina.GetAge() >= kMaxLinaAge) {
+                rebuild_cause = RebuildCause::kAge;
+                break;
+            }
+
+            auto upd_res = Update();
+            if (!upd_res) {
+                rebuild_cause = RebuildCause::kNumIssue;
+                break;
             }
         }
 
-        basis.Swap(iv_leaving, iv_entering);
-
-        bool res;
-        if (lina.GetAge() >= kMaxLinaAge) {
-            res = Rebuild();
-        } else {
-            res = Update();
+        {
+            if (rebuild_cause == RebuildCause::kMbOpt) {
+                sol.status = LpStatus::kOptimal;
+                break;
+            }
+            if (rebuild_cause == RebuildCause::kMbInf) {
+                sol.status = LpStatus::kInfeasible;
+                break;
+            }
+            if (sol.y >= cutoff) {
+                stats.n_dropped++;
+                sol.status = LpStatus::kDropped;
+                break;
+            }
         }
 
-        if (!res) {
+        auto rebuild_res = Rebuild(rebuild_cause);
+        if (!rebuild_res) {
             // std::cerr << "Aborting DS\n";
             stats.num_issues[NumIssue::kDegenBasis]++;
             stats.n_aborted++;
             sol.status = LpStatus::kInfeasible;
-            break;
-        }
-
-        if (sol.y >= cutoff) {
-            stats.n_dropped++;
-            sol.status = LpStatus::kDropped;
             break;
         }
     }

@@ -72,8 +72,8 @@ LinaResult Lina::Refactor() {
             Lr.GetRow(i).Push(k, factor);  // Store multiplier in L
 
             // row_i = row_i - factor * row_k
-            row_i = axpy(-factor, row_k, row_i);
             row_i.EraseOffset(0);
+            row_i = axpy(-factor, row_k, row_i);
             if (row_i.Empty()) {
                 // std::cerr << "Empty row " << i << "\n";
                 return LinaResult::kDegenerate;

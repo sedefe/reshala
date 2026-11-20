@@ -2,7 +2,7 @@
 
 namespace reshala {
 
-bool DualSimplex::Rebuild() {
+bool DualSimplex::Rebuild(RebuildCause cause) {
     auto res = lina.Refactor();
     if (res != LinaResult::kOk) {
         // std::cerr << "Rebuild: degenerate basis\n";
@@ -66,7 +66,7 @@ bool DualSimplex::Rebuild() {
                     assert(false);
             }
         }
-        if (iv_entering >= 0) {
+        if (cause == RebuildCause::kAge) {
             // If the rebuild caused by simplex, d_n[iv_entering] is defined by s_p
             BndType type = model_.GetType(basis.NonBasis()[iv_entering]);
             d_n[iv_entering] = (type == BndType::kFixed) ? 0 : (s_p > 0 ? -1 : 1);
