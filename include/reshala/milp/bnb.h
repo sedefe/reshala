@@ -20,6 +20,7 @@ class BnbSolver {
     void Solve(const Solution& relaxed);
 
     inline const BnbStats& GetStats() const { return stats; }
+    inline const Branching& GetBranching() const { return branching_; }
 
    private:
     Reshala& ctx_;

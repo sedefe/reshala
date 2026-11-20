@@ -1,10 +1,17 @@
+#include "reshala/milp/branching.h"
+
 #include <array>
 
 #include "reshala/lp/dual_simplex.h"
-#include "reshala/milp/branching.h"
 #include "reshala/utils.h"
 
 namespace reshala {
+
+std::ostream& operator<<(std::ostream& os, const BranchStats& stats) {
+    Scalar avg_n_iters = Scalar(stats.n_lp_iters) / std::max(1, stats.n_lps);
+    os << "Branching: " << stats.n_lps << " LPs, " << avg_n_iters << " iters/LP\n";
+    return os;
+}
 
 Index Branching::Branch(Node& parent, DualSimplex& ds) {
     Index candidate;
@@ -47,7 +54,12 @@ Index Branching::Branch(Node& parent, DualSimplex& ds) {
                 for (Index i = 0; i < 2; ++i) {
                     ds.Restore(parent.ds_state);
                     ds.SetBounds(iv, cand_bounds[i]);
-                    sols[i] = ds.Solve(true);
+                    {
+                        auto n_iters = ds.GetStats().n_iter;
+                        sols[i] = ds.Solve(true);
+                        stats.n_lps++;
+                        stats.n_lp_iters += ds.GetStats().n_iter - n_iters;
+                    }
                     gains[i] = sols[i].y - parent.sol.y;
 
                     if (sols[i].status == LpStatus::kOptimal) {

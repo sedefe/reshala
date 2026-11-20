@@ -11,6 +11,12 @@ namespace reshala {
 
 const Scalar kFsbMu = 1. / 6.;
 
+struct BranchStats {
+    Index n_lps = 0;
+    Index n_lp_iters = 0;
+};
+std::ostream& operator<<(std::ostream& os, const BranchStats& stats);
+
 class Branching {
    public:
     Branching(Reshala& ctx, History& hist)
@@ -32,12 +38,17 @@ class Branching {
                           : ((children_[0].sol.y < children_[1].sol.y) ? 0 : 1));
     }
 
-   protected:
+    inline const BranchStats& GetStats() const { return stats; }
+
+   private:
     Reshala& ctx_;
     const MilpModel& model_;
     MipTracker& mip_tracker_;
     HeuristicManager& heur_manager_;
     History& hist_;
+
+    BranchStats stats;
+
     std::array<Node, 2> children_;
     Index best_child_;
 };

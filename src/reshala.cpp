@@ -48,6 +48,7 @@ void Reshala::PrintStats(std::ostream& os) const {
     heur_manager_->PrintStats(os);
     os << cutter_->GetStats();
     os << bnb_->GetStats();
+    os << bnb_->GetBranching().GetStats();
 }
 
 }  // namespace reshala
