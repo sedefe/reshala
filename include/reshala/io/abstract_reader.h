@@ -12,6 +12,7 @@ namespace reshala {
 class AbstractReader {
    public:
     AbstractReader(MilpModel& model, Names& names) : model_(model), names_(names) {}
+    virtual ~AbstractReader() = default;
     virtual FileReadStatus Parse(std::ifstream& file) = 0;
 
    protected:
