@@ -2,6 +2,26 @@
 
 namespace reshala {
 
+std::string RebuildCause2Str(RebuildCause cause) {
+    switch (cause) {
+        case RebuildCause::kHz:
+            return "X3";
+        case RebuildCause::kInit:
+            return "Init";
+        case RebuildCause::kAge:
+            return "Lina aged";
+        case RebuildCause::kMbOpt:
+            return "Mb optimal";
+        case RebuildCause::kMbInf:
+            return "Mb Infeasible";
+        case RebuildCause::kNumIssue:
+            return "Num issue";
+        default:
+            assert(false && "Unknown rebuild cause");
+            return "";
+    }
+}
+
 std::string NumIssue2Str(NumIssue ni) {
     switch (ni) {
         case NumIssue::kDegenBasis:

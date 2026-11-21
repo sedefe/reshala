@@ -11,6 +11,7 @@
 namespace reshala {
 
 enum class RebuildCause { kHz = 0, kInit = 1, kAge = 2, kMbOpt = 3, kMbInf = 4, kNumIssue = 5 };
+std::string RebuildCause2Str(RebuildCause cause);
 
 struct DsState {
     DenseVector c_n;
