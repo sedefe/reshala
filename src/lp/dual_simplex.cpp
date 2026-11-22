@@ -12,6 +12,7 @@ void DualSimplex::SetModel(MilpModel& model) {
     basis = LpBasis(m, n);
     c_n.resize(n);
     x_b.resize(m);
+    w_dse.resize(m);
     a_p.resize(n);
     a_q.resize(m);
     d_n.resize(n);
@@ -74,6 +75,8 @@ void DualSimplex::Init() {
     for (Scalar& x : x_b) x = -x;
 
     RefreshSolution();
+
+    w_dse.assign(m, 1.);
 }
 
 Solution DualSimplex::Solve(bool warm) {

@@ -36,6 +36,7 @@ std::ostream& operator<<(std::ostream& os, const DsStats& stats);
 class DualSimplex {
     const Scalar kPivotTolerance = 1e-6;
     const Index kMaxLinaAge = 50;
+    const Scalar kMinDseWeight = 1e-4;
 
    public:
     DualSimplex(Reshala& ctx) : ctx_(ctx) {}
@@ -83,6 +84,7 @@ class DualSimplex {
 
     DenseVector c_n;
     DenseVector x_b;
+    DenseVector w_dse;
     DenseVector a_p;
     DenseVector a_q;
     std::vector<int8_t> d_n;  // типы небазисных переменных
